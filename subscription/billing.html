@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing History — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <style>
+    .billing-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 26px; }
+    @media(max-width:768px){
+      .billing-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Billing & Invoices</h1>
+            <p class="topbar-sub">Manage your plan billing methods, update credit card details, and view payment histories.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="billing-layout">
+          <!-- Active Subscription Details -->
+          <div class="card reveal">
+            <h3 class="section-title">Current Plan</h3>
+            <div style="background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:var(--radius-sm);padding:20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+              <div>
+                <span class="badge" style="margin-bottom:8px;">Active</span>
+                <h2 style="font-size:22px;font-family:'Outfit';font-weight:700;">Pro Artist Plan</h2>
+                <p style="font-size:12px;color:var(--text4);margin-top:4px;">Next renewal payment: <strong>Aug 15, 2026 ($9.99)</strong></p>
+              </div>
+              <a href="/subscription/plans.html" class="btn btn-secondary btn-sm">Change Plan</a>
+            </div>
+            <p style="font-size:13px;color:var(--text3);line-height:1.6;">Your Pro Artist subscription gives you unlimited releases across 150+ stores, custom release analytics, and smart release generators.</p>
+          </div>
+
+          <!-- Payment Methods Management -->
+          <div class="card reveal reveal-delay-1">
+            <h3 class="section-title">Payment Methods</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:20px;background:rgba(255,255,255,0.01);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:24px;">💳</span>
+                <div>
+                  <strong style="font-size:14px;">Visa ending in 4242</strong>
+                  <div style="font-size:11px;color:var(--text4);margin-top:2px;">Expires 12/28 | Default payment card</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Verification modal initialized','info')">Edit</button>
+            </div>
+            <button type="button" class="btn btn-secondary btn-full" onclick="showToast('Payment method form loaded','info')">+ Add New Payment Method</button>
+          </div>
+        </div>
+
+        <!-- Invoices List -->
+        <div class="card reveal reveal-delay-2">
+          <h3 class="section-title">Invoice Billing History</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice ID</th>
+                  <th>Date</th>
+                  <th>Billing Plan</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>INV-260715</td>
+                  <td>Jul 15, 2026</td>
+                  <td>Pro Artist Plan (Monthly Renewal)</td>
+                  <td>$9.99</td>
+                  <td><span class="badge badge-green">●  Paid</span></td>
+                  <td><button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Invoice INV-260715 downloaded','success')">Download Invoice</button></td>
+                </tr>
+                <tr>
+                  <td>INV-260615</td>
+                  <td>Jun 15, 2026</td>
+                  <td>Pro Artist Plan (Monthly Renewal)</td>
+                  <td>$9.99</td>
+                  <td><span class="badge badge-green">●  Paid</span></td>
+                  <td><button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Invoice INV-260615 downloaded','success')">Download Invoice</button></td>
+                </tr>
+                <tr>
+                  <td>INV-260515</td>
+                  <td>May 15, 2026</td>
+                  <td>Pro Artist Plan (First Signup)</td>
+                  <td>$9.99</td>
+                  <td><span class="badge badge-green">●  Paid</span></td>
+                  <td><button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Invoice INV-260515 downloaded','success')">Download Invoice</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+  <script>
+    renderArtistSidebar('billing');
+  </script>
+</body>
+</html>

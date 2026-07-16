@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Royalty Management — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Royalty Management</h1>
+            <p class="topbar-sub">Approve payout withdrawal requests, audit monthly store distribution reports.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Stats Summary -->
+        <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="stat-card reveal">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+            <div class="stat-label">Pending Payout Requests</div>
+            <div class="stat-value">$0.00</div>
+            <div class="stat-change neutral">Ready to process</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-1">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--purple-light)"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg></div>
+            <div class="stat-label">Processed This Month</div>
+            <div class="stat-value">$0.00</div>
+            <div class="stat-change">▲ 0% MoM payout volume</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-2">
+            <div class="stat-icon">⚖️ </div>
+            <div class="stat-label">System Withheld Taxes</div>
+            <div class="stat-value">$0.00</div>
+            <div class="stat-change neutral">10% standard reserve</div>
+          </div>
+        </div>
+
+        <!-- Pending Payout Queue -->
+        <div class="card reveal reveal-delay-3" style="margin-bottom:26px;">
+          <div class="section-row">
+            <h3 class="section-title">Pending Payout Requests</h3>
+            <button type="button" class="btn btn-primary btn-sm" onclick="processAllPayouts()">Process All Selected</button>
+          </div>
+          <div class="table-wrap">
+            <table id="payoutsTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" checked onclick="toggleSelectAllPayouts(this)" style="width:16px;height:16px;" /></th>
+                  <th>Artist / User</th>
+                  <th>Requested Date</th>
+                  <th>Payout Method</th>
+                  <th>Account Details</th>
+                  <th>Amount</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dynamically populated via JS, will show empty message if no requests -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Latest Distribution Cycles -->
+        <div class="card reveal reveal-delay-4">
+          <div class="section-row">
+            <h3 class="section-title">Store Sales Cycles</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Distribution cycle processing job started','info')">Run Distribution Cycle</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cycle Period</th>
+                  <th>Calculation Date</th>
+                  <th>Total Accounts Paid</th>
+                  <th>Gross Sales Collected</th>
+                  <th>Stores Accounted</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:24px;color:var(--text4);">Belum ada siklus distribusi.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js?v=6"></script>
+  <script>
+    renderAdminSidebar('royalties');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPayoutRequests();
+    });
+
+    function loadPayoutRequests() {
+      const db = getNelaDB();
+      const tbody = document.querySelector('#payoutsTable tbody');
+      tbody.innerHTML = '';
+
+      const pendingWithdrawals = db.transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending');
+
+      if (pendingWithdrawals.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text4);padding:24px;">No pending withdrawal requests.</td></tr>`;
+        return;
+      }
+
+      pendingWithdrawals.forEach(t => {
+        const row = document.createElement('tr');
+        row.id = t.id;
+        const formatAmt = t.currency === 'IDR' ? `Rp ${Math.abs(t.amount).toLocaleString()}` : `$${Math.abs(t.amount).toFixed(2)}`;
+        row.innerHTML = `
+          <td><input type="checkbox" checked class="payout-check" value="${t.id}" style="width:16px;height:16px;" /></td>
+          <td>
+            <strong style="font-size:14px;">${t.user || 'Alex Johnson'}</strong>
+            <div style="font-size:11px;color:var(--text4)">${t.user ? t.user.toLowerCase().replace(' ', '') : 'alex.johnson'}@example.com</div>
+          </td>
+          <td>${t.date}</td>
+          <td>${t.method}</td>
+          <td style="max-width:200px;line-height:1.4;">${t.accountDetails || (t.method && t.method.includes('PayPal') ? 'alex.johnson@example.com' : 'Chase Bank ****5012')}</td>
+          <td style="font-weight:600;color:var(--green)">${formatAmt}</td>
+          <td>
+            <button type="button" class="btn btn-success btn-sm" onclick="processPayout('${t.id}', '${t.user || "Alex Johnson"}')">Approve Transfer</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      const totalPending = pendingWithdrawals.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      document.querySelector('.stats-grid .stat-card .stat-value').textContent = '$' + totalPending.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function toggleSelectAllPayouts(el) {
+      document.querySelectorAll('.payout-check').forEach(ch => ch.checked = el.checked);
+    }
+
+    function processPayout(txnId, userName) {
+      const db = getNelaDB();
+      const t = db.transactions.find(x => x.id === txnId);
+      if (t) {
+        t.status = 'completed';
+        const absAmt = Math.abs(t.amount);
+        
+        // Deduct from the specific user's analytics
+        if (t.userId) {
+          const userKey = `userAnalytics_${t.userId}`;
+          const uA = JSON.parse(localStorage.getItem(userKey));
+          if (uA) {
+            uA.netRoyalty = Math.max((uA.netRoyalty || 0) - absAmt, 0);
+            localStorage.setItem(userKey, JSON.stringify(uA));
+          }
+        }
+        
+        // Update global counters
+        if (db.balances.pending >= absAmt) db.balances.pending -= absAmt;
+        db.balances.withdrawn += absAmt;
+        
+        saveNelaDB(db);
+        showToast(`Payout processed successfully to ${userName}.`,'success');
+        loadPayoutRequests();
+      }
+    }
+
+    function processAllPayouts() {
+      const selected = Array.from(document.querySelectorAll('.payout-check:checked')).map(el => el.value);
+      if (selected.length === 0) {
+        showToast('Please select at least one payout request.','warning');
+        return;
+      }
+      
+      const db = getNelaDB();
+      selected.forEach(txnId => {
+        const t = db.transactions.find(x => x.id === txnId);
+        if (t) {
+          t.status = 'completed';
+          const absAmt = Math.abs(t.amount);
+          
+          if (t.userId) {
+            const userKey = `userAnalytics_${t.userId}`;
+            const uA = JSON.parse(localStorage.getItem(userKey));
+            if (uA) {
+              uA.netRoyalty = Math.max((uA.netRoyalty || 0) - absAmt, 0);
+              localStorage.setItem(userKey, JSON.stringify(uA));
+            }
+          }
+          
+          if (db.balances.pending >= absAmt) db.balances.pending -= absAmt;
+          db.balances.withdrawn += absAmt;
+        }
+      });
+      
+      saveNelaDB(db);
+      showToast('All selected payouts processed.','success');
+      loadPayoutRequests();
+    }
+  </script>
+</body>
+</html>

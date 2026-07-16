@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Admin Dashboard</h1>
+            <p class="topbar-sub">Overview of users, artists, platforms performance, and approvals.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Stats Summary -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+          <div class="stat-card reveal reveal-delay-1" style="grid-column: span 2;">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg></div>
+            <div class="stat-label">Total Transfer Payouts</div>
+            <div class="stat-value" id="statsTotalPayouts" style="color:var(--green)">Rp 0</div>
+            <div class="stat-change">Total dana yang berhasil dicairkan</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-2">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue-light)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value" id="statsTotalUsers">0</div>
+            <div class="stat-change">▲ 0.0% this week</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-3">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yellow)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+            <div class="stat-label">Pending Releases</div>
+            <div class="stat-value" id="statsPendingReleases" style="color:var(--yellow)">0</div>
+            <div class="stat-change neutral">Needs urgent review</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-4">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+            <div class="stat-label">Monthly Revenue</div>
+            <div class="stat-value">$0.00</div>
+            <div class="stat-change">▲ 0.0% MRR</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-5">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--purple-light)"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg></div>
+            <div class="stat-label">Pending Withdrawals</div>
+            <div class="stat-value" id="statsPendingWithdrawals" style="color:var(--purple-light)">Rp 0</div>
+            <div class="stat-change neutral">Ready to process</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:26px;">
+          <!-- User Registrations Chart -->
+          <div class="chart-card reveal">
+            <div class="chart-header">
+              <h3 class="chart-title">New User Registrations (30 Days)</h3>
+            </div>
+            <div style="position:relative;height:200px;">
+              <canvas id="userRegistrations" class="chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Pending releases summary list -->
+          <div class="card reveal" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <h3 class="section-title">Pending Approvals</h3>
+              <div id="pendingApprovalsList" style="display:flex;flex-direction:column;gap:12px;margin-top:10px;">
+                <div style="text-align:center;color:var(--text4);padding:20px;">No pending approvals.</div>
+              </div>
+            </div>
+            <a href="/admin/releases.html" class="btn btn-primary btn-full btn-sm" style="margin-top:18px;">View All Review Queue</a>
+          </div>
+        </div>
+
+        <!-- Recent system logs -->
+        <div class="card reveal">
+          <h3 class="section-title">System Activity Logs</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>IP Address</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="adminLogsBody">
+                <tr>
+                  <td colspan="5" style="text-align:center;padding:24px;color:var(--text4);">No system logs yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js?v=7"></script>
+  <script>
+    renderAdminSidebar('overview');
+
+    const dataLogs = Array.from({length: 30}, (_, i) => 200 + 100 * Math.sin(i * 0.4) + Math.random() * 50);
+
+    window.addEventListener('load', () => {
+      const c = document.getElementById('userRegistrations');
+      drawLineChart(c, dataLogs);
+      loadAdminOverview();
+    });
+
+    function loadAdminOverview() {
+      const db = getNelaDB();
+      const users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+
+      // Update User stats
+      document.getElementById('statsTotalUsers').textContent = users.length;
+      
+      const totalWithdrawn = db.balances.withdrawn || 0;
+      document.getElementById('statsTotalPayouts').textContent = 'Rp ' + totalWithdrawn.toLocaleString('id-ID');
+
+      const pendingReleases = db.releases.filter(r => r.status === 'pending');
+      document.getElementById('statsPendingReleases').textContent = pendingReleases.length;
+      
+      const pendingTxns = db.transactions.filter(t => t.type === 'withdrawal' && t.status === 'pending');
+      const pendingWithdrVal = pendingTxns.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      document.getElementById('statsPendingWithdrawals').textContent = 'Rp ' + pendingWithdrVal.toLocaleString('id-ID');
+      
+      const listContainer = document.getElementById('pendingApprovalsList');
+      if (listContainer) {
+        listContainer.innerHTML = '';
+        if (pendingReleases.length === 0) {
+          listContainer.innerHTML = '<div style="font-size:12px;color:var(--text4);text-align:center;padding:12px 0;">No pending releases.</div>';
+        } else {
+          pendingReleases.slice(0, 3).forEach(r => {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.style.alignItems = 'center';
+            item.style.fontSize = '13px';
+            item.innerHTML = `
+              <div>
+                <strong>${r.title}</strong>
+                <div style="font-size:11px;color:var(--text4)">${r.artist}</div>
+              </div>
+              <a href="/admin/releases.html" class="btn btn-secondary btn-sm" style="padding:4px 8px;border-radius:4px;font-size:11px;">Review</a>
+            `;
+            listContainer.appendChild(item);
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>

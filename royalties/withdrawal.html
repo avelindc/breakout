@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Withdraw Royalties — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <style>
+    .methods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .method-card { border: 1.5px solid var(--border2); border-radius: var(--radius-sm); padding: 14px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s; background: var(--surface); }
+    .method-card:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.03); }
+    .method-card.selected { border-color: var(--purple); background: rgba(139,92,246,0.08); }
+    .method-card input[type="radio"] { accent-color: var(--purple); width: 18px; height: 18px; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Withdraw Royalties</h1>
+            <p class="topbar-sub">Transfer your available royalty balance to your personal account.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content" style="max-width:800px;margin:0 auto;">
+        <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:26px;">
+          <!-- Balance status -->
+          <div class="stat-card reveal">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="availBalVal" data-amount="1245.50">$1,245.50</div>
+            <div class="stat-change neutral">Ready to request transfer</div>
+          </div>
+          <!-- Limits -->
+          <div class="stat-card reveal reveal-delay-1">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-label">Minimum Payout</div>
+            <div class="stat-value">$10.00</div>
+            <div class="stat-change neutral">No maximum payout fees</div>
+          </div>
+        </div>
+
+        <div class="card reveal reveal-delay-2" style="padding:32px;">
+          <form id="withdrawForm" onsubmit="handleWithdrawalSubmit(event)">
+            <!-- Enter Payout Amount -->
+            <div class="form-group" style="margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <label class="form-label" style="margin-bottom:0;" id="payoutAmountLabel" for="withdrawAmount">Payout Amount (USD)</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="setMaxWithdrawAmount()" style="padding:4px 10px;border-radius:6px;font-size:11px;">Withdraw Max</button>
+              </div>
+              <div class="input-icon-wrap">
+                <span class="input-icon" id="payoutAmountIcon" style="font-size:18px;">$</span>
+                <input type="number" step="0.01" min="0" id="withdrawAmount" class="form-input" placeholder="0.00" required style="font-size:18px;padding-top:14px;padding-bottom:14px;" onkeyup="calculateFee(this.value)" />
+              </div>
+              <div id="payoutFeeCalc" style="font-size:12px;color:var(--text4);margin-top:8px;">
+                Transaction Fee: <strong>$0.00</strong> | Net payout: <strong style="color:var(--green)">$0.00</strong>
+              </div>
+            </div>
+
+            <!-- Select payout method -->
+            <div class="form-group" style="margin-bottom:28px;">
+              <label class="form-label" style="margin-bottom:12px;">Select Payout Method</label>
+              <div class="methods-grid">
+                <!-- PayPal -->
+                <div class="method-card selected" id="methodPayPal" onclick="selectMethod('paypal')">
+                  <input type="radio" name="payoutMethod" value="paypal" checked />
+                  <div style="font-size:24px;">🅿️</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">PayPal</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: 2% (max $10)</div>
+                  </div>
+                </div>
+
+                <!-- Bank Direct Stripe -->
+                <div class="method-card" id="methodStripe" onclick="selectMethod('stripe')">
+                  <input type="radio" name="payoutMethod" value="stripe" />
+                  <div style="font-size:24px;">🏦</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">Direct Bank (ACH)</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $1.50 flat</div>
+                  </div>
+                </div>
+
+                <!-- BCA -->
+                <div class="method-card" id="methodBca" onclick="selectMethod('bca')">
+                  <input type="radio" name="payoutMethod" value="bca" />
+                  <div style="font-size:24px;">🔵</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">Bank BCA</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.50 flat</div>
+                  </div>
+                </div>
+
+                <!-- BRI -->
+                <div class="method-card" id="methodBri" onclick="selectMethod('bri')">
+                  <input type="radio" name="payoutMethod" value="bri" />
+                  <div style="font-size:24px;">🔵</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">Bank BRI</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.50 flat</div>
+                  </div>
+                </div>
+
+                <!-- Mandiri -->
+                <div class="method-card" id="methodMandiri" onclick="selectMethod('mandiri')">
+                  <input type="radio" name="payoutMethod" value="mandiri" />
+                  <div style="font-size:24px;">🟡</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">Bank Mandiri</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.50 flat</div>
+                  </div>
+                </div>
+
+                <!-- OVO -->
+                <div class="method-card" id="methodOvo" onclick="selectMethod('ovo')">
+                  <input type="radio" name="payoutMethod" value="ovo" />
+                  <div style="font-size:24px;">🟣</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">OVO</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.10 flat</div>
+                  </div>
+                </div>
+
+                <!-- GoPay -->
+                <div class="method-card" id="methodGopay" onclick="selectMethod('gopay')">
+                  <input type="radio" name="payoutMethod" value="gopay" />
+                  <div style="font-size:24px;">🟢</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">GoPay</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.10 flat</div>
+                  </div>
+                </div>
+
+                <!-- DANA -->
+                <div class="method-card" id="methodDana" onclick="selectMethod('dana')">
+                  <input type="radio" name="payoutMethod" value="dana" />
+                  <div style="font-size:24px;">🔵</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:14px;">DANA</div>
+                    <div style="font-size:11px;color:var(--text4)">Fee: $0.10 flat</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payout Account Details Form -->
+              <div id="methodDetailsSection" style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border2); border-radius: var(--radius-sm);">
+                <h4 style="font-family:'Outfit'; font-size:15px; font-weight:600; margin-bottom:16px; color:var(--text1);" id="detailsTitle">PayPal Transfer Details</h4>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label class="form-label" id="accountNameLabel" for="payoutAccountName">Nama Pemilik Akun / Account Owner Name</label>
+                  <input type="text" id="payoutAccountName" class="form-input" placeholder="e.g. Alex Johnson" required />
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" id="accountNumberLabel" for="payoutAccountNumber">Alamat Email PayPal / PayPal Email Address</label>
+                  <input type="text" id="payoutAccountNumber" class="form-input" placeholder="e.g. alex.johnson@example.com" required />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="withdrawSubmitBtn" class="btn btn-primary btn-full btn-lg">Submit Payout Request 🏦</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js?v=7"></script>
+  <script>
+    renderArtistSidebar('withdrawal');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const storedKey = activeUserId ? `userAnalytics_${activeUserId}` : 'userAnalytics';
+      const analytics = JSON.parse(localStorage.getItem(storedKey)) || { netRoyalty: 0, currency: 'USD' };
+      const db = getNelaDB();
+      const bal = analytics.netRoyalty;
+      const formatCurr = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: analytics.currency }).format(num);
+      
+      document.getElementById('availBalVal').textContent = formatCurr(bal);
+      document.getElementById('availBalVal').setAttribute('data-amount', bal);
+      document.getElementById('withdrawAmount').setAttribute('max', bal);
+      
+      if (analytics.currency === 'IDR') {
+        document.getElementById('payoutAmountLabel').textContent = 'Payout Amount (IDR)';
+        document.getElementById('payoutAmountIcon').textContent = 'Rp';
+        document.getElementById('withdrawAmount').placeholder = '0';
+      } else {
+        document.getElementById('payoutAmountLabel').textContent = 'Payout Amount (USD)';
+        document.getElementById('payoutAmountIcon').textContent = '$';
+      }
+      
+      selectMethod('paypal'); // Initialize details form fields
+    });
+
+    const ALL_METHODS = ['paypal', 'stripe', 'bca', 'bri', 'mandiri', 'ovo', 'gopay', 'dana'];
+
+    function selectMethod(method) {
+      ALL_METHODS.forEach(m => {
+        const id = 'method' + m.charAt(0).toUpperCase() + m.slice(1);
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('selected');
+      });
+
+      const selectedId = 'method' + method.charAt(0).toUpperCase() + method.slice(1);
+      const selectedEl = document.getElementById(selectedId);
+      if (selectedEl) selectedEl.classList.add('selected');
+
+      const radio = document.querySelector(`input[name="payoutMethod"][value="${method}"]`);
+      if (radio) radio.checked = true;
+
+      const detailsTitle = document.getElementById('detailsTitle');
+      const nameLabel = document.getElementById('accountNameLabel');
+      const numberLabel = document.getElementById('accountNumberLabel');
+      const nameInput = document.getElementById('payoutAccountName');
+      const numberInput = document.getElementById('payoutAccountNumber');
+
+      if (method === 'paypal') {
+        detailsTitle.textContent = 'PayPal Transfer Details';
+        nameLabel.textContent = 'Nama Pemilik Akun PayPal / PayPal Account Owner Name';
+        numberLabel.textContent = 'Alamat Email PayPal / PayPal Email Address';
+        nameInput.placeholder = 'e.g. Alex Johnson';
+        numberInput.placeholder = 'e.g. alex.johnson@example.com';
+        numberInput.type = 'email';
+      } else if (method === 'stripe') {
+        detailsTitle.textContent = 'Direct Bank Transfer (ACH / SWIFT) Details';
+        nameLabel.textContent = 'Nama Pemilik Rekening / Bank Account Holder Name';
+        numberLabel.textContent = 'Nomor Rekening Bank / Bank Account Number';
+        nameInput.placeholder = 'e.g. Alex Johnson';
+        numberInput.placeholder = 'e.g. 1234567890';
+        numberInput.type = 'text';
+      } else if (['bca', 'bri', 'mandiri'].includes(method)) {
+        const bankName = method.toUpperCase();
+        detailsTitle.textContent = `Transfer Bank ${bankName} Details`;
+        nameLabel.textContent = `Nama Pemilik Rekening ${bankName} / Account Owner Name`;
+        numberLabel.textContent = `Nomor Rekening ${bankName} / Account Number`;
+        nameInput.placeholder = 'e.g. Alex Johnson';
+        numberInput.placeholder = 'e.g. 8830123456';
+        numberInput.type = 'text';
+      } else if (['ovo', 'gopay', 'dana'].includes(method)) {
+        const walletName = method === 'gopay' ? 'GoPay' : method.toUpperCase();
+        detailsTitle.textContent = `${walletName} E-Wallet Details`;
+        nameLabel.textContent = `Nama Pemilik Akun ${walletName} / Account Owner Name`;
+        numberLabel.textContent = `Nomor HP Terdaftar ${walletName} / Registered Phone Number`;
+        nameInput.placeholder = 'e.g. Alex Johnson';
+        numberInput.placeholder = 'e.g. 081234567890';
+        numberInput.type = 'tel';
+      }
+
+      calculateFee(document.getElementById('withdrawAmount').value);
+    }
+
+    function setMaxWithdrawAmount() {
+      const max = parseFloat(document.getElementById('availBalVal').getAttribute('data-amount'));
+      document.getElementById('withdrawAmount').value = max;
+      calculateFee(max);
+    }
+
+    function calculateFee(val) {
+      const amount = parseFloat(val) || 0;
+      const methodEl = document.querySelector('input[name="payoutMethod"]:checked');
+      const method = methodEl ? methodEl.value : 'paypal';
+      
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const storedKey = activeUserId ? `userAnalytics_${activeUserId}` : 'userAnalytics';
+      const analytics = JSON.parse(localStorage.getItem(storedKey)) || { currency: 'USD' };
+      const isIDR = analytics.currency === 'IDR';
+      const rate = 17000;
+      
+      let feeUsd = 0;
+      
+      if (amount > 0) {
+        let amountUsd = isIDR ? amount / rate : amount;
+        
+        if (method === 'paypal') {
+          feeUsd = amountUsd * 0.02;
+          if (feeUsd > 10) feeUsd = 10;
+        } else if (method === 'stripe') {
+          feeUsd = 1.50;
+        } else if (['bca', 'bri', 'mandiri'].includes(method)) {
+          feeUsd = 0.50;
+        } else if (['ovo', 'gopay', 'dana'].includes(method)) {
+          feeUsd = 0.10;
+        }
+      }
+      
+      const feeFormat = isIDR ? `Rp ${(feeUsd * rate).toLocaleString()}` : `$${feeUsd.toFixed(2)}`;
+      const netVal = Math.max(amount - (isIDR ? feeUsd * rate : feeUsd), 0);
+      const netFormat = isIDR ? `Rp ${netVal.toLocaleString()}` : `$${netVal.toFixed(2)}`;
+      
+      let conversionHtml = '';
+      if (isIDR && amount > 0) {
+         const netUsd = netVal / rate;
+         conversionHtml = `<br><span style="color:var(--text4);font-size:11.5px;display:inline-block;margin-top:4px;">Konversi ke USD: <strong style="color:#FFF;">$${netUsd.toFixed(2)}</strong> (Rate: 1 USD = Rp 17.000)</span>`;
+      }
+      
+      document.getElementById('payoutFeeCalc').innerHTML = 
+        `Transaction Fee: <strong>${feeFormat}</strong> | Net payout: <strong style="color:var(--green)">${netFormat}</strong>${conversionHtml}`;
+    }
+
+    function handleWithdrawalSubmit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('withdrawAmount').value);
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const storedKey = activeUserId ? `userAnalytics_${activeUserId}` : 'userAnalytics';
+      const analytics = JSON.parse(localStorage.getItem(storedKey)) || { netRoyalty: 0, currency: 'USD' };
+      const db = getNelaDB();
+      
+      if (amount > analytics.netRoyalty) {
+        showToast('Insufficient funds in your royalty balance.','error');
+        return;
+      }
+      
+      const methodVal = document.querySelector('input[name="payoutMethod"]:checked').value;
+      let methodName = '';
+      if (methodVal === 'paypal') methodName = 'PayPal Payout';
+      else if (methodVal === 'stripe') methodName = 'Stripe Transfer';
+      else if (methodVal === 'bca') methodName = 'BCA Bank Transfer';
+      else if (methodVal === 'bri') methodName = 'BRI Bank Transfer';
+      else if (methodVal === 'mandiri') methodName = 'Mandiri Bank Transfer';
+      else if (methodVal === 'ovo') methodName = 'OVO E-Wallet';
+      else if (methodVal === 'gopay') methodName = 'GoPay E-Wallet';
+      else if (methodVal === 'dana') methodName = 'DANA E-Wallet';
+
+      const accountName = document.getElementById('payoutAccountName').value.trim();
+      const accountNumber = document.getElementById('payoutAccountNumber').value.trim();
+      const accountDetails = `${accountNumber} (A.N. ${accountName})`;
+      
+      const newTxn = {
+        id: "TXN-" + Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        description: "Royalty Balance Withdrawal",
+        type: "withdrawal",
+        method: methodName,
+        amount: -amount,
+        status: "pending",
+        userId: activeUserId,
+        user: document.querySelector('.user-name') ? document.querySelector('.user-name').textContent : "Alex Johnson",
+        accountDetails: accountDetails,
+        currency: analytics.currency
+      };
+      
+      db.transactions.push(newTxn);
+      db.balances.pending += amount;
+      saveNelaDB(db);
+
+      const btn = document.getElementById('withdrawSubmitBtn');
+      btn.disabled = true; btn.textContent = '⏳ Processing Withdrawal...';
+
+      setTimeout(() => {
+        showToast('Withdrawal request successfully processed!','success');
+        setTimeout(() => {
+          window.location.href = '/royalties/history.html';
+        }, 1200);
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

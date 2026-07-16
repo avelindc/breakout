@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <style>
+    .checkout-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; }
+    @media(max-width:768px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Checkout</h1>
+            <p class="topbar-sub">Complete your subscription transaction securely.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="checkout-layout">
+          <!-- Left Form Area -->
+          <div class="card reveal" style="padding:32px;">
+            <form id="checkoutPaymentForm" onsubmit="handleCheckoutSubmit(event)">
+              <!-- Payment Method Credit Card Title -->
+              <h2 style="font-size:18px;font-family:'Outfit';margin-bottom:20px;">💳 Payment Details</h2>
+
+              <div class="form-group">
+                <label class="form-label" for="cardholderName">Cardholder Name</label>
+                <input type="text" id="cardholderName" class="form-input" placeholder="Alex Johnson" required />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cardNumber">Card Number</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">💳</span>
+                  <input type="text" id="cardNumber" class="form-input" placeholder="4111 2222 3333 4444" maxlength="19" required oninput="formatCardNumber(this)" />
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="cardExpiry">Expiration Date</label>
+                  <input type="text" id="cardExpiry" class="form-input" placeholder="MM/YY" maxlength="5" required oninput="formatExpiry(this)" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cardCVV">CVV / CVC</label>
+                  <input type="password" id="cardCVV" class="form-input" placeholder="•••" maxlength="4" required />
+                </div>
+              </div>
+
+              <!-- Billing Address -->
+              <h2 style="font-size:18px;font-family:'Outfit';margin-top:32px;margin-bottom:20px;">🏠 Billing Address</h2>
+
+              <div class="form-group">
+                <label class="form-label" for="billingCountry">Country</label>
+                <select id="billingCountry" class="form-select">
+                  <option value="us">United States</option>
+                  <option value="uk">United Kingdom</option>
+                  <option value="id">Indonesia</option>
+                  <option value="ca">Canada</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="billingAddress">Address Line 1</label>
+                <input type="text" id="billingAddress" class="form-input" placeholder="123 Music Lane" required />
+              </div>
+
+              <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="billingCity">City</label>
+                  <input type="text" id="billingCity" class="form-input" placeholder="Los Angeles" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="billingZip">Zip Code</label>
+                  <input type="text" id="billingZip" class="form-input" placeholder="90001" required />
+                </div>
+              </div>
+
+              <div class="checkbox-group" style="margin-top:24px;margin-bottom:12px;">
+                <input type="checkbox" id="saveCard" checked />
+                <label for="saveCard">Save card details for future payments</label>
+              </div>
+
+              <button type="submit" id="payBtn" class="btn btn-primary btn-full btn-lg" style="margin-top:20px;">Complete Secure Payment ($9.99)</button>
+            </form>
+          </div>
+
+          <!-- Right Sidebar Order Summary -->
+          <div class="card reveal reveal-delay-1" style="height:fit-content;padding:28px;">
+            <h3 class="section-title">Order Summary</h3>
+            
+            <!-- Plan Info -->
+            <div style="display:flex;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:16px;">
+              <div>
+                <strong id="summaryPlanName">Pro Artist Plan</strong>
+                <div style="font-size:12px;color:var(--text4);margin-top:4px;" id="summaryPlanDesc">Unlimited music releases</div>
+              </div>
+              <strong id="summaryPlanPrice">$9.99</strong>
+            </div>
+
+            <!-- Price Splits -->
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;color:var(--text3)">
+                <span>Subtotal</span>
+                <span id="summarySubtotal">$9.99</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;color:var(--text3)">
+                <span>Taxes & Fees</span>
+                <span>$0.00</span>
+              </div>
+            </div>
+
+            <!-- Total Price -->
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:20px;">
+              <strong>Total Due</strong>
+              <strong style="color:var(--purple-light);font-size:22px;" id="summaryTotal">$9.99</strong>
+            </div>
+
+            <div style="font-size:11px;color:var(--text4);line-height:1.6;text-align:center;">
+              🔒 <strong>256-Bit SSL Encryption:</strong> Your payment parameters are fully secure and Stripe authenticated.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+  <script>
+    renderArtistSidebar('plans');
+
+    window.addEventListener('load', () => {
+      // Read URL params
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get('plan') || 'pro';
+      
+      const summaryPlanName = document.getElementById('summaryPlanName');
+      const summaryPlanDesc = document.getElementById('summaryPlanDesc');
+      const summaryPlanPrice = document.getElementById('summaryPlanPrice');
+      const summarySubtotal = document.getElementById('summarySubtotal');
+      const summaryTotal = document.getElementById('summaryTotal');
+      const payBtn = document.getElementById('payBtn');
+
+      if (plan === 'label') {
+        summaryPlanName.textContent = 'Label Catalog Plan';
+        summaryPlanDesc.textContent = 'Unlimited releases & artists profiles';
+        summaryPlanPrice.textContent = '$29.99';
+        summarySubtotal.textContent = '$29.99';
+        summaryTotal.textContent = '$29.99';
+        payBtn.textContent = 'Complete Secure Payment ($29.99)';
+      } else {
+        summaryPlanName.textContent = 'Pro Artist Plan';
+        summaryPlanDesc.textContent = 'Unlimited releases for 1 artist profile';
+        summaryPlanPrice.textContent = '$9.99';
+        summarySubtotal.textContent = '$9.99';
+        summaryTotal.textContent = '$9.99';
+        payBtn.textContent = 'Complete Secure Payment ($9.99)';
+      }
+    });
+
+    // Formatting CC fields
+    function formatCardNumber(el) {
+      let val = el.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+      let formatted = '';
+      for (let i = 0; i < val.length; i++) {
+        if (i > 0 && i % 4 === 0) formatted += ' ';
+        formatted += val[i];
+      }
+      el.value = formatted;
+    }
+
+    function formatExpiry(el) {
+      let val = el.value.replace(/[^0-9]/g, '');
+      if (val.length >= 2) {
+        el.value = val.substring(0, 2) + '/' + val.substring(2, 4);
+      } else {
+        el.value = val;
+      }
+    }
+
+    function handleCheckoutSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('payBtn');
+      btn.disabled = true; btn.textContent = '⏳ Processing transaction...';
+
+      setTimeout(() => {
+        window.location.href = '/subscription/success.html';
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

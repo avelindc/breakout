@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Settings — BREAKOUT MUSIC Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Global Settings</h1>
+            <p class="topbar-sub">Configure platform variables, Stripe gateway integrations, email parameters.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content" style="max-width:800px;margin:0 auto;">
+        <div class="card reveal" style="padding:32px;">
+          <form id="globalSettingsForm" onsubmit="handleSettingsSave(event)">
+            <!-- General Site Parameters -->
+            <h2 style="font-size:18px;font-family:'Outfit';margin-bottom:20px;">⚙️ General Parameters</h2>
+            <div class="form-group">
+              <label class="form-label" for="platformName">Platform Name</label>
+              <input type="text" id="platformName" class="form-input" value="BREAKOUT MUSIC Distribution" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="systemEmail">Support Contact Email</label>
+              <input type="email" id="systemEmail" class="form-input" value="support@breakoutmusic.com" required />
+            </div>
+
+            <!-- Stripe API Key Integrations -->
+            <h2 style="font-size:18px;font-family:'Outfit';margin-top:32px;margin-bottom:20px;">🔑 Stripe API Keys</h2>
+            <div class="form-group">
+              <label class="form-label" for="stripePublishableKey">Publishable API Key</label>
+              <input type="text" id="stripePublishableKey" class="form-input" value="pk_live_51M..." required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="stripeSecretKey">Secret API Key</label>
+              <input type="password" id="stripeSecretKey" class="form-input" value="sk_live_51Mxxxxxxxxxxxxxxxx" required />
+            </div>
+
+            <!-- Notification Parameters -->
+            <h2 style="font-size:18px;font-family:'Outfit';margin-top:32px;margin-bottom:20px;">🔔 Event Notifications</h2>
+            
+            <div class="checkbox-group" style="margin-bottom:12px;">
+              <input type="checkbox" id="notifyNewUser" checked />
+              <label for="notifyNewUser">Slack alert on new user registrations</label>
+            </div>
+            <div class="checkbox-group" style="margin-bottom:12px;">
+              <input type="checkbox" id="notifyNewRelease" checked />
+              <label for="notifyNewRelease">Email alert on new release submissions</label>
+            </div>
+            <div class="checkbox-group" style="margin-bottom:28px;">
+              <input type="checkbox" id="notifyNewPayout" checked />
+              <label for="notifyNewPayout">Slack alert on payout withdrawal requests</label>
+            </div>
+
+            <button type="submit" id="saveSettingsBtn" class="btn btn-primary btn-full btn-lg">Save Configuration Details</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js"></script>
+  <script>
+    renderAdminSidebar('settings');
+
+    function handleSettingsSave(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveSettingsBtn');
+      btn.disabled = true; btn.textContent = '⏳ Saving details...';
+
+      setTimeout(() => {
+        btn.disabled = false; btn.textContent = 'Save Configuration Details';
+        showToast('Settings saved successfully!','success');
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

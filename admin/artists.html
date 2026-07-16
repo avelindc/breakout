@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artist Management — BREAKOUT MUSIC Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Kelola Artist</h1>
+            <p class="topbar-sub">Verify artist profiles, inspect store analytics and configure rights share ratios.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Toolbar Search & Filter -->
+        <div class="toolbar reveal">
+          <div class="search-wrap">
+            <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+            <input type="text" class="search-input" id="searchArtist" placeholder="Search by artist name..." onkeyup="filterArtistsTable()" />
+          </div>
+          <select class="filter-select" id="filterGenre" onchange="filterArtistsTable()">
+            <option value="all">All Genres</option>
+            <option value="electronic">Electronic</option>
+            <option value="pop">Pop</option>
+            <option value="hiphop">Hip Hop</option>
+          </select>
+          <select class="filter-select" id="filterArtistStatus" onchange="filterArtistsTable()">
+            <option value="all">All Status</option>
+            <option value="verified">Verified</option>
+            <option value="unverified">Unverified</option>
+          </select>
+        </div>
+
+        <!-- Artists Table -->
+        <div class="card reveal">
+          <div class="table-wrap">
+            <table id="artistsTable">
+              <thead>
+                <tr>
+                  <th>Artist Profile</th>
+                  <th>Primary Genre</th>
+                  <th>Total Releases</th>
+                  <th>Total Streams</th>
+                  <th>Gross Revenue</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="artistsTableBody">
+                <!-- Dynamically populated from nelaUsers -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js"></script>
+  <script>
+    renderAdminSidebar('artists');
+
+    function loadArtists() {
+      const users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+      const tbody = document.getElementById('artistsTableBody');
+      tbody.innerHTML = '';
+
+      const activeUsers = users.filter(u => u.status === 'active');
+
+      if (activeUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text4);">Belum ada artis yang disetujui.</td></tr>`;
+        return;
+      }
+
+      activeUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-genre', 'all');
+        tr.setAttribute('data-status', 'verified');
+        const initial = u.artistName ? u.artistName.charAt(0).toUpperCase() : 'A';
+        
+        tr.innerHTML = `
+          <td>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="user-avatar" style="width:36px;height:36px;font-size:12px;border:none;background:linear-gradient(135deg,#8B5CF6,#3B82F6);">${initial}</div>
+              <div>
+                <div style="font-weight:600;">${u.artistName || 'Unknown Artist'}</div>
+                <div style="font-size:11px;color:var(--text4)">Owner: ${u.email}</div>
+              </div>
+            </div>
+          </td>
+          <td>N/A</td>
+          <td>0</td>
+          <td>0</td>
+          <td>$0.00</td>
+          <td><span class="badge badge-green">Verified</span></td>
+          <td>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Verifying catalog detail logs...','info')">Inspect</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadArtists);
+
+    function filterArtistsTable() {
+      const search = document.getElementById('searchArtist').value.toLowerCase();
+      const rows = document.querySelectorAll('#artistsTable tbody tr');
+
+      rows.forEach(row => {
+        const nameNode = row.querySelector('td div div div');
+        if (!nameNode) return;
+        const name = nameNode.textContent.toLowerCase();
+        
+        if (name.includes(search)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function toggleArtistVerification(btn) {
+      const row = btn.parentElement.parentElement;
+      const statusLabel = row.querySelector('td:nth-child(6) span');
+      const isVerified = row.getAttribute('data-status') === 'verified';
+
+      if (isVerified) {
+        row.setAttribute('data-status', 'unverified');
+        statusLabel.className = 'badge badge-gray';
+        statusLabel.textContent = 'Unverified';
+        btn.className = 'btn btn-success btn-sm';
+        btn.textContent = 'Verify Artist';
+        showToast('Artist verification revoked.','warning');
+      } else {
+        row.setAttribute('data-status', 'verified');
+        statusLabel.className = 'badge badge-green';
+        statusLabel.textContent = 'Verified';
+        btn.className = 'btn btn-danger btn-sm';
+        btn.textContent = 'Revoke Verification';
+        showToast('Artist verified successfully!','success');
+      }
+    }
+  </script>
+</body>
+</html>

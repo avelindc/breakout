@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #7000FF;
+  --color-brand-cyan: #00F0FF;
+  --color-brand-blue: #0047FF;
+  --color-background-dark: #09090B;
+}
+
+:root {
+  --background: #09090B;
+  --foreground: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(20, 20, 22, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+}
+
+/* Aurora Gradient Background */
+.aurora-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  background-color: #09090B;
+}
+
+.aurora-gradient {
+  position: absolute;
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: float 10s ease-in-out infinite alternate;
+}
+
+.gradient-1 {
+  background: radial-gradient(circle, rgba(112,0,255,0.8) 0%, rgba(112,0,255,0) 70%);
+  width: 50vw;
+  height: 50vw;
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.gradient-2 {
+  background: radial-gradient(circle, rgba(0,240,255,0.8) 0%, rgba(0,240,255,0) 70%);
+  width: 40vw;
+  height: 40vw;
+  bottom: -10%;
+  right: -10%;
+  animation-delay: -5s;
+}
+
+.gradient-3 {
+  background: radial-gradient(circle, rgba(0,71,255,0.6) 0%, rgba(0,71,255,0) 70%);
+  width: 60vw;
+  height: 60vw;
+  top: 20%;
+  left: 20%;
+  animation-delay: -2s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(30px, 50px) scale(1.1);
+  }
+}
+
+/* Dashboard Specific Styles */
+.dashboard-bg {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.dark .dashboard-bg {
+  background-color: #09090b;
+  color: #f8fafc;
+}

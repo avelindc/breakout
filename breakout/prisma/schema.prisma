@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  status        UserStatus @default(PENDING)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  artist        Artist?
+  admin         Admin?
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  withdrawRequests WithdrawRequest[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level     String   @default("SUPERADMIN") 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Artist {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  stageName String
+  bio       String?
+  avatarUrl String?
+  
+  releases  Release[]
+  royalties Royalty[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Release {
+  id             String         @id @default(cuid())
+  artistId       String
+  artist         Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title          String
+  type           ReleaseType    @default(SINGLE)
+  genre          String
+  language       String
+  primaryArtist  String
+  featuredArtist String?
+  releaseDate    DateTime
+  coverArtworkUrl String
+  
+  status         ReleaseStatus  @default(PENDING)
+  
+  tracks         Track[]
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+enum ReleaseType {
+  SINGLE
+  EP
+  ALBUM
+}
+
+enum ReleaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Track {
+  id          String   @id @default(cuid())
+  releaseId   String
+  release     Release  @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  
+  title       String
+  audioUrl    String
+  isrc        String?
+  upc         String?
+  composer    String?
+  producer    String?
+  lyrics      String?
+  
+  streams     Streaming[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Streaming {
+  id        String   @id @default(cuid())
+  trackId   String
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  
+  platform  Platform
+  country   String?
+  playCount Int      @default(0)
+  date      DateTime
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Platform {
+  SPOTIFY
+  APPLE_MUSIC
+  YOUTUBE_MUSIC
+  TIKTOK
+  AMAZON_MUSIC
+  DEEZER
+  BOOMPLAY
+  AUDIOMACK
+  OTHER
+}
+
+model Royalty {
+  id        String   @id @default(cuid())
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  songName  String
+  month     Int
+  year      Int
+  
+  spotifyStreams     Int @default(0)
+  appleMusicStreams  Int @default(0)
+  youtubeStreams     Int @default(0)
+  tiktokStreams      Int @default(0)
+  amazonStreams      Int @default(0)
+  otherStreams       Int @default(0)
+  
+  totalRevenue       Float @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WithdrawRequest {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bankName      String
+  accountName   String
+  accountNumber String
+  amount        Float
+  
+  status        WithdrawStatus @default(PENDING)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum WithdrawStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  value          String
+  description    String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  action    String
+  
+  createdAt DateTime @default(now())
+}

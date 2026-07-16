@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Reports — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <style>
+    .reports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .report-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: all 0.25s; display: flex; flex-direction: column; justify-content: space-between; }
+    .report-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-4px); box-shadow: var(--shadow-sm); }
+    .report-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Monthly Reports</h1>
+            <p class="topbar-sub">Download compiled PDF reports and raw CSV sales data per distribution cycle.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Year filter -->
+        <div class="toolbar reveal">
+          <select class="filter-select" id="reportYear" onchange="showToast('Year filter updated','info')">
+            <option value="2026">Year 2026</option>
+            <option value="2025">Year 2025</option>
+          </select>
+        </div>
+
+        <!-- Reports Grid -->        <div class="reports-grid" id="reportsGrid">
+          <div style="grid-column: 1/-1;text-align:center;padding:50px 20px;background:rgba(255,255,255,0.02);border:1px dashed var(--border2);border-radius:var(--radius-md);color:var(--text4);">
+            Belum ada laporan (Report) yang dirilis. Laporan bulanan akan muncul di sini setelah pendapatan diproses.
+          </div>
+        </div>     </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+  <script>
+    renderArtistSidebar('reports');
+  </script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Releases Management — BREAKOUT MUSIC Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+  <style>
+    .tabs-nav { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .tab-btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--text3); cursor: pointer; transition: all 0.2s; background: transparent; border: 1px solid transparent; }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .tab-btn.active { color: var(--gold); background: rgba(255,193,7,0.1); border-color: rgba(255,193,7,0.2); }
+    td { vertical-align: middle; }
+    .action-btn { background: none; border: none; font-size: 16px; cursor: pointer; margin-right: 6px; opacity: 0.8; transition: opacity 0.2s; }
+    .action-btn:hover { opacity: 1; transform: scale(1.1); }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Releases Management</h1>
+            <p class="topbar-sub">Review and manage all user music submissions.</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Toolbar Search & Filter -->
+        <div class="toolbar reveal">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchRelease" placeholder="Search Title, Artist, or User..." onkeyup="loadReleases()" />
+          </div>
+        </div>
+
+        <div class="card reveal" style="padding-top: 16px;">
+          <div class="tabs-nav">
+            <button class="tab-btn active" onclick="setTab('pending')">Pending Releases</button>
+            <button class="tab-btn" onclick="setTab('approved')">Approved Releases</button>
+            <button class="tab-btn" onclick="setTab('rejected')">Rejected Releases</button>
+            <button class="tab-btn" onclick="setTab('all')">All Releases</button>
+          </div>
+
+          <div class="table-wrap">
+            <table id="releasesTable">
+              <thead>
+                <tr>
+                  <th>Cover Art</th>
+                  <th>Judul Lagu</th>
+                  <th>Nama Artis / Label</th>
+                  <th>User & Email</th>
+                  <th>Format & Ukuran</th>
+                  <th>Tanggal Upload</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="releasesTbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js"></script>
+  <script>
+    renderAdminSidebar('releases');
+
+    let currentTab = 'pending';
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      loadReleases();
+    }
+
+    function changeReleaseStatus(id, newStatus) {
+      const db = getNelaDB();
+      const rel = db.releases.find(r => r.id === id);
+      if (rel) {
+        rel.status = newStatus;
+        saveNelaDB(db);
+        showToast(`Lagu dipindahkan ke tab ${newStatus === 'live' ? 'Approved' : 'Rejected'}`, 'success');
+        loadReleases();
+      }
+    }
+
+    function playMockAudio(title) {
+      showToast(`Memutar preview audio: ${title} 🎵`, 'info');
+    }
+
+    function downloadMockAudio(title) {
+      showToast(`Menyiapkan unduhan audio...`, 'info');
+      setTimeout(() => {
+        const blob = new Blob([`Simulated audio file for: ${title}`], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/\s+/g, '_')}_Audio.wav`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`Berhasil mengunduh audio!`, 'success');
+      }, 500);
+    }
+
+    function downloadMockImage(title) {
+      showToast(`Menyiapkan unduhan cover art...`, 'info');
+      setTimeout(() => {
+        const blob = new Blob([`Simulated image file for: ${title}`], { type: 'image/png' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/\s+/g, '_')}_Cover.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`Berhasil mengunduh cover!`, 'success');
+      }, 500);
+    }
+
+    function loadReleases() {
+      const tbody = document.getElementById('releasesTbody');
+      tbody.innerHTML = '';
+      
+      const db = getNelaDB();
+      const releases = db.releases;
+      const search = document.getElementById('searchRelease').value.toLowerCase();
+
+      let filtered = releases.filter(r => {
+        // Status Filter mapping
+        // Internal status map: "pending", "live" (approved), "rejected", "draft"
+        let rStat = r.status;
+        if (rStat === 'live') rStat = 'approved';
+        
+        let statusMatch = true;
+        if (currentTab !== 'all') {
+          statusMatch = (rStat === currentTab);
+        }
+
+        const name = (r.artist || '').toLowerCase();
+        const title = (r.title || '').toLowerCase();
+        const email = 'user@example.com'; // Mock since we don't store user email in release object currently
+        
+        const searchMatch = name.includes(search) || title.includes(search) || email.includes(search);
+        
+        return statusMatch && searchMatch;
+      });
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        if (r.status === 'pending') statusBadge = '<span class="badge badge-yellow">Pending</span>';
+        else if (r.status === 'live' || r.status === 'approved') statusBadge = '<span class="badge badge-green">Approved</span>';
+        else if (r.status === 'rejected') statusBadge = '<span class="badge badge-red">Rejected</span>';
+        else statusBadge = `<span class="badge badge-gray">${r.status.toUpperCase()}</span>`;
+
+        tr.innerHTML = `
+          <td>
+            <div style="width:40px;height:40px;background:${r.coverUrl};border-radius:4px;background-size:cover;"></div>
+          </td>
+          <td>
+            <div style="font-weight:600;">${r.title}</div>
+            <div style="font-size:11px;color:var(--text4)">${r.genre || 'Unknown'} • ${r.lang || 'English'}</div>
+          </td>
+          <td>
+            <div style="font-weight:600;color:var(--gold);">${r.artist}</div>
+          </td>
+          <td>
+            <div style="font-weight:500;">Mock User</div>
+            <div style="font-size:11px;color:var(--text4)">user@example.com</div>
+          </td>
+          <td>
+            <div style="font-size:12px;">WAV (44.1kHz)</div>
+            <div style="font-size:11px;color:var(--text4)">${Math.floor(Math.random() * 40 + 10)} MB • 03:45</div>
+          </td>
+          <td>
+            <div style="font-size:13px;">${r.releaseDate || 'Immediate'}</div>
+          </td>
+          <td>${statusBadge}</td>
+          <td style="white-space:nowrap;">
+            <button class="action-btn" title="Preview Audio" onclick="playMockAudio('${r.title.replace(/'/g, "\\'")}')">▶️</button>
+            <button class="action-btn" title="Download Audio" onclick="downloadMockAudio('${r.title.replace(/'/g, "\\'")}')">🎵</button>
+            <button class="action-btn" title="Download Cover" onclick="downloadMockImage('${r.title.replace(/'/g, "\\'")}')">🖼️</button>
+            ${(r.status === 'pending' || r.status === 'rejected') ? `<button class="action-btn" title="Approve" onclick="changeReleaseStatus('${r.id}', 'live')">✅</button>` : ''}
+            ${(r.status === 'pending' || r.status === 'live' || r.status === 'approved') ? `<button class="action-btn" title="Reject" onclick="changeReleaseStatus('${r.id}', 'rejected')">❌</button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text4);">No releases found in this category.</td></tr>`;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadReleases);
+  </script>
+</body>
+</html>

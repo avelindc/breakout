@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Releases — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">My Releases</h1>
+            <p class="topbar-sub">Manage and track all your uploaded music releases.</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <a href="/upload/index.html" class="btn btn-primary btn-sm">⚡ New Release</a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Toolbar Removed as per user request -->
+
+        <!-- Release Grid -->
+        <div class="card reveal">
+          <div class="table-wrap">
+            <table id="releasesTable">
+              <thead>
+                <tr>
+                  <th>Cover / Title</th>
+                  <th>Release Type</th>
+                  <th>UPC / Barcode</th>
+                  <th>ISRC</th>
+                  <th>Release Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="releasesTableBody">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Rejection Modal -->
+  <div class="modal-overlay" id="rejectionReasonModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Rejection Reasons</h3>
+        <button type="button" class="modal-close" onclick="closeModal('rejectionReasonModal')">✕</button>
+      </div>
+      <div style="color:var(--text3);font-size:14px;line-height:1.6;margin-bottom:20px;">
+        <p style="margin-bottom:12px;">Your release for <strong>In The Shadows</strong> was rejected for the following reason:</p>
+        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm);padding:14px;color:var(--red);margin-bottom:16px;">
+          â Œ <strong>Artwork Text Violation:</strong> The artwork features text that does not match the release title or artist name. Ensure only the release title and primary artist name are present.
+        </div>
+        <p>Please update the cover art image and resubmit your release for approval.</p>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('rejectionReasonModal')">Close</button>
+        <a href="/upload/index.html" class="btn btn-primary">Fix Artwork & Resubmit</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+  <script>
+    renderArtistSidebar('releases');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadReleases();
+    });
+
+    function loadReleases() {
+      const db = getNelaDB();
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      // If a release has no userId, it's global mock data; only show if activeUserId matches (which it won't for new users)
+      const releases = db.releases.filter(r => r.userId === activeUserId);
+      const tbody = document.getElementById('releasesTableBody');
+      tbody.innerHTML = '';
+      
+      if (releases.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text4);">No releases found.</td></tr>';
+        return;
+      }
+
+      releases.forEach(r => {
+        let statusBadge = '';
+        let actionBtn = '';
+        if (r.status === 'live' || r.status === 'approved') {
+          statusBadge = '<span class="badge badge-green">●   Approved</span>';
+          actionBtn = `<button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Edit action is currently disabled for approved releases','warning')">Edit</button>`;
+        } else if (r.status === 'pending') {
+          statusBadge = '<span class="badge badge-yellow">●   Pending</span>';
+          actionBtn = `<button type="button" class="btn btn-secondary btn-sm" onclick="showToast('Release is under review and cannot be modified','info')">Details</button>`;
+        } else if (r.status === 'rejected') {
+          statusBadge = '<span class="badge badge-red">●   Rejected</span>';
+          actionBtn = `<button type="button" class="btn btn-danger btn-sm" onclick="showRejectionReason('${r.title.replace(/'/g,"\\'")}','${r.adminNotes ? r.adminNotes.replace(/'/g,"\\'") : ''}')">Reason</button>`;
+        } else {
+          statusBadge = '<span class="badge badge-gray">●   Draft</span>';
+          actionBtn = `<a href="/upload/index.html" class="btn btn-secondary btn-sm">Resume</a>`;
+        }
+        
+        const row = document.createElement('tr');
+        row.setAttribute('data-status', r.status);
+        row.setAttribute('data-type', r.type);
+        row.innerHTML = `
+          <td>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:40px;height:40px;background:${r.coverUrl};border-radius:6px;flex-shrink:0;"></div>
+              <div>
+                <div style="font-weight:600;font-size:14px;">${r.title}</div>
+                <div style="font-size:11px;color:var(--text4)">${r.artist}</div>
+              </div>
+            </div>
+          </td>
+          <td>${r.type.charAt(0).toUpperCase() + r.type.slice(1)}</td>
+          <td>${r.upc || '—'}</td>
+          <td>${r.isrc || '—'}</td>
+          <td>${r.releaseDate || '—'}</td>
+          <td>${statusBadge}</td>
+          <td>${actionBtn}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function showRejectionReason(title, notes) {
+      document.querySelector('#rejectionReasonModal .modal-title').textContent = 'Rejection Reason';
+      document.querySelector('#rejectionReasonModal strong').textContent = title;
+      document.querySelector('#rejectionReasonModal p + div').innerHTML = `âŒ <strong>Rejection Reason:</strong> ${notes || 'Violation of metadata standards.'}`;
+      openModal('rejectionReasonModal');
+    }
+
+    function showRevisionReason(title, notes) {
+      document.querySelector('#rejectionReasonModal .modal-title').textContent = 'Revision Requested';
+      document.querySelector('#rejectionReasonModal strong').textContent = title;
+      document.querySelector('#rejectionReasonModal p + div').innerHTML = `⚠️ <strong>Revision Requested:</strong> ${notes || 'Please verify metadata.'}`;
+      openModal('rejectionReasonModal');
+    }
+
+    // Filter function removed as toolbar was removed
+  </script>
+</body>
+</html>

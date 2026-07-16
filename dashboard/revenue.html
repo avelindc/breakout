@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revenue Analytics — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Revenue Analytics</h1>
+            <p class="topbar-sub">Monitor your royalties, withdrawal history, and payout balances.</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <a href="/royalties/withdrawal.html" class="btn btn-primary btn-sm">🏦 Request Payout</a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Revenue Cards -->
+        <div class="stats-grid">
+          <div class="stat-card reveal reveal-delay-1">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-value" id="revAvailable">$0.00</div>
+            <div class="stat-change neutral">Ready to withdraw</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-2">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--orange)"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+            <div class="stat-label">Pending Clearance</div>
+            <div class="stat-value" id="revPending">$0.00</div>
+            <div class="stat-change neutral">Clearing in 12 days</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-3">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--purple-light)"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg></div>
+            <div class="stat-label">Withdrawn to Date</div>
+            <div class="stat-value" id="revWithdrawn">$0.00</div>
+            <div class="stat-change neutral">Paid via Bank ACH</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-4">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--cyan)"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
+            <div class="stat-label">Next Estimated Royalty</div>
+            <div class="stat-value" id="revEstimated">$0.00</div>
+            <div class="stat-change">▲ 0.0% projected</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:26px;">
+          <!-- Monthly Earnings Trend -->
+          <div class="chart-card reveal">
+            <div class="chart-header">
+              <h3 class="chart-title">Royalty Earnings (Last 6 Months)</h3>
+            </div>
+            <div style="position:relative;height:200px;">
+              <canvas id="revenueTrend" class="chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Platform Share Breakdown -->
+          <div class="card reveal" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <h3 class="section-title" style="margin-bottom:14px;">Share by Platform</h3>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                    <span>Spotify</span>
+                    <strong id="shareSpotify">$0 (0%)</strong>
+                  </div>
+                  <div class="progress-wrap"><div class="progress-bar" id="barSpotify" style="width:0%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                    <span>Apple Music</span>
+                    <strong id="shareApple">$0 (0%)</strong>
+                  </div>
+                  <div class="progress-wrap"><div class="progress-bar" id="barApple" style="width:0%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                    <span>YouTube Music</span>
+                    <strong id="shareYouTube">$0 (0%)</strong>
+                  </div>
+                  <div class="progress-wrap"><div class="progress-bar" id="barYouTube" style="width:0%"></div></div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+                    <span>TikTok</span>
+                    <strong id="shareTikTok">$0 (0%)</strong>
+                  </div>
+                  <div class="progress-wrap"><div class="progress-bar" id="barTikTok" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;font-size:12px;color:var(--text4);text-align:center;">
+              *Values reflect gross revenues after tax deduction.
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Transactions -->
+        <div class="card reveal">
+          <div class="section-row">
+            <h3 class="section-title">Recent Transactions</h3>
+            <a href="/royalties/history.html" style="font-size:13px;color:var(--purple-light);font-weight:600;">View Payout History →</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Method</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="txnTbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js?v=6"></script>
+  <script>
+    renderArtistSidebar('revenue');
+
+    window.addEventListener('load', () => {
+      // 1. Fetch userAnalytics and nela_db
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const storedKey = activeUserId ? `userAnalytics_${activeUserId}` : 'userAnalytics';
+      const analytics = JSON.parse(localStorage.getItem(storedKey)) || {
+        totalStreams: 0, spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, joox: 0,
+        netRoyalty: 0, currency: 'USD'
+      };
+      const db = getNelaDB();
+
+      const formatCurr = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: analytics.currency }).format(num);
+
+      // Compute user specific stats instead of global db.balances
+      const userTxns = db.transactions.filter(t => t.userId === activeUserId);
+      const pendingTotal = userTxns.filter(t => t.type === 'withdrawal' && t.status === 'pending')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const withdrawnTotal = userTxns.filter(t => t.type === 'withdrawal' && t.status === 'completed')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const estimatedTotal = analytics.netRoyalty > 0 ? analytics.netRoyalty * 1.05 : 0;
+
+      // 2. Populate stats
+      document.getElementById('revAvailable').textContent = formatCurr(analytics.netRoyalty);
+      document.getElementById('revPending').textContent = formatCurr(pendingTotal);
+      document.getElementById('revWithdrawn').textContent = formatCurr(withdrawnTotal);
+      document.getElementById('revEstimated').textContent = formatCurr(estimatedTotal);
+
+      // 3. Populate Share Breakdown
+      const actualTotal = (analytics.spotify || 0) + (analytics.apple || 0) + (analytics.youtube || 0) + (analytics.tiktok || 0) + (analytics.amazon || 0) + (analytics.joox || 0);
+      const totalStreams = actualTotal > 0 ? actualTotal : 1;
+      
+      const getShareText = (streams) => {
+        const pct = Math.round(((streams || 0) / totalStreams) * 100);
+        const estRevenue = (pct / 100) * analytics.netRoyalty;
+        return { text: `${formatCurr(estRevenue)} (${pct}%)`, pct };
+      };
+
+      const spotifyData = getShareText(analytics.spotify);
+      document.getElementById('shareSpotify').textContent = spotifyData.text;
+      document.getElementById('barSpotify').style.width = spotifyData.pct + '%';
+
+      const appleData = getShareText(analytics.apple);
+      document.getElementById('shareApple').textContent = appleData.text;
+      document.getElementById('barApple').style.width = appleData.pct + '%';
+
+      const youtubeData = getShareText(analytics.youtube);
+      document.getElementById('shareYouTube').textContent = youtubeData.text;
+      document.getElementById('barYouTube').style.width = youtubeData.pct + '%';
+
+      const tiktokData = getShareText(analytics.tiktok);
+      document.getElementById('shareTikTok').textContent = tiktokData.text;
+      document.getElementById('barTikTok').style.width = tiktokData.pct + '%';
+
+      // 4. Populate Transactions Table
+      const tbody = document.getElementById('txnTbody');
+      if (userTxns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text4);">No transactions yet.</td></tr>';
+      } else {
+        tbody.innerHTML = '';
+        userTxns.forEach(txn => {
+          const color = txn.amount < 0 ? 'var(--red)' : 'var(--green)';
+          const sign = txn.amount > 0 ? '+' : '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${txn.id}</td>
+            <td>${txn.date}</td>
+            <td>${txn.type}</td>
+            <td>${txn.method}</td>
+            <td style="color:${color}; font-weight:600;">${sign}${formatCurr(Math.abs(txn.amount))}</td>
+            <td><span class="badge badge-green">● ${txn.status}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // 5. Render Chart (Mock logic since we only have single data point, drawing zeros if 0)
+      const c = document.getElementById('revenueTrend');
+      const hist = analytics.netRoyalty > 0 ? [100, 250, 400, 300, 600, analytics.netRoyalty] : [0, 0, 0, 0, 0, 0];
+      drawBarChart(c, hist, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']);
+    });
+  </script>
+</body>
+</html>

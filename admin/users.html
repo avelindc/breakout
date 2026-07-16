@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    try {
+      if (localStorage.getItem('adminLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+      }
+    } catch (e) {
+      console.warn("localStorage block:", e);
+    }
+  </script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Management & Approval — BREAKOUT MUSIC Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Kelola & Persetujuan User</h1>
+            <p class="topbar-sub">Search, audit, approve and manage BREAKOUT MUSIC user registrations.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Toolbar Search & Filter -->
+        <div class="toolbar reveal">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="searchUser" placeholder="Search by name or email..." onkeyup="loadUsersTable()" />
+          </div>
+          <select class="filter-select" id="filterUserStatus" onchange="loadUsersTable()">
+            <option value="all">All Status</option>
+            <option value="PENDING" selected>Pending Approval</option>
+            <option value="ACTIVE">Active</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card reveal">
+          <div class="table-wrap">
+            <table id="usersTable">
+              <thead>
+                <tr>
+                  <th>User Profile</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../shared/nela.js?v=6"></script>
+  <script>
+    renderAdminSidebar('users');
+
+    function loadUsersTable() {
+      const tbody = document.getElementById('usersTbody');
+      tbody.innerHTML = '';
+      
+      let users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+      const search = document.getElementById('searchUser').value.toLowerCase();
+      const statusFilter = document.getElementById('filterUserStatus').value;
+
+      users.forEach((user, index) => {
+        const name = `${user.firstName} ${user.lastName}`.trim().toLowerCase();
+        const email = user.email.toLowerCase();
+        
+        const searchMatch = name.includes(search) || email.includes(search);
+        const statusMatch = statusFilter === 'all' || user.status === statusFilter;
+
+        if (searchMatch && statusMatch) {
+          const tr = document.createElement('tr');
+          
+          let statusBadge = '';
+          if (user.status === 'PENDING') statusBadge = '<span class="badge badge-yellow">Pending</span>';
+          else if (user.status === 'ACTIVE') statusBadge = '<span class="badge badge-green">Active</span>';
+          else if (user.status === 'REJECTED') statusBadge = '<span class="badge badge-red">Rejected</span>';
+
+          tr.innerHTML = `
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="user-avatar" style="width:36px;height:36px;font-size:12px;border:none;">${user.firstName.charAt(0)}${user.lastName.charAt(0)}</div>
+                <div>
+                  <div style="font-weight:600;">${user.firstName} ${user.lastName}</div>
+                  <div style="font-size:11px;color:var(--text4)">${user.email}</div>
+                </div>
+              </div>
+            </td>
+            <td><span style="text-transform: capitalize;">${user.type}</span></td>
+            <td>${statusBadge}</td>
+            <td>
+              ${user.status === 'PENDING' ? `
+                <button type="button" class="btn btn-success btn-sm" onclick="approveUser('${user.id}')">Approve</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="rejectUser('${user.id}')">Reject</button>
+              ` : `
+                <button type="button" class="btn btn-secondary btn-sm" disabled>${user.status === 'ACTIVE' ? 'Approved' : 'Rejected'}</button>
+              `}
+              <button type="button" class="btn btn-danger btn-sm" style="margin-left: 4px;" onclick="deleteUser('${user.id}')">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+      
+      if (tbody.children.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text4);">No users found.</td></tr>';
+      }
+    }
+
+    function approveUser(id) {
+      let users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+      const user = users.find(u => u.id === id);
+      if (user) {
+        user.status = 'ACTIVE';
+        localStorage.setItem('nelaUsers', JSON.stringify(users));
+        console.log(`[Email Mock] Sending approval email to ${user.email} (SMTP not configured, skipping actual email send).`);
+        showToast('User approved successfully.', 'success');
+        loadUsersTable();
+      }
+    }
+
+    function rejectUser(id) {
+      let users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+      const user = users.find(u => u.id === id);
+      if (user) {
+        user.status = 'REJECTED';
+        localStorage.setItem('nelaUsers', JSON.stringify(users));
+        showToast('User rejected.', 'error');
+        loadUsersTable();
+      }
+    }
+
+    function deleteUser(id) {
+      if (confirm('Are you sure you want to permanently delete this user?')) {
+        let users = JSON.parse(localStorage.getItem('nelaUsers')) || [];
+        users = users.filter(u => u.id !== id);
+        localStorage.setItem('nelaUsers', JSON.stringify(users));
+        showToast('User has been deleted successfully.', 'success');
+        loadUsersTable();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadUsersTable);
+  </script>
+</body>
+</html>

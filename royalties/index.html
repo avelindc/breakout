@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Royalty Earnings — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Royalty Dashboard</h1>
+            <p class="topbar-sub">Track monthly royalties, configure withdrawal parameters, and review sales distributions.</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <a href="/royalties/withdrawal.html" class="btn btn-primary btn-sm">🏦 Request Payout</a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Royalty Overview Stats -->
+        <div class="stats-grid">
+          <div class="stat-card reveal reveal-delay-1">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green)"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+            <div class="stat-label">Total Royalty Earnings</div>
+            <div class="stat-value" id="royTotal">$0.00</div>
+            <div class="stat-change">Lifetime Gross</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-2">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--orange)"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg></div>
+            <div class="stat-label">Net Payable</div>
+            <div class="stat-value" id="royNet">$0.00</div>
+            <div class="stat-change neutral">After deductions</div>
+          </div>
+          <div class="stat-card reveal reveal-delay-3">
+            <div class="stat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--purple-light)"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+            <div class="stat-label">Next Payout</div>
+            <div class="stat-value" id="royNext">$0.00</div>
+            <div class="stat-change neutral">Estimated this month</div>
+          </div>
+        </div>
+
+        <!-- Filter Tools -->
+        <div class="toolbar reveal">
+          <select class="filter-select" id="monthFilter" onchange="updateEarningsFilters()">
+            <option value="all">All Months</option>
+            <option value="june">June 2026</option>
+            <option value="may">May 2026</option>
+            <option value="april">April 2026</option>
+          </select>
+          <select class="filter-select" id="platformFilter" onchange="updateEarningsFilters()">
+            <option value="all">All Platforms</option>
+            <option value="spotify">Spotify</option>
+            <option value="apple">Apple Music</option>
+            <option value="youtube">YouTube</option>
+            <option value="tiktok">TikTok</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:26px;">
+          <!-- Monthly Earnings Bar Chart -->
+          <div class="card reveal">
+            <h3 class="section-title">Royalties Trend (Last 6 Months)</h3>
+            <div style="position:relative;height:180px;">
+              <canvas id="monthlyRoyaltyChart" class="chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Breakdown per Platform List -->
+          <div class="card reveal">
+            <h3 class="section-title">Breakdown per Platform</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span>🟢</span>
+                  <div>
+                    <div style="font-weight:600;font-size:14px;">Spotify Royalties</div>
+                    <div style="font-size:11px;color:var(--text4)" id="subSpotifyStreams">0 streams</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:600;color:var(--green)" id="subSpotifyRev">$0.00</div>
+                  <div style="font-size:11px;color:var(--text4)" id="subSpotifyShare">0% share</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span>💎</span>
+                  <div>
+                    <div style="font-weight:600;font-size:14px;">Apple Music Royalties</div>
+                    <div style="font-size:11px;color:var(--text4)" id="subAppleStreams">0 streams</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:600;color:var(--green)" id="subAppleRev">$0.00</div>
+                  <div style="font-size:11px;color:var(--text4)" id="subAppleShare">0% share</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span>▶</span>
+                  <div>
+                    <div style="font-weight:600;font-size:14px;">YouTube Music Royalties</div>
+                    <div style="font-size:11px;color:var(--text4)" id="subYouTubeStreams">0 streams</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:600;color:var(--green)" id="subYouTubeRev">$0.00</div>
+                  <div style="font-size:11px;color:var(--text4)" id="subYouTubeShare">0% share</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span>🎶</span>
+                  <div>
+                    <div style="font-weight:600;font-size:14px;">TikTok Royalties</div>
+                    <div style="font-size:11px;color:var(--text4)" id="subTikTokStreams">0 streams</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:600;color:var(--green)" id="subTikTokRev">$0.00</div>
+                  <div style="font-size:11px;color:var(--text4)" id="subTikTokShare">0% share</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Earnings Table -->
+        <div class="card reveal">
+          <h3 class="section-title">Royalty Log by Releases</h3>
+          <div class="table-wrap">
+            <table id="royaltyLogTable">
+              <thead>
+                <tr>
+                  <th>Release Title</th>
+                  <th>Reporting Month</th>
+                  <th>Spotify</th>
+                  <th>Apple Music</th>
+                  <th>YouTube Music</th>
+                  <th>TikTok</th>
+                  <th>Total Gross</th>
+                </tr>
+              </thead>
+              <tbody id="royaltyLogBody">
+                <!-- Dynamically Populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js?v=6"></script>
+  <script>
+    renderArtistSidebar('royalties');
+
+    window.addEventListener('load', () => {
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const storedKey = activeUserId ? `userAnalytics_${activeUserId}` : 'userAnalytics';
+      const analytics = JSON.parse(localStorage.getItem(storedKey)) || {
+        totalStreams: 0, spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, joox: 0,
+        grossRevenue: 0, deductions: 0, netRoyalty: 0, currency: 'USD'
+      };
+      const db = getNelaDB();
+      const formatCurr = (num) => new Intl.NumberFormat('en-US', { style: 'currency', currency: analytics.currency }).format(num);
+
+      // Populate Cards
+      document.getElementById('royTotal').textContent = formatCurr(analytics.grossRevenue);
+      document.getElementById('royNet').textContent = formatCurr(analytics.netRoyalty);
+      document.getElementById('royNext').textContent = formatCurr(analytics.netRoyalty > 0 ? analytics.netRoyalty * 1.05 : 0);
+
+      // Populate Breakdown
+      const actualTotal = (analytics.spotify || 0) + (analytics.apple || 0) + (analytics.youtube || 0) + (analytics.tiktok || 0) + (analytics.amazon || 0) + (analytics.joox || 0);
+      const totalStreams = actualTotal > 0 ? actualTotal : 1;
+      
+      const calcData = (streams) => {
+        const pct = Math.round(((streams || 0) / totalStreams) * 100);
+        const estRevenue = (pct / 100) * analytics.netRoyalty;
+        return { rev: formatCurr(estRevenue), pct: pct + '% share', str: (streams || 0).toLocaleString() + ' streams' };
+      };
+
+      const s = calcData(analytics.spotify);
+      document.getElementById('subSpotifyStreams').textContent = s.str;
+      document.getElementById('subSpotifyRev').textContent = s.rev;
+      document.getElementById('subSpotifyShare').textContent = s.pct;
+
+      const a = calcData(analytics.apple);
+      document.getElementById('subAppleStreams').textContent = a.str;
+      document.getElementById('subAppleRev').textContent = a.rev;
+      document.getElementById('subAppleShare').textContent = a.pct;
+
+      const y = calcData(analytics.youtube);
+      document.getElementById('subYouTubeStreams').textContent = y.str;
+      document.getElementById('subYouTubeRev').textContent = y.rev;
+      document.getElementById('subYouTubeShare').textContent = y.pct;
+
+      const t = calcData(analytics.tiktok);
+      document.getElementById('subTikTokStreams').textContent = t.str;
+      document.getElementById('subTikTokRev').textContent = t.rev;
+      document.getElementById('subTikTokShare').textContent = t.pct;
+
+      // Populate Table (if no data, show empty state)
+      const tbody = document.getElementById('royaltyLogBody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text4);">No royalty logs found.</td></tr>';
+
+      // Chart
+      const c = document.getElementById('monthlyRoyaltyChart');
+      const hist = analytics.netRoyalty > 0 ? [100, 250, 400, 300, 600, analytics.netRoyalty] : [0, 0, 0, 0, 0, 0];
+      drawBarChart(c, hist, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']);
+    });
+
+    function updateEarningsFilters() {
+      showToast('Filters applied successfully','info');
+    }
+  </script>
+</body>
+</html>

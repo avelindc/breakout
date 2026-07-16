@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment History — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title">Transaction History</h1>
+            <p class="topbar-sub">View history of monthly royalty credits and manual withdrawals.</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Filter Toolbar -->
+        <div class="toolbar reveal">
+          <div class="search-wrap">
+            <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+            <input type="text" class="search-input" id="searchTxn" placeholder="Search Transaction ID..." onkeyup="filterTxns()" />
+          </div>
+          <select class="filter-select" id="filterTxnType" onchange="filterTxns()">
+            <option value="all">All Types</option>
+            <option value="withdrawal">Withdrawal</option>
+            <option value="royalty">Royalty Credit</option>
+          </select>
+          <select class="filter-select" id="filterTxnStatus" onchange="filterTxns()">
+            <option value="all">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card reveal">
+          <div class="table-wrap">
+            <table id="transactionsTable">
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th>Payout Method</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Invoice</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Populated dynamically via loadTransactions() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+  <script>
+    renderArtistSidebar('history');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTransactions();
+    });
+
+    function loadTransactions() {
+      const db = getNelaDB();
+      const activeUserId = localStorage.getItem('activeDashboardUserId');
+      const tbody = document.querySelector('#transactionsTable tbody');
+      tbody.innerHTML = '';
+
+      // Only show transactions belonging to the active user. If t.userId is not set, it's global mock data, skip it for new users.
+      const txns = [...db.transactions].filter(t => t.userId === activeUserId).reverse();
+
+      txns.forEach(t => {
+        let statusBadge = '';
+        let amountText = '';
+        let isPdfDisabled = false;
+
+        if (t.status === 'completed') {
+          statusBadge = '<span class="badge badge-green">●  Completed</span>';
+          amountText = t.amount < 0 
+            ? `<span style="color:var(--red); font-weight:600;">-$${Math.abs(t.amount).toFixed(2)}</span>`
+            : `<span style="color:var(--green); font-weight:600;">+$${Math.abs(t.amount).toFixed(2)}</span>`;
+        } else if (t.status === 'pending') {
+          statusBadge = '<span class="badge badge-yellow">●  Pending</span>';
+          amountText = `<span style="color:var(--red); font-weight:600;">-$${Math.abs(t.amount).toFixed(2)}</span>`;
+          isPdfDisabled = true;
+        } else {
+          statusBadge = '<span class="badge badge-red">●  Failed</span>';
+          amountText = `<span style="color:var(--text4); text-decoration:line-through; font-weight:600;">-$${Math.abs(t.amount).toFixed(2)}</span>`;
+          isPdfDisabled = true;
+        }
+
+        const row = document.createElement('tr');
+        row.setAttribute('data-type', t.type);
+        row.setAttribute('data-status', t.status);
+        row.innerHTML = `
+          <td>${t.id}</td>
+          <td>${t.date}</td>
+          <td>${t.description}</td>
+          <td>${t.type === 'withdrawal' ? 'Withdrawal' : 'Royalty Credit'}</td>
+          <td>
+            <strong>${t.method}</strong>
+            ${t.accountDetails ? `<div style="font-size:11px;color:var(--text4);margin-top:2px;">${t.accountDetails}</div>` : ''}
+          </td>
+          <td>${amountText}</td>
+          <td>${statusBadge}</td>
+          <td><button type="button" class="btn btn-secondary btn-sm" ${isPdfDisabled ? 'disabled' : ''} onclick="showToast('Downloading document...','info')">PDF</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function filterTxns() {
+      const search = document.getElementById('searchTxn').value.toLowerCase();
+      const type = document.getElementById('filterTxnType').value;
+      const status = document.getElementById('filterTxnStatus').value;
+      const rows = document.querySelectorAll('#transactionsTable tbody tr');
+
+      rows.forEach(row => {
+        const id = row.querySelector('td').textContent.toLowerCase();
+        const desc = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+        const rowType = row.getAttribute('data-type');
+        const rowStatus = row.getAttribute('data-status');
+
+        const searchMatch = id.includes(search) || desc.includes(search);
+        const typeMatch = type === 'all' || rowType === type;
+        const statusMatch = status === 'all' || rowStatus === status;
+
+        if (searchMatch && typeMatch && statusMatch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

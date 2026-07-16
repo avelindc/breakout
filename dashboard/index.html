@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Dashboard — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Premium Dashboard Styles */
+    body { background: #0f0f0f; }
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .premium-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,193,7,0.15); border-radius: 20px; padding: 24px; backdrop-filter: blur(20px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s; position: relative; overflow: hidden; }
+    .premium-card:hover { transform: translateY(-5px); border-color: rgba(255,193,7,0.4); box-shadow: 0 15px 40px rgba(255,193,7,0.1); }
+    .premium-icon { font-size: 28px; margin-bottom: 16px; display: inline-block; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.05); }
+    .icon-green { color: #10B981; background: rgba(16,185,129,0.1); }
+    .icon-blue { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    .icon-orange { color: #F59E0B; background: rgba(245,158,11,0.1); }
+    .icon-purple { color: #8B5CF6; background: rgba(139,92,246,0.1); }
+    .stat-title { font-size: 13px; color: var(--text4); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 8px; }
+    .stat-number { font-size: 32px; font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; line-height: 1.1; }
+    
+    .chart-container { position: relative; height: 260px; width: 100%; }
+    .row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+    @media(max-width: 900px) { .row-2 { grid-template-columns: 1fr; } }
+    
+    .list-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .list-item:last-child { border-bottom: none; }
+    .list-left { display: flex; align-items: center; gap: 12px; }
+    .list-logo { width: 32px; height: 32px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .list-name { font-weight: 600; font-size: 14px; }
+    .list-value { font-weight: 700; font-family: 'Outfit', sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main-content">
+      <header class="topbar" style="background: rgba(15,15,15,0.9);">
+        <div class="topbar-left">
+          <button type="button" class="hamburger-btn" id="hamburgerBtn">
+            <span></span><span></span><span></span>
+          </button>
+          <div>
+            <h1 class="topbar-title" style="color: #FFC107;">Artist Analytics</h1>
+            <p class="topbar-sub">Comprehensive performance overview and insights.</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- 1. Kartu Statistik -->
+        <div class="analytics-grid">
+          <div class="premium-card">
+            <div class="premium-icon icon-green">🎧</div>
+            <div class="stat-title">Total Streaming</div>
+            <div class="stat-number" id="statTotalStreams">--</div>
+          </div>
+          <div class="premium-card">
+            <div class="premium-icon icon-blue">🥳</div>
+            <div class="stat-title">Total Penarikan</div>
+            <div class="stat-number" id="statTotalWithdrawn">--</div>
+          </div>
+          <div class="premium-card">
+            <div class="premium-icon icon-orange">💰</div>
+            <div class="stat-title">Total Royalti</div>
+            <div class="stat-number" id="statTotalRoyalty">--</div>
+          </div>
+          <div class="premium-card">
+            <div class="premium-icon icon-purple">🎵</div>
+            <div class="stat-title">Total Rilisan</div>
+            <div class="stat-number" id="statTotalReleases">--</div>
+          </div>
+        </div>
+        
+        <div class="analytics-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="premium-card" style="padding: 16px 24px;">
+            <div class="stat-title">Lagu Aktif</div>
+            <div class="stat-number" id="statActiveSongs" style="font-size: 24px;">--</div>
+          </div>
+          <div class="premium-card" style="padding: 16px 24px;">
+            <div class="stat-title">Status Verifikasi</div>
+            <div class="stat-number" id="statVerification" style="font-size: 24px; margin-top:5px;">--</div>
+          </div>
+          <div class="premium-card" style="padding: 16px 24px;">
+            <div class="stat-title">Saldo Siap Dibayar</div>
+            <div class="stat-number" id="statSaldo" style="font-size: 24px; color: #10B981;">--</div>
+          </div>
+        </div>
+
+        <!-- 2. Grafik Analytics (Row 1) -->
+        <div class="row-2">
+          <div class="premium-card">
+            <h3 class="section-title">Streams Harian (7 Hari)</h3>
+            <div class="chart-container"><canvas id="chartDailyStreams"></canvas></div>
+          </div>
+          <div class="premium-card">
+            <h3 class="section-title">Streams Bulanan (12 Bulan)</h3>
+            <div class="chart-container"><canvas id="chartMonthlyStreams"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Grafik Analytics (Row 2) -->
+        <div class="row-2">
+          <div class="premium-card">
+            <h3 class="section-title">Pendapatan Bulanan</h3>
+            <div class="chart-container"><canvas id="chartRevenue"></canvas></div>
+          </div>
+          <div class="premium-card">
+            <h3 class="section-title">Pertumbuhan Listener</h3>
+            <div class="chart-container"><canvas id="chartListenerGrowth"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Platform Pie, Top Songs, Countries -->
+        <div class="row-2">
+          <!-- 3. Statistik Platform -->
+          <div class="premium-card">
+            <h3 class="section-title">Distribusi Platform</h3>
+            <div class="chart-container" style="height: 200px; margin-bottom: 20px;"><canvas id="chartPlatform"></canvas></div>
+            <div>
+              <div class="list-item">
+                <div class="list-left"><div class="list-logo" style="background:#1DB954">S</div> <span class="list-name">Spotify</span></div>
+                <div class="list-value" id="platSpotify">--</div>
+              </div>
+              <div class="list-item">
+                <div class="list-left"><div class="list-logo" style="background:#FA243C">A</div> <span class="list-name">Apple Music</span></div>
+                <div class="list-value" id="platApple">--</div>
+              </div>
+              <div class="list-item">
+                <div class="list-left"><div class="list-logo" style="background:#FF0000">Y</div> <span class="list-name">YouTube Music</span></div>
+                <div class="list-value" id="platYouTube">--</div>
+              </div>
+              <div class="list-item">
+                <div class="list-left"><div class="list-logo" style="background:#00F2FE; color:#000;">T</div> <span class="list-name">TikTok</span></div>
+                <div class="list-value" id="platTikTok">--</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <!-- Top 10 Songs Chart -->
+            <div class="premium-card" style="flex:1;">
+              <h3 class="section-title">Top Lagu Terpopuler</h3>
+              <div class="chart-container" style="height: 160px;"><canvas id="chartTopSongs"></canvas></div>
+            </div>
+            
+            <!-- 6. Trending -->
+            <div class="premium-card">
+              <h3 class="section-title">Trending Sekarang</h3>
+              <div style="text-align:center;color:var(--text4);padding:10px;">Belum ada lagu trending.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <!-- 4. Top Countries -->
+          <div class="premium-card">
+            <h3 class="section-title">Top Countries</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="list-item"><div class="list-left">🇮🇩 <span class="list-name">Indonesia</span></div></div>
+              <div class="list-item"><div class="list-left">🇲🇾 <span class="list-name">Malaysia</span></div></div>
+              <div class="list-item"><div class="list-left">🇸🇬 <span class="list-name">Singapura</span></div></div>
+              <div class="list-item"><div class="list-left">🇺🇸 <span class="list-name">Amerika Serikat</span></div></div>
+              <div class="list-item"><div class="list-left">🇯🇵 <span class="list-name">Jepang</span></div></div>
+              <div class="list-item"><div class="list-left">🇬🇧 <span class="list-name">Inggris</span></div></div>
+              <div class="list-item"><div class="list-left">🇵🇭 <span class="list-name">Filipina</span></div></div>
+              <div class="list-item"><div class="list-left">🇦🇺 <span class="list-name">Australia</span></div></div>
+            </div>
+          </div>
+          
+          <!-- 5. Recent Activity & 7. Progress Royalti -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <div class="premium-card">
+              <h3 class="section-title">Recent Activity</h3>
+              <div style="text-align:center;color:var(--text4);padding:10px;">Belum ada aktivitas terbaru.</div>
+            </div>
+            <div class="premium-card">
+              <h3 class="section-title">Progress Royalti (ke $50)</h3>
+              <div class="progress-wrap" style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; margin-bottom: 8px;">
+                <div class="progress-bar" style="width: 0%; background: #FFC107;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text4);">
+                <span>$0.00 Terkumpul</span>
+                <span>$50.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/nela.js?v=9"></script>
+  <script src="/dashboard/js/analytics.js?v=9"></script>
+  <script>
+    renderArtistSidebar('overview');
+  </script>
+</body>
+</html>

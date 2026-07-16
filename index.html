@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BREAKOUT MUSIC Distribution — Distribute Your Music Worldwide</title>
+  <meta name="description" content="Release your music to Spotify, Apple Music, TikTok, YouTube Music, Amazon Music, and 150+ platforms. Keep 100% of your rights with BREAKOUT MUSIC Distribution." />
+  <meta name="keywords" content="music distribution, distribute music, spotify, apple music, tiktok music, royalties, music platform" />
+  <meta property="og:title" content="BREAKOUT MUSIC Distribution — Distribute Your Music Worldwide" />
+  <meta property="og:description" content="Release your music to 150+ streaming platforms in just a few clicks." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* =========================================
+       RESET & BASE
+    ========================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0B0B0F;
+      --bg2: #0f0f16;
+      --bg3: #13131c;
+      --surface: rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.12);
+      --purple: #8B5CF6;
+      --purple-light: #A78BFA;
+      --purple-dark: #6D28D9;
+      --blue: #3B82F6;
+      --blue-light: #60A5FA;
+      --cyan: #06B6D4;
+      --pink: #EC4899;
+      --green: #10B981;
+      --text: #FFFFFF;
+      --text2: #E2E8F0;
+      --text3: #94A3B8;
+      --text4: #64748B;
+      --grad1: linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #06B6D4 100%);
+      --grad2: linear-gradient(135deg, #6D28D9 0%, #2563EB 100%);
+      --grad3: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+      --radius: 20px;
+      --radius-sm: 12px;
+      --radius-lg: 28px;
+      --shadow: 0 25px 60px rgba(0,0,0,0.5);
+      --glow-purple: 0 0 40px rgba(139,92,246,0.3);
+      --glow-blue: 0 0 40px rgba(59,130,246,0.3);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    h1,h2,h3,h4,h5 { font-family: 'Outfit', sans-serif; font-weight: 700; line-height: 1.15; }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+    button { font-family: 'Inter', sans-serif; cursor: pointer; border: none; outline: none; }
+    ul { list-style: none; }
+
+    /* =========================================
+       SCROLLBAR
+    ========================================= */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--purple-dark); border-radius: 3px; }
+
+    /* =========================================
+       UTILITIES
+    ========================================= */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .grad-text {
+      background: var(--grad1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      color: var(--purple-light);
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .section-header { text-align: center; margin-bottom: 64px; }
+    .section-header h2 { font-size: clamp(32px, 5vw, 52px); margin: 16px 0 20px; }
+    .section-header p { font-size: 18px; color: var(--text3); max-width: 580px; margin: 0 auto; }
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 100px;
+      font-size: 15px; font-weight: 600;
+      transition: all 0.3s ease; cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--grad1);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(139,92,246,0.4);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 48px rgba(139,92,246,0.5); }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+    /* =========================================
+       NOISE OVERLAY
+    ========================================= */
+    body::before {
+      content:'';
+      position: fixed; inset:0; z-index:0; pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    /* =========================================
+       NAV
+    ========================================= */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    nav.scrolled {
+      background: rgba(11,11,15,0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; max-width: 1200px; margin: 0 auto;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .nav-logo .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--grad1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: #fff;
+      font-family: 'Outfit', sans-serif;
+    }
+    .nav-logo .logo-text { font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 20px; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-links a {
+      color: var(--text3); font-size: 14px; font-weight: 500;
+      padding: 8px 16px; border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface); }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-login { color: var(--text3); font-size: 14px; font-weight: 500; padding: 10px 16px; }
+    .nav-login:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--grad1); color: #fff; font-size: 14px;
+      padding: 10px 22px; border-radius: 100px; font-weight: 600;
+      transition: all 0.3s; box-shadow: 0 4px 20px rgba(139,92,246,0.3);
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(139,92,246,0.4); }
+    .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .nav-hamburger span { width: 24px; height: 2px; background: var(--text3); border-radius: 2px; transition: all 0.3s; }
+
+    /* =========================================
+       HERO
+    ========================================= */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center;
+      overflow: hidden; padding-top: 90px;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(139,92,246,0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse 50% 40% at 80% 60%, rgba(59,130,246,0.15) 0%, transparent 50%),
+                  radial-gradient(ellipse 50% 40% at 10% 80%, rgba(6,182,212,0.1) 0%, transparent 50%);
+    }
+    .hero-orbs { position: absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(80px); opacity: 0.25;
+      animation: orbFloat 8s ease-in-out infinite;
+    }
+    .orb1 { width: 500px; height: 500px; background: var(--purple); top: -100px; left: -100px; animation-delay: 0s; }
+    .orb2 { width: 400px; height: 400px; background: var(--blue); top: 20%; right: -80px; animation-delay: -3s; }
+    .orb3 { width: 300px; height: 300px; background: var(--cyan); bottom: 0; left: 30%; animation-delay: -6s; }
+    @keyframes orbFloat {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(30px,-20px) scale(1.05); }
+      66% { transform: translate(-20px,15px) scale(0.95); }
+    }
+    canvas#waveform {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      width: 100%; height: 200px; opacity: 0.4; z-index: 1;
+    }
+    .hero-content { position: relative; z-index: 2; text-align: center; width: 100%; }
+    .hero-content .badge { margin-bottom: 24px; }
+    .hero-title { font-size: clamp(42px, 7vw, 88px); font-weight: 900; letter-spacing: -2px; margin-bottom: 24px; line-height: 1.05; }
+    .hero-subtitle { font-size: clamp(16px, 2vw, 20px); color: var(--text3); max-width: 640px; margin: 0 auto 40px; line-height: 1.7; }
+    .hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+    .hero-stats {
+      display: flex; gap: 48px; justify-content: center; flex-wrap: wrap;
+      padding: 24px; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      backdrop-filter: blur(20px); max-width: 640px; margin: 0 auto;
+    }
+    .hero-stat-item { text-align: center; }
+    .hero-stat-item .num { font-size: 28px; font-weight: 800; font-family: 'Outfit', sans-serif; }
+    .hero-stat-item .lbl { font-size: 12px; color: var(--text4); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .music-notes { position: absolute; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+    .note {
+      position: absolute; font-size: 24px; opacity: 0;
+      animation: noteFloat 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px var(--purple));
+    }
+    @keyframes noteFloat {
+      0% { opacity:0; transform: translateY(0) rotate(0deg); }
+      20% { opacity:0.6; }
+      80% { opacity:0.3; }
+      100% { opacity:0; transform: translateY(-120px) rotate(20deg); }
+    }
+
+    /* =========================================
+       DASHBOARD MOCKUP
+    ========================================= */
+    .dashboard-section {
+      padding: 60px 0 100px; position: relative; z-index: 2;
+    }
+    .dashboard-wrapper {
+      position: relative; max-width: 960px; margin: 0 auto;
+    }
+    .dashboard-glow {
+      position: absolute; inset: -40px;
+      background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(139,92,246,0.2) 0%, transparent 70%);
+      filter: blur(40px); z-index: 0;
+    }
+    .dashboard-card {
+      position: relative; z-index: 1;
+      background: rgba(19,19,28,0.9);
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.1);
+    }
+    .dash-topbar {
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+    }
+    .dash-dots { display: flex; gap: 8px; }
+    .dash-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .d1 { background: #FF5F57; } .d2 { background: #FEBC2E; } .d3 { background: #28C840; }
+    .dash-title { font-size: 13px; color: var(--text4); font-weight: 500; flex:1; text-align:center; }
+    .dash-body { padding: 28px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .dash-metric {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px;
+      transition: all 0.3s;
+    }
+    .dash-metric:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.06); transform: translateY(-2px); }
+    .dash-metric .label { font-size: 11px; color: var(--text4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .dash-metric .value { font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif; }
+    .dash-metric .change { font-size: 12px; color: var(--green); margin-top: 4px; }
+    .dash-metric .icon { font-size: 20px; margin-bottom: 8px; }
+    .dash-chart-row { grid-column: 1/-1; }
+    .dash-chart {
+      background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px;
+    }
+    .dash-chart-title { font-size: 13px; color: var(--text3); font-weight: 600; margin-bottom: 16px; }
+    .bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+    .bar {
+      flex:1; border-radius: 4px 4px 0 0;
+      background: var(--grad1);
+      opacity: 0.7; transition: opacity 0.3s;
+      animation: barGrow 1s ease-out forwards;
+    }
+    .bar:hover { opacity: 1; }
+    @keyframes barGrow { from { height: 0 !important; } }
+    .bar-labels { display: flex; gap: 8px; margin-top: 8px; }
+    .bar-lbl { flex:1; text-align:center; font-size: 10px; color: var(--text4); }
+    .dash-platforms { grid-column: 1/-1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .platform-row {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .platform-name { font-size: 12px; color: var(--text3); font-weight: 500; }
+    .platform-bar-wrap { flex:1; margin: 0 12px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
+    .platform-bar { height: 100%; border-radius: 2px; background: var(--grad1); }
+    .platform-pct { font-size: 11px; color: var(--text4); }
+
+    /* =========================================
+       TRUSTED PLATFORMS
+    ========================================= */
+    #platforms { padding: 60px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; }
+    .platforms-label { text-align:center; font-size: 12px; color: var(--text4); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 32px; }
+    .platforms-track-outer { overflow: hidden; position: relative; }
+    .platforms-track-outer::before,
+    .platforms-track-outer::after {
+      content:''; position:absolute; top:0; bottom:0; width:120px; z-index:2; pointer-events:none;
+    }
+    .platforms-track-outer::before { left:0; background: linear-gradient(to right, var(--bg), transparent); }
+    .platforms-track-outer::after { right:0; background: linear-gradient(to left, var(--bg), transparent); }
+    .platforms-track {
+      display: flex; gap: 48px; align-items: center;
+      animation: scrollTrack 25s linear infinite;
+      width: max-content;
+    }
+    @keyframes scrollTrack {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .platform-item {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.3s; flex-shrink: 0; min-width: 130px;
+    }
+    .platform-item:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-3px); background: rgba(139,92,246,0.06); }
+    .platform-logo { font-size: 32px; }
+    .platform-item span { font-size: 12px; color: var(--text4); font-weight: 500; }
+
+    /* =========================================
+       FEATURES
+    ========================================= */
+    #features { padding: 120px 0; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .feature-card {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px;
+      transition: all 0.4s ease; position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background: var(--grad1); opacity:0; transition: opacity 0.3s;
+    }
+    .feature-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-6px); background: rgba(139,92,246,0.05); box-shadow: var(--glow-purple); }
+    .feature-card:hover::before { opacity:1; }
+    .feature-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .feature-card p { font-size: 14px; color: var(--text3); line-height: 1.7; }
+
+    /* =========================================
+       ANALYTICS SECTION
+    ========================================= */
+    #analytics { padding: 120px 0; background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(59,130,246,0.06) 0%, transparent 70%); }
+    .analytics-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; align-items: center; }
+    .analytics-text h2 { font-size: clamp(32px, 5vw, 52px); margin-bottom: 20px; }
+    .analytics-text p { color: var(--text3); font-size: 17px; line-height: 1.8; margin-bottom: 32px; }
+    .analytics-bullets { display: flex; flex-direction: column; gap: 12px; }
+    .analytics-bullet { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text2); }
+    .bullet-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad1); flex-shrink: 0; }
+    .analytics-dashboard {
+      background: rgba(13,13,20,0.9); border: 1px solid rgba(139,92,246,0.2);
+      border-radius: var(--radius-lg); overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5), var(--glow-purple);
+    }
+    .analytics-dash-header {
+      padding: 20px 24px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .analytics-dash-title { font-size: 14px; font-weight: 600; }
+    .analytics-dash-badge { font-size: 11px; color: var(--green); background: rgba(16,185,129,0.15); padding: 4px 10px; border-radius: 100px; }
+    .analytics-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); }
+    .analytics-metric {
+      background: rgba(13,13,20,1); padding: 20px 24px;
+    }
+    .analytics-metric .label { font-size: 11px; color: var(--text4); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .analytics-metric .value { font-size: 24px; font-weight: 800; font-family: 'Outfit', sans-serif; }
+    .analytics-metric .sub { font-size: 12px; color: var(--green); margin-top: 2px; }
+    .analytics-chart-area { padding: 20px 24px; }
+    .analytics-chart-label { font-size: 12px; color: var(--text4); margin-bottom: 12px; font-weight: 500; }
+    canvas#analyticsChart { width: 100%; height: 120px; display: block; }
+    .top-songs { padding: 0 24px 20px; }
+    .top-songs-label { font-size: 12px; color: var(--text4); font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .song-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .song-rank { font-size: 12px; color: var(--text4); width: 16px; text-align:center; }
+    .song-cover { width: 32px; height: 32px; border-radius: 6px; flex-shrink:0; }
+    .song-info { flex:1; }
+    .song-title { font-size: 13px; font-weight: 600; }
+    .song-streams { font-size: 11px; color: var(--text4); margin-top: 2px; }
+    .song-bar-wrap { width: 80px; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+    .song-bar { height: 100%; border-radius: 2px; background: var(--grad1); }
+
+    /* =========================================
+       PRICING
+    ========================================= */
+    #pricing { padding: 120px 0; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .pricing-card {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 40px 32px;
+      position: relative; overflow: hidden; transition: all 0.4s;
+    }
+    .pricing-card.featured {
+      background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.4);
+      box-shadow: var(--glow-purple), 0 40px 80px rgba(139,92,246,0.1);
+      transform: scale(1.04);
+    }
+    .pricing-card:hover:not(.featured) { transform: translateY(-4px); border-color: rgba(139,92,246,0.2); }
+    .featured-badge {
+      position:absolute; top: 20px; right: 20px;
+      background: var(--grad1); color: #fff; font-size: 11px;
+      font-weight: 700; padding: 4px 12px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .pricing-plan { font-size: 13px; color: var(--text4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .pricing-price { font-size: 48px; font-weight: 900; font-family: 'Outfit', sans-serif; line-height: 1; margin-bottom: 4px; }
+    .pricing-price sup { font-size: 24px; vertical-align: super; }
+    .pricing-period { font-size: 14px; color: var(--text4); margin-bottom: 24px; }
+    .pricing-desc { font-size: 14px; color: var(--text3); margin-bottom: 28px; line-height: 1.6; }
+    .pricing-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+    .pricing-feature { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text2); }
+    .pricing-check { width: 18px; height: 18px; border-radius: 50%; background: rgba(16,185,129,0.2); display: flex; align-items: center; justify-content: center; flex-shrink:0; font-size: 10px; }
+    .pricing-cta { width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; transition: all 0.3s; }
+    .pricing-cta-primary { background: var(--grad1); color: #fff; box-shadow: 0 8px 24px rgba(139,92,246,0.3); }
+    .pricing-cta-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(139,92,246,0.4); }
+    .pricing-cta-secondary { background: rgba(255,255,255,0.06); color: var(--text2); border: 1px solid var(--border2); }
+    .pricing-cta-secondary:hover { background: rgba(255,255,255,0.1); }
+
+    /* =========================================
+       HOW IT WORKS
+    ========================================= */
+    #how { padding: 120px 0; }
+    .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; position: relative; }
+    .how-steps::before {
+      content:''; position:absolute; top: 56px; left: 12%; right: 12%;
+      height: 2px; background: linear-gradient(to right, var(--purple), var(--blue), var(--cyan));
+      opacity: 0.4; z-index:0;
+    }
+    .how-step { text-align: center; position: relative; z-index:1; }
+    .step-icon-wrap {
+      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px;
+      background: var(--bg3); border: 2px solid rgba(139,92,246,0.4);
+      display: flex; align-items: center; justify-content: center; font-size: 32px;
+      position: relative; transition: all 0.4s;
+      box-shadow: 0 0 0 8px rgba(139,92,246,0.05);
+    }
+    .how-step:hover .step-icon-wrap { transform: scale(1.1) translateY(-4px); border-color: var(--purple); box-shadow: var(--glow-purple); }
+    .step-number {
+      position:absolute; top:-8px; right:-8px; width: 24px; height: 24px;
+      border-radius: 50%; background: var(--grad1); font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; color: #fff;
+    }
+    .how-step h3 { font-size: 17px; margin-bottom: 8px; }
+    .how-step p { font-size: 14px; color: var(--text3); line-height: 1.6; }
+
+    /* =========================================
+       TESTIMONIALS
+    ========================================= */
+    #testimonials { padding: 120px 0; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testimonial-card {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px; transition: all 0.4s;
+    }
+    .testimonial-card:hover { border-color: rgba(139,92,246,0.3); transform: translateY(-4px); background: rgba(139,92,246,0.04); }
+    .testimonial-stars { color: #FBBF24; font-size: 14px; margin-bottom: 16px; letter-spacing: 2px; }
+    .testimonial-text { font-size: 15px; color: var(--text2); line-height: 1.8; margin-bottom: 24px; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 14px; }
+    .testimonial-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--grad1); flex-shrink:0;
+      display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700;
+      color: #fff; border: 2px solid rgba(139,92,246,0.4);
+    }
+    .testimonial-name { font-size: 15px; font-weight: 700; }
+    .testimonial-role { font-size: 12px; color: var(--text4); margin-top: 2px; }
+    .testimonial-stat { font-size: 11px; color: var(--purple-light); font-weight: 600; margin-top: 6px; background: rgba(139,92,246,0.1); padding: 3px 8px; border-radius: 100px; display: inline-block; }
+
+    /* =========================================
+       FAQ
+    ========================================= */
+    #faq { padding: 120px 0; }
+    .faq-list { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); overflow: hidden; transition: border-color 0.3s;
+    }
+    .faq-item.open { border-color: rgba(139,92,246,0.3); }
+    .faq-question {
+      padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; font-size: 16px; font-weight: 600;
+      transition: color 0.3s; user-select: none;
+    }
+    .faq-question:hover { color: var(--purple-light); }
+    .faq-icon { width: 24px; height: 24px; border-radius: 50%; background: rgba(139,92,246,0.15); display: flex; align-items: center; justify-content: center; font-size: 14px; transition: transform 0.3s, background 0.3s; flex-shrink:0; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); background: rgba(139,92,246,0.3); }
+    .faq-answer { padding: 0 24px; max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s; }
+    .faq-item.open .faq-answer { max-height: 200px; padding-bottom: 20px; }
+    .faq-answer p { font-size: 15px; color: var(--text3); line-height: 1.7; }
+
+    /* =========================================
+       FINAL CTA
+    ========================================= */
+    #cta-final {
+      padding: 140px 0; position: relative; overflow: hidden; text-align: center;
+    }
+    .cta-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(139,92,246,0.15) 0%, transparent 70%);
+    }
+    .cta-content { position: relative; z-index:1; }
+    .cta-content h2 { font-size: clamp(36px, 6vw, 70px); margin-bottom: 24px; }
+    .cta-content p { font-size: 18px; color: var(--text3); max-width: 520px; margin: 0 auto 48px; }
+    .cta-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .cta-glow-ring {
+      position: absolute; top:50%; left:50%; width: 600px; height: 600px;
+      border: 1px solid rgba(139,92,246,0.1); border-radius: 50%;
+      transform: translate(-50%,-50%);
+      animation: ringPulse 4s ease-in-out infinite;
+    }
+    .cta-glow-ring:nth-child(2) { width: 800px; height: 800px; animation-delay: -1.5s; }
+    .cta-glow-ring:nth-child(3) { width: 1000px; height: 1000px; animation-delay: -3s; }
+    @keyframes ringPulse { 0%,100% { opacity:0.3; } 50% { opacity:0.1; } }
+
+    /* =========================================
+       FOOTER
+    ========================================= */
+    footer {
+      background: rgba(255,255,255,0.02); border-top: 1px solid var(--border);
+      padding: 80px 0 40px;
+    }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
+    .footer-brand .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .footer-brand p { font-size: 14px; color: var(--text4); line-height: 1.7; max-width: 280px; margin-bottom: 24px; }
+    .footer-socials { display: flex; gap: 10px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+      transition: all 0.3s; cursor:pointer;
+    }
+    .social-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.4); transform: translateY(-2px); }
+    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 20px; color: var(--text2); }
+    .footer-col ul { display: flex; flex-direction: column; gap: 10px; }
+    .footer-col ul li a { font-size: 14px; color: var(--text4); transition: color 0.2s; }
+    .footer-col ul li a:hover { color: var(--text); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-bottom p { font-size: 13px; color: var(--text4); }
+    .footer-legal { display: flex; gap: 24px; }
+    .footer-legal a { font-size: 13px; color: var(--text4); transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--text); }
+
+    /* =========================================
+       ANIMATIONS / SCROLL REVEAL
+    ========================================= */
+    .reveal { opacity:0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity:1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+    @media (max-width: 1024px) {
+      .analytics-layout { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .pricing-card.featured { transform: scale(1); }
+    }
+    @media (max-width: 768px) {
+      .nav-links, .nav-actions { display: none; }
+      .nav-hamburger { display: flex; }
+      .hero-stats { gap: 24px; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .how-steps { grid-template-columns: 1fr 1fr; }
+      .how-steps::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .dash-body { grid-template-columns: 1fr 1fr; }
+      .dash-platforms { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .how-steps { grid-template-columns: 1fr; }
+      .dash-body { grid-template-columns: 1fr; }
+      .analytics-metrics { grid-template-columns: 1fr; }
+    }
+    /* Mobile nav */
+    .mobile-nav {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0; z-index:999;
+      background: rgba(11,11,15,0.98); backdrop-filter: blur(24px);
+      flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { font-size: 24px; font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--text2); transition: color 0.2s; }
+    .mobile-nav a:hover { color: var(--purple-light); }
+    .mobile-nav-close { position: absolute; top: 24px; right: 24px; font-size: 28px; cursor:pointer; color: var(--text4); }
+  </style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav id="mainNav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="logo-icon">B</div>
+      <span class="logo-text">BREAKOUT MUSIC</span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#how">How it works</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/auth/login.html" class="nav-login">Log in</a>
+      <a href="/auth/register.html" class="nav-cta">Start Free</a>
+    </div>
+    <div class="nav-hamburger" id="hamburger" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobileNav">
+  <span class="mobile-nav-close" onclick="toggleMobileNav()">✕</span>
+  <a href="#features" onclick="toggleMobileNav()">Features</a>
+  <a href="#analytics" onclick="toggleMobileNav()">Analytics</a>
+  <a href="#pricing" onclick="toggleMobileNav()">Pricing</a>
+  <a href="#how" onclick="toggleMobileNav()">How it works</a>
+  <a href="#testimonials" onclick="toggleMobileNav()">Testimonials</a>
+  <a href="#faq" onclick="toggleMobileNav()">FAQ</a>
+  <a href="/auth/register.html" class="btn btn-primary" style="margin-top:16px">Start Free</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="music-notes" id="musicNotes"></div>
+  <canvas id="waveform"></canvas>
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="hero-content">
+      <div class="badge" style="margin-bottom:24px;">
+        <span>💿</span> Now live — 150+ streaming platforms
+      </div>
+      <h1 class="hero-title">
+        Distribute Your Music<br/><span class="grad-text">BREAKOUT MUSIC</span>
+      </h1>
+      <p class="hero-subtitle">
+        Release your music to Spotify, Apple Music, TikTok, YouTube Music, Amazon Music, Deezer, and 150+ streaming platforms in just a few clicks.
+      </p>
+      <div class="hero-ctas">
+        <a href="/auth/register.html" class="btn btn-primary" id="hero-start-btn">
+          🎵 Start Distributing
+        </a>
+        <a href="#pricing" class="btn btn-secondary" id="hero-pricing-btn">
+          View Pricing
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat-item">
+          <div class="num grad-text">150+</div>
+          <div class="lbl">Platforms</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="num grad-text">2M+</div>
+          <div class="lbl">Artists</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="num grad-text">$50M+</div>
+          <div class="lbl">Paid Out</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="num grad-text">98%</div>
+          <div class="lbl">Satisfaction</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DASHBOARD MOCKUP ===== -->
+<div class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-wrapper reveal">
+      <div class="dashboard-glow"></div>
+      <div class="dashboard-card">
+        <div class="dash-topbar">
+          <div class="dash-dots">
+            <div class="dash-dot d1"></div>
+            <div class="dash-dot d2"></div>
+            <div class="dash-dot d3"></div>
+          </div>
+          <div class="dash-title">BREAKOUT MUSIC Dashboard — Release Analytics</div>
+        </div>
+        <div class="dash-body">
+          <div class="dash-metric">
+            <div class="icon">🎧</div>
+            <div class="label">Total Streams</div>
+            <div class="value grad-text">24.8M</div>
+            <div class="change">← 18.4% this month</div>
+          </div>
+          <div class="dash-metric">
+            <div class="icon">👥</div>
+            <div class="label">Monthly Listeners</div>
+            <div class="value grad-text">3.2M</div>
+            <div class="change">← 12.1% this month</div>
+          </div>
+          <div class="dash-metric">
+            <div class="icon">💰</div>
+            <div class="label">Revenue</div>
+            <div class="value grad-text">$8,940</div>
+            <div class="change">← 22.7% this month</div>
+          </div>
+          <div class="dash-chart-row">
+            <div class="dash-chart">
+              <div class="dash-chart-title">Streams — Last 7 Days</div>
+              <div class="bars" id="dashBars"></div>
+              <div class="bar-labels" id="dashBarLabels"></div>
+            </div>
+          </div>
+          <div class="dash-platforms">
+            <div class="platform-row">
+              <div class="platform-name">🎵 Spotify</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:72%"></div></div>
+              <div class="platform-pct">72%</div>
+            </div>
+            <div class="platform-row">
+              <div class="platform-name">🎵 Apple Music</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:45%"></div></div>
+              <div class="platform-pct">45%</div>
+            </div>
+            <div class="platform-row">
+              <div class="platform-name">🎵 YouTube Music</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:38%"></div></div>
+              <div class="platform-pct">38%</div>
+            </div>
+            <div class="platform-row">
+              <div class="platform-name">🎵 TikTok</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:55%"></div></div>
+              <div class="platform-pct">55%</div>
+            </div>
+            <div class="platform-row">
+              <div class="platform-name">🎵 Amazon Music</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:28%"></div></div>
+              <div class="platform-pct">28%</div>
+            </div>
+            <div class="platform-row">
+              <div class="platform-name">🎵 Deezer</div>
+              <div class="platform-bar-wrap"><div class="platform-bar" style="width:22%"></div></div>
+              <div class="platform-pct">22%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TRUSTED PLATFORMS ===== -->
+<section id="platforms">
+  <div class="platforms-label">Trusted & Distributed To</div>
+  <div class="platforms-track-outer">
+    <div class="platforms-track" id="platformTrack"></div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="badge">✨ Built for Artists</div>
+      <h2>Everything You Need to <span class="grad-text">Succeed</span></h2>
+      <p>From first upload to global domination — NELA gives you every tool to manage, distribute, and grow your music career.</p>
+    </div>
+    <div class="features-grid" id="featuresGrid"></div>
+  </div>
+</section>
+
+<!-- ===== ANALYTICS ===== -->
+<section id="analytics">
+  <div class="container">
+    <div class="analytics-layout">
+      <div class="analytics-text reveal">
+        <div class="badge">📊 Real-Time Data</div>
+        <h2>Know Exactly <span class="grad-text">Where Your Music Lives</span></h2>
+        <p>Get deep insights into your audience — streams by country, platform breakdown, daily growth, top songs, and revenue reports updated in real time.</p>
+        <div class="analytics-bullets">
+          <div class="analytics-bullet"><div class="bullet-dot"></div> Live stream counts updated every 15 minutes</div>
+          <div class="analytics-bullet"><div class="bullet-dot"></div> Revenue tracking across all 150+ platforms</div>
+          <div class="analytics-bullet"><div class="bullet-dot"></div> Audience demographics and geography data</div>
+          <div class="analytics-bullet"><div class="bullet-dot"></div> Historical trend analysis and growth forecasts</div>
+          <div class="analytics-bullet"><div class="bullet-dot"></div> Exportable CSV reports for label submissions</div>
+        </div>
+      </div>
+      <div class="analytics-dashboard reveal reveal-delay-2">
+        <div class="analytics-dash-header">
+          <span class="analytics-dash-title">🎶 "Midnight Drive" Analytics</span>
+          <span class="analytics-dash-badge">●  Live</span>
+        </div>
+        <div class="analytics-metrics">
+          <div class="analytics-metric">
+            <div class="label">Total Streams</div>
+            <div class="value">4.2M</div>
+            <div class="sub">← 8.3% today</div>
+          </div>
+          <div class="analytics-metric">
+            <div class="label">Revenue</div>
+            <div class="value">$2,180</div>
+            <div class="sub">← 14.2% today</div>
+          </div>
+          <div class="analytics-metric">
+            <div class="label">Countries</div>
+            <div class="value">87</div>
+            <div class="sub">← 3 new today</div>
+          </div>
+          <div class="analytics-metric">
+            <div class="label">Playlists</div>
+            <div class="value">1,204</div>
+            <div class="sub">← 42 added</div>
+          </div>
+        </div>
+        <div class="analytics-chart-area">
+          <div class="analytics-chart-label">Stream History (30 days)</div>
+          <canvas id="analyticsChart"></canvas>
+        </div>
+        <div class="top-songs">
+          <div class="top-songs-label">Top Releases</div>
+          <div class="song-row">
+            <div class="song-rank">1</div>
+            <div class="song-cover" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6);"></div>
+            <div class="song-info">
+              <div class="song-title">Midnight Drive</div>
+              <div class="song-streams">4.2M streams</div>
+            </div>
+            <div class="song-bar-wrap"><div class="song-bar" style="width:100%"></div></div>
+          </div>
+          <div class="song-row">
+            <div class="song-rank">2</div>
+            <div class="song-cover" style="background:linear-gradient(135deg,#EC4899,#8B5CF6);"></div>
+            <div class="song-info">
+              <div class="song-title">Golden Hour</div>
+              <div class="song-streams">2.8M streams</div>
+            </div>
+            <div class="song-bar-wrap"><div class="song-bar" style="width:67%"></div></div>
+          </div>
+          <div class="song-row">
+            <div class="song-rank">3</div>
+            <div class="song-cover" style="background:linear-gradient(135deg,#06B6D4,#10B981);"></div>
+            <div class="song-info">
+              <div class="song-title">Nova Lights</div>
+              <div class="song-streams">1.5M streams</div>
+            </div>
+            <div class="song-bar-wrap"><div class="song-bar" style="width:36%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="badge">💎 Simple Pricing</div>
+      <h2>Plans That <span class="grad-text">Grow With You</span></h2>
+      <p>No hidden fees. No surprises. Pick the plan that fits your creative journey and upgrade anytime.</p>
+    </div>
+    <div class="pricing-grid" id="pricingGrid"></div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="badge">🎯 Simple Process</div>
+      <h2>From Studio to <span class="grad-text">Global Stage</span></h2>
+      <p>Four simple steps to get your music heard by millions of fans worldwide.</p>
+    </div>
+    <div class="how-steps" id="howSteps"></div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="badge">🌟 Artist Stories</div>
+      <h2>Artists Are <span class="grad-text">Thriving</span></h2>
+      <p>Thousands of independent artists have found their global audience with BREAKOUT MUSIC Distribution.</p>
+    </div>
+    <div class="testimonials-grid" id="testimonialsGrid"></div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="badge">â“ Got Questions?</div>
+      <h2>Frequently <span class="grad-text">Asked Questions</span></h2>
+      <p>Everything you need to know about distributing your music with BREAKOUT MUSIC.</p>
+    </div>
+    <div class="faq-list" id="faqList"></div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section id="cta-final">
+  <div class="cta-bg"></div>
+  <div class="cta-glow-ring"></div>
+  <div class="cta-glow-ring"></div>
+  <div class="cta-glow-ring"></div>
+  <div class="container">
+    <div class="cta-content">
+      <div class="badge" style="margin-bottom:24px;">🎶 Join 2M+ Artists</div>
+      <h2>Ready to Release Your <span class="grad-text">Next Hit?</span></h2>
+      <p>Distribute your music worldwide today. No upfront fees. Keep 100% of your rights.</p>
+      <div class="cta-buttons">
+        <a href="/auth/register.html" class="btn btn-primary" id="cta-start-btn" style="font-size:16px;padding:16px 36px;">💿 Start Free</a>
+        <a href="mailto:sales@breakoutmusic.com" class="btn btn-secondary" id="cta-sales-btn" style="font-size:16px;padding:16px 36px;">Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon nav-logo" style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8B5CF6,#3B82F6,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;font-family:'Outfit',sans-serif;">B</div>
+          <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:20px;">BREAKOUT MUSIC Distribution</span>
+        </div>
+        <p>The world's most powerful music distribution platform. Get your music heard everywhere, keep everything you earn.</p>
+        <div class="footer-socials">
+          <div class="social-btn">ð•</div>
+          <div class="social-btn">📸</div>
+          <div class="social-btn">▶</div>
+          <div class="social-btn">🎵</div>
+          <div class="social-btn">💼</div>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press Kit</a></li>
+          <li><a href="#">Partners</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#analytics">Analytics</a></li>
+          <li><a href="#">Label Plans</a></li>
+          <li><a href="#">API Access</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>Â© 2026 BREAKOUT MUSIC Distribution. All rights reserved.</p>
+      <div class="footer-legal">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/shared/nela.js"></script>
+<script>
+/* =========================================
+   NAV SCROLL EFFECT
+========================================= */
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+function toggleMobileNav() {
+  document.getElementById('mobileNav').classList.toggle('open');
+}
+
+/* =========================================
+   WAVEFORM CANVAS
+========================================= */
+(function() {
+  const canvas = document.getElementById('waveform');
+  const ctx = canvas.getContext('2d');
+  let phase = 0;
+  function resize() { canvas.width = canvas.offsetWidth; canvas.height = 200; }
+  resize(); window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const waves = [
+      { amp: 30, freq: 0.015, speed: 0.02, color: 'rgba(139,92,246,0.5)' },
+      { amp: 20, freq: 0.02, speed: 0.025, color: 'rgba(59,130,246,0.4)' },
+      { amp: 15, freq: 0.03, speed: 0.015, color: 'rgba(6,182,212,0.3)' },
+    ];
+    waves.forEach((w, i) => {
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x++) {
+        const y = canvas.height / 2 + w.amp * Math.sin(x * w.freq + phase * w.speed * 60 + i * 1.5);
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, w.color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fill();
+    });
+    phase += 0.5;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* =========================================
+   MUSIC NOTES
+========================================= */
+(function() {
+  const notes = ['♩','♪','♫','♬','🎵','🎶'];
+  const container = document.getElementById('musicNotes');
+  function spawnNote() {
+    const el = document.createElement('div');
+    el.className = 'note';
+    el.textContent = notes[Math.floor(Math.random() * notes.length)];
+    el.style.left = Math.random() * 90 + 5 + '%';
+    el.style.bottom = '60px';
+    el.style.animationDuration = (4 + Math.random() * 4) + 's';
+    el.style.animationDelay = (Math.random() * 2) + 's';
+    el.style.fontSize = (18 + Math.random() * 16) + 'px';
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 8000);
+  }
+  setInterval(spawnNote, 800);
+})();
+
+/* =========================================
+   DASHBOARD BARS
+========================================= */
+(function() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const vals = [62, 78, 55, 90, 82, 95, 88];
+  const barsEl = document.getElementById('dashBars');
+  const labelsEl = document.getElementById('dashBarLabels');
+  days.forEach((d, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = vals[i] + '%';
+    bar.title = d + ': ' + vals[i] + 'K streams';
+    barsEl.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.className = 'bar-lbl';
+    lbl.textContent = d;
+    labelsEl.appendChild(lbl);
+  });
+})();
+
+/* =========================================
+   PLATFORM TRACK
+========================================= */
+(function() {
+  const platforms = [
+    { logo: '🟢', name: 'Spotify' },
+    { logo: '🎵', name: 'Apple Music' },
+    { logo: '▶', name: 'YouTube Music' },
+    { logo: '🎶', name: 'TikTok' },
+    { logo: '🛒', name: 'Amazon Music' },
+    { logo: '💜', name: 'Deezer' },
+    { logo: '📊', name: 'TIDAL' },
+    { logo: '📻', name: 'Pandora' },
+    { logo: '📸', name: 'Instagram Music' },
+    { logo: '🎵', name: 'Facebook Music' },
+    { logo: '🎧', name: 'SoundCloud' },
+    { logo: '📱', name: 'Shazam' },
+  ];
+  const track = document.getElementById('platformTrack');
+  const doubled = [...platforms, ...platforms];
+  doubled.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'platform-item';
+    item.innerHTML = `<div class="platform-logo">${p.logo}</div><span>${p.name}</span>`;
+    track.appendChild(item);
+  });
+})();
+
+/* =========================================
+   FEATURES
+========================================= */
+(function() {
+  const features = [
+    { icon: '🌐', title: 'Worldwide Distribution', desc: 'Reach fans in every corner of the globe across 150+ streaming platforms and stores simultaneously.' },
+    { icon: 'Â©', title: 'Keep 100% of Your Rights', desc: 'Your music, your rights — always. We never claim ownership of your creative work.' },
+    { icon: '⚡', title: 'Fast Release Approval', desc: 'Get your music live in as little as 24 hours with our priority review system for all plans.' },
+    { icon: '💰', title: 'Royalty Dashboard', desc: 'Track every dollar earned with a beautiful, real-time royalty tracking dashboard and monthly payout reports.' },
+    { icon: '📈', title: 'Daily Streaming Analytics', desc: 'Monitor your growth with daily stream counts, listener trends, playlist adds, and geographic data.' },
+    { icon: '🏦', title: 'Automatic Royalty Payments', desc: 'Get paid automatically every month via bank transfer, PayPal, or Stripe — no minimum threshold.' },
+    { icon: '🤖', title: 'AI Release Assistant', desc: 'Our AI guides you through release strategy, optimal timing, playlist pitching, and press coverage.' },
+    { icon: '🧠 ', title: 'Smart Metadata Generator', desc: 'Auto-generate perfect ISRC codes, UPC barcodes, and metadata tags for maximum discoverability.' },
+  ];
+  const grid = document.getElementById('featuresGrid');
+  features.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = `feature-card reveal reveal-delay-${(i % 4) + 1}`;
+    card.innerHTML = `<div class="feature-icon">${f.icon}</div><h3>${f.title}</h3><p>${f.desc}</p>`;
+    grid.appendChild(card);
+  });
+})();
+
+/* =========================================
+   ANALYTICS CHART
+========================================= */
+(function() {
+  const canvas = document.getElementById('analyticsChart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth || 400;
+  canvas.height = 120;
+
+  const data = Array.from({length: 30}, (_, i) =>
+    40 + 50 * Math.pow(i / 30, 1.5) + 15 * Math.sin(i * 0.8) + Math.random() * 10
+  );
+  const max = Math.max(...data);
+
+  function drawChart() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      const x = (i / (data.length - 1)) * w;
+      const y = h - (v / max) * (h - 10) - 5;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    const grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, '#8B5CF6');
+    grad.addColorStop(0.5, '#3B82F6');
+    grad.addColorStop(1, '#06B6D4');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Fill
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+    fillGrad.addColorStop(0, 'rgba(139,92,246,0.3)');
+    fillGrad.addColorStop(1, 'rgba(139,92,246,0)');
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
+  }
+  drawChart();
+  window.addEventListener('resize', () => {
+    canvas.width = canvas.offsetWidth || 400;
+    drawChart();
+  });
+})();
+
+/* =========================================
+   PRICING
+========================================= */
+(function() {
+  const plans = [
+    {
+      name: 'Starter', price: 'Free', period: '', featured: false,
+      desc: 'Perfect for getting started. Distribute your first releases and explore the platform.',
+      features: ['1 Artist Profile', 'Basic Distribution (5 stores)', '80% Royalty Share', 'Standard Approval (7 days)', 'Basic Analytics Dashboard'],
+      cta: 'Get Started Free', ctaClass: 'pricing-cta-secondary'
+    },
+    {
+      name: 'Pro', price: '$9', period: '.99/month', featured: true,
+      desc: 'For serious artists ready to grow their career and reach a global audience.',
+      features: ['Unlimited Releases', '150+ Stores', 'Keep 100% Royalties', 'Fast Approval (24â€“48 hrs)', 'Advanced Analytics', 'Priority Support', 'AI Release Assistant', 'Playlist Pitching'],
+      cta: 'Start Pro Plan', ctaClass: 'pricing-cta-primary'
+    },
+    {
+      name: 'Label', price: 'Custom', period: ' Pricing', featured: false,
+      desc: 'Full power for labels and management companies with multiple artists.',
+      features: ['Unlimited Artists', 'Team Access & Permissions', 'White-Label Dashboard', 'Advanced Reports & Exports', 'Dedicated Account Manager', 'Custom Royalty Splits', 'API Access', 'Priority 24/7 Support'],
+      cta: 'Contact Sales', ctaClass: 'pricing-cta-secondary'
+    },
+  ];
+  const grid = document.getElementById('pricingGrid');
+  plans.forEach(p => {
+    const card = document.createElement('div');
+    card.className = `pricing-card reveal${p.featured ? ' featured' : ''}`;
+    const featuredBadge = p.featured ? '<div class="featured-badge">Most Popular</div>' : '';
+    const features = p.features.map(f => `<div class="pricing-feature"><div class="pricing-check">✓</div>${f}</div>`).join('');
+    
+    let clickAction = `onclick="window.location.href='/auth/register.html?plan=${p.name.toLowerCase()}'"`;
+    if (p.name === 'Label') {
+      clickAction = `onclick="window.location.href='mailto:sales@breakoutmusic.com'"`;
+    }
+
+    card.innerHTML = `
+      ${featuredBadge}
+      <div class="pricing-plan">${p.name}</div>
+      <div class="pricing-price">${p.price}${p.period ? `<span style="font-size:18px;font-weight:400;color:var(--text4)">${p.period}</span>` : ''}</div>
+      <div class="pricing-desc">${p.desc}</div>
+      <div class="pricing-features">${features}</div>
+      <button type="button" class="pricing-cta ${p.ctaClass}" ${clickAction}>${p.cta}</button>
+    `;
+    grid.appendChild(card);
+  });
+})();
+
+/* =========================================
+   HOW IT WORKS
+========================================= */
+(function() {
+  const steps = [
+    { icon: '🎤', title: 'Upload Your Music', desc: 'Upload your tracks, artwork, and metadata to our platform in any format.' },
+    { icon: '🚪', title: 'Choose Your Stores', desc: 'Select from 150+ platforms or distribute everywhere with one click.' },
+    { icon: '🌐', title: 'Release Worldwide', desc: 'Go live globally. Your music reaches millions of listeners instantly.' },
+    { icon: '💸', title: 'Track Your Earnings', desc: 'Watch your streams and revenue grow in real-time with detailed analytics.' },
+  ];
+  const container = document.getElementById('howSteps');
+  steps.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = `how-step reveal reveal-delay-${i + 1}`;
+    el.innerHTML = `
+      <div class="step-icon-wrap">
+        ${s.icon}
+        <div class="step-number">${i + 1}</div>
+      </div>
+      <h3>${s.title}</h3>
+      <p>${s.desc}</p>
+    `;
+    container.appendChild(el);
+  });
+})();
+
+/* =========================================
+   TESTIMONIALS
+========================================= */
+(function() {
+  const testimonials = [
+    {
+      text: '"BREAKOUT MUSIC changed my life. Within 6 months of distributing my debut EP, I went from 0 to 2 million streams. The royalty payouts are always on time and the analytics help me understand my audience like never before."',
+      name: 'Marcus Rivera', role: 'R&B Artist · Los Angeles, CA',
+      avatar: 'M', stat: '2.4M Total Streams', rating: 'â˜…â˜…â˜…â˜…â˜…'
+    },
+    {
+      text: '"As an independent artist, keeping 100% of my rights was non-negotiable. BREAKOUT MUSIC delivers on that promise and then some. The AI release assistant helped me time my drop perfectly for maximum impact."',
+      name: 'Zara Chen', role: 'Electronic Producer · London, UK',
+      avatar: 'Z', stat: '$18,400 Earned in 2025', rating: 'â˜…â˜…â˜…â˜…â˜…'
+    },
+    {
+      text: '"I manage 12 artists and BREAKOUT MUSIC\'s Label plan is a game-changer. One dashboard for everything, custom royalty splits, and a dedicated manager who actually answers emails. Absolutely essential."',
+      name: 'DJ Fontaine', role: 'Label Manager · Toronto, CA',
+      avatar: 'F', stat: '12 Artists, 450+ Releases', rating: 'â˜…â˜…â˜…â˜…â˜…'
+    },
+  ];
+  const grid = document.getElementById('testimonialsGrid');
+  testimonials.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = `testimonial-card reveal reveal-delay-${i + 1}`;
+    card.innerHTML = `
+      <div class="testimonial-stars">${t.rating}</div>
+      <p class="testimonial-text">${t.text}</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">${t.avatar}</div>
+        <div>
+          <div class="testimonial-name">${t.name}</div>
+          <div class="testimonial-role">${t.role}</div>
+          <div class="testimonial-stat">${t.stat}</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+})();
+
+/* =========================================
+   FAQ
+========================================= */
+(function() {
+  const faqs = [
+    { q: 'How long does approval take?', a: 'On the Free plan, approval typically takes 5â€“7 business days. Pro plan releases are approved within 24â€“48 hours, and Label plan artists get same-day expedited review. Emergency releases are available on request.' },
+    { q: 'Do I keep 100% of my royalties?', a: 'Yes — on our Pro and Label plans, you keep 100% of your royalties. On the free Starter plan, BREAKOUT MUSIC retains 20%. Royalties are paid out monthly with no minimum payout threshold on paid plans.' },
+    { q: 'Which stores are supported?', a: 'BREAKOUT MUSIC distributes to 150+ platforms including Spotify, Apple Music, YouTube Music, TikTok, Amazon Music, Deezer, TIDAL, Pandora, Instagram Music, Facebook Music, SoundCloud, Shazam, Beatport, and many more.' },
+    { q: 'Can I remove my music from stores?', a: 'Yes, you can take down your music at any time from our dashboard. Removals are processed within 24â€“72 hours depending on the store. Your music data and earnings history are always preserved.' },
+    { q: 'Do I own my copyright?', a: 'Absolutely. BREAKOUT MUSIC is a distribution service, not a label. You retain 100% ownership of your master recordings and composition copyrights. We simply act as the delivery mechanism between you and the platforms.' },
+    { q: 'When and how do I get paid?', a: 'Royalty payments are processed on the 15th of each month for earnings from the prior month. We support PayPal, bank transfer (ACH/SWIFT), and Stripe. Minimum payout is $0 on paid plans.' },
+  ];
+  const list = document.getElementById('faqList');
+  faqs.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'faq-item';
+    item.innerHTML = `
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>${f.q}</span>
+        <div class="faq-icon">+</div>
+      </div>
+      <div class="faq-answer"><p>${f.a}</p></div>
+    `;
+    list.appendChild(item);
+  });
+})();
+
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+/* =========================================
+   SCROLL REVEAL
+========================================= */
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+})();
+
+/* =========================================
+   COUNTER ANIMATION
+========================================= */
+(function() {
+  const nums = document.querySelectorAll('.hero-stat-item .num');
+  const targets = ['150+', '2M+', '$50M+', '98%'];
+  nums.forEach((el, i) => { el.textContent = targets[i]; });
+})();
+
+</script>
+</body>
+</html>

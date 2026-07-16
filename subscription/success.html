@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Success — BREAKOUT MUSIC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/nela.css" />
+  <style>
+    body { background: #0B0B0F; }
+    .success-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.15); border: 2px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 24px; animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both, pulse 2s infinite; }
+    @keyframes scaleUp { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.3); } 50% { box-shadow: 0 0 0 16px rgba(16,185,129,0); } }
+  </style>
+</head>
+<body>
+  <div class="auth-bg" style="background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(139,92,246,0.08) 0%, transparent 60%), #0B0B0F;">
+    <div class="auth-card" style="text-align:center;max-width:480px;padding:48px 40px;">
+      <div class="success-icon">✓</div>
+
+      <h1 class="auth-title" style="font-size:28px;">Payment Successful!</h1>
+      <p class="auth-subtitle" style="margin-bottom:32px;">Thank you for upgrading. Your BREAKOUT MUSIC Pro Artist features are now active.</p>
+
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;text-align:left;margin-bottom:32px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:10px;color:var(--text3);">
+          <span>Transaction ID:</span>
+          <strong style="color:#fff;">TXN-SUCCESS-90412</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:10px;color:var(--text3);">
+          <span>Plan Subscribed:</span>
+          <strong style="color:#fff;">Pro Artist Plan (Monthly)</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:10px;color:var(--text3);">
+          <span>Amount Paid:</span>
+          <strong style="color:var(--green);">$9.99 USD</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text3);">
+          <span>Next Billing Date:</span>
+          <strong style="color:#fff;">Aug 15, 2026</strong>
+        </div>
+      </div>
+
+      <a href="/dashboard/index.html" class="btn btn-primary btn-full btn-lg">Go to Artist Dashboard →</a>
+    </div>
+  </div>
+
+  <script src="/shared/nela.js"></script>
+</body>
+</html>
