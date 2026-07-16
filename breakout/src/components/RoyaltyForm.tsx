@@ -11,7 +11,7 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
   const availableSongs = selectedArtist?.releases || [];
 
   return (
-    <form action={addRoyaltyAction} className="space-y-4">
+    <form action={async (formData) => { await addRoyaltyAction(formData); }} className="space-y-4">
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700">Artist *</label>
         <select 
