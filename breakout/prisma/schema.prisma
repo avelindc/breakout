@@ -26,6 +26,9 @@ model User {
   notifications Notification[]
   activityLogs  ActivityLog[]
   withdrawRequests WithdrawRequest[]
+  
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  MessageRecipient[] @relation("ReceivedMessages")
 }
 
 enum Role {
@@ -220,4 +223,36 @@ model ActivityLog {
   action    String
   
   createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  subject     String
+  body        String   @db.Text
+  attachment  String?  // Supabase storage URL
+  fileName    String?  // Original file name
+  
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  recipients  MessageRecipient[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MessageRecipient {
+  id          String   @id @default(cuid())
+  messageId   String
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User     @relation("ReceivedMessages", fields: [userId], references: [id], onDelete: Cascade)
+  
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([messageId, userId])
 }

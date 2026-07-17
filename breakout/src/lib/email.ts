@@ -169,3 +169,32 @@ export async function sendReleaseRejectedEmail(to: string, name: string, title: 
     return { error };
   }
 }
+
+export async function sendNewMessageNotification(to: string, name: string, messageSubject: string) {
+  const subject = 'Pesan Baru dari Admin BREAKOUT';
+  const html = generateEmailHtml(
+    'Anda Memiliki Pesan Baru',
+    `
+      <p>Halo ${name},</p>
+      <p>Anda memiliki pesan baru dari tim Admin BREAKOUT dengan subjek:</p>
+      <div style="background-color: #f3f4f6; color: #111827; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <strong>${messageSubject}</strong>
+      </div>
+      <p>Silakan login ke dashboard dan buka menu <strong>Inbox</strong> untuk membaca pesan selengkapnya dan mengunduh lampiran (jika ada).</p>
+      <a href="https://breakoutmusic.online/dashboard/inbox" style="${BUTTON_STYLES}">Buka Inbox</a>
+    `
+  );
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('Simulated Email Send:', subject, to);
+    return { success: true };
+  }
+
+  try {
+    await resend.emails.send({ from: fromEmail, to, subject, html });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    return { error };
+  }
+}
