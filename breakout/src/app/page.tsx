@@ -8,11 +8,9 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 glass border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7000FF] to-[#00F0FF] flex items-center justify-center">
-              <Music className="text-white w-5 h-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tighter">BREAKOUT.ID</span>
+          <div className="flex items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Breakout Logo" className="h-12 w-auto" />
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
             <Link href="#features" className="hover:text-white transition">Features</Link>
