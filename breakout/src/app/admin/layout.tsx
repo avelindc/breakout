@@ -2,6 +2,10 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
 
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
 export default async function AdminLayout({
   children,
 }: {
@@ -18,9 +22,13 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
+  const artists = await prisma.artist.findMany({
+    select: { id: true, stageName: true }
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 flex">
-      <AdminSidebar />
+      <AdminSidebar artists={artists} />
       <div className="flex-1 md:ml-64 p-4 pt-20 md:p-8 md:pt-8 overflow-y-auto min-h-screen bg-gray-50 w-full">
         <div className="max-w-7xl mx-auto">
           {children}
