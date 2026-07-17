@@ -78,17 +78,6 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Artist / Stage Name</label>
-              <input 
-                name="stageName" 
-                type="text" 
-                required
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
-                placeholder="DJ Awesome"
-              />
-            </div>
-
-            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-300">Email</label>
               <input 
                 name="email" 

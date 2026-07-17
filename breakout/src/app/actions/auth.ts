@@ -46,11 +46,11 @@ export async function registerAction(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const stageName = formData.get("stageName") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const ktpFile = formData.get("ktp") as File | null;
+  const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !stageName || !whatsapp || !ktpFile || ktpFile.size === 0) {
+  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0) {
     return { error: "All fields including KTP are required" };
   }
 
