@@ -54,12 +54,13 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // 2. Generate PDF using html-to-image and jsPDF
       if (!contractRef.current) throw new Error("Contract element not found");
       
-      const imgData = await toJpeg(contractRef.current, { quality: 0.95, pixelRatio: 2, backgroundColor: '#ffffff' });
+      const imgData = await toJpeg(contractRef.current, { quality: 0.6, pixelRatio: 1, backgroundColor: '#ffffff' });
       
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4",
+        compress: true
       });
       
       // Calculate width and height to fit A4
