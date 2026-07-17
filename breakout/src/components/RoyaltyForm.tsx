@@ -1,8 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
+import { useFormStatus } from "react-dom";
 import { addRoyaltyAction } from "@/app/actions/royalties";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className="w-full py-3 mt-4 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+      {pending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-4 h-4" />} 
+      {pending ? "Saving Data..." : "Save Royalty Data"}
+    </button>
+  );
+}
 
 export function RoyaltyForm({ artists }: { artists: any[] }) {
   const [selectedArtistId, setSelectedArtistId] = useState("");
@@ -80,9 +91,7 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
         </div>
       </div>
 
-      <button type="submit" className="w-full py-3 mt-4 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
-        <Save className="w-4 h-4" /> Save Royalty Data
-      </button>
+      <SubmitButton />
     </form>
   );
 }
