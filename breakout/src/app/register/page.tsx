@@ -24,7 +24,9 @@ export default function RegisterPage() {
       setError(res.error);
       setLoading(false);
     } else {
-      router.push("/login?registered=true");
+      const name = formData.get("name") as string;
+      const email = formData.get("email") as string;
+      router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`);
     }
   }
 
