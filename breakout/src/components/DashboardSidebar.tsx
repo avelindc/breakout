@@ -22,9 +22,20 @@ const links = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
+// macOS Dock-style wave effect: returns scale based on distance from hovered index
+function getScale(hoveredIndex: number | null, currentIndex: number): number {
+  if (hoveredIndex === null) return 1;
+  const distance = Math.abs(hoveredIndex - currentIndex);
+  if (distance === 0) return 1.12;
+  if (distance === 1) return 1.06;
+  if (distance === 2) return 1.02;
+  return 1;
+}
+
 export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: string }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <>
@@ -69,22 +80,32 @@ export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: stri
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 pl-4 flex flex-col gap-2 mt-4">
-          {links.map((link) => {
+        <div className="flex-1 overflow-y-auto py-6 pl-4 flex flex-col gap-1 mt-4">
+          {links.map((link, index) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
+            const scale = getScale(hoveredIndex, index);
+
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                style={{
+                  transform: `scale(${scale}) translateX(${(scale - 1) * 8}px)`,
+                  transition: "transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  transformOrigin: "left center",
+                  zIndex: scale > 1 ? 10 : 1,
+                }}
+                className={`flex items-center gap-3 pl-6 py-3.5 font-medium text-sm relative rounded-l-full ${
                   isActive 
-                    ? "bg-gray-50 text-blue-600 rounded-l-full" 
-                    : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
+                    ? "bg-gray-50 text-blue-600" 
+                    : "text-blue-100 hover:text-white hover:bg-white/10"
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 transition-all duration-200 ${scale > 1.1 ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]' : ''}`} />
                 {link.name}
                 
                 {/* Fake inner shadow elements to simulate the inverted border radius effect */}
