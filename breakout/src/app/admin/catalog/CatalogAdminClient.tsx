@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { uploadCatalogExcelAction, getCatalogSongsAction, deleteAllCatalogAction, deleteCatalogSongAction } from "@/app/actions/catalog";
-import { Loader2, UploadCloud, RefreshCw, Trash2, Search, FileSpreadsheet } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Search, FileSpreadsheet } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
@@ -54,10 +54,9 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
       setUploadResult({ success: true, count: res.count });
       setPage(1);
       fetchSongs(1, search);
-      router.refresh(); // Refresh to update total count on page
+      router.refresh();
     }
     
-    // reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -89,7 +88,8 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      {/* Action Bar */}
+      <div className="flex flex-wrap items-center gap-4 bg-blue-700/60 backdrop-blur-sm p-6 rounded-3xl border border-blue-500/30">
         <input 
           type="file" 
           accept=".xlsx, .xls"
@@ -101,7 +101,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         <button 
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition disabled:opacity-50 shadow-lg"
         >
           {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileSpreadsheet className="w-5 h-5" />}
           {isUploading ? "Uploading & Processing..." : "Upload Excel"}
@@ -109,7 +109,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
 
         <button 
           onClick={() => fetchSongs(page, search)}
-          className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-500/50 text-white rounded-xl font-bold hover:bg-blue-500/70 transition border border-blue-400/30"
         >
           <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -118,7 +118,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         <button 
           onClick={handleClearAll}
           disabled={isClearing}
-          className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition ml-auto disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3 bg-red-500/20 text-red-300 rounded-xl font-bold hover:bg-red-500/30 transition ml-auto disabled:opacity-50 border border-red-400/20"
         >
           <Trash2 className="w-5 h-5" />
           Hapus Semua Katalog
@@ -126,7 +126,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
       </div>
 
       {uploadResult && (
-        <div className={`p-4 rounded-xl ${uploadResult.success ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+        <div className={`p-4 rounded-xl border ${uploadResult.success ? 'bg-green-500/20 text-green-300 border-green-400/30' : 'bg-red-500/20 text-red-300 border-red-400/30'}`}>
           {uploadResult.success 
             ? `Berhasil memproses dan menyimpan ${uploadResult.count} lagu ke database!` 
             : `Gagal upload: ${uploadResult.error}`
@@ -134,17 +134,18 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         </div>
       )}
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Daftar Katalog</h2>
+      {/* Songs Table */}
+      <div className="bg-blue-700/60 backdrop-blur-sm rounded-3xl border border-blue-500/30 overflow-hidden shadow-lg">
+        <div className="p-6 border-b border-blue-500/30 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white">Daftar Katalog</h2>
           <div className="relative">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-5 h-5 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Cari lagu, artis..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-blue-500 w-64"
+              className="pl-10 pr-4 py-2 bg-blue-600/50 border border-blue-400/30 text-white placeholder-blue-300 rounded-lg outline-none focus:border-white/50 w-64"
             />
           </div>
         </div>
@@ -152,39 +153,39 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50">
-                <th className="p-4 text-sm font-semibold text-gray-500">Judul Lagu</th>
-                <th className="p-4 text-sm font-semibold text-gray-500">Artis</th>
-                <th className="p-4 text-sm font-semibold text-gray-500">Publisher</th>
-                <th className="p-4 text-sm font-semibold text-gray-500">ISRC</th>
-                <th className="p-4 text-sm font-semibold text-gray-500 text-right">Aksi</th>
+              <tr className="bg-blue-800/50">
+                <th className="p-4 text-sm font-semibold text-blue-200">Judul Lagu</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Artis</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Publisher</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">ISRC</th>
+                <th className="p-4 text-sm font-semibold text-blue-200 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-blue-600/30">
               {loading && songs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                  <td colSpan={5} className="p-8 text-center text-blue-300">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Memuat katalog...
                   </td>
                 </tr>
               ) : songs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-500">
+                  <td colSpan={5} className="p-8 text-center text-blue-300">
                     Katalog kosong atau lagu tidak ditemukan.
                   </td>
                 </tr>
               ) : (
                 songs.map(song => (
-                  <tr key={song.id} className="hover:bg-gray-50 transition">
-                    <td className="p-4 font-medium text-gray-900">{song.title}</td>
-                    <td className="p-4 text-gray-600">{song.artist}</td>
-                    <td className="p-4 text-gray-500">{song.publisher || '-'}</td>
-                    <td className="p-4 text-gray-500">{song.isrc || '-'}</td>
+                  <tr key={song.id} className="hover:bg-blue-600/30 transition">
+                    <td className="p-4 font-medium text-white">{song.title}</td>
+                    <td className="p-4 text-blue-200">{song.artist}</td>
+                    <td className="p-4 text-blue-300">{song.publisher || '-'}</td>
+                    <td className="p-4 text-blue-300">{song.isrc || '-'}</td>
                     <td className="p-4 text-right">
                       <button 
                         onClick={() => handleDelete(song.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
@@ -196,20 +197,20 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
           </table>
         </div>
         
-        {/* Simple pagination for admin */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+        {/* Pagination */}
+        <div className="p-4 border-t border-blue-600/30 flex items-center justify-between">
           <button 
             disabled={page === 1} 
             onClick={() => { setPage(p => p - 1); fetchSongs(page - 1); }}
-            className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-100"
+            className="px-4 py-2 bg-blue-600/50 text-blue-200 rounded-lg disabled:opacity-40 hover:bg-blue-600/70 transition border border-blue-500/30"
           >
             Sebelumnya
           </button>
-          <span className="text-sm font-medium text-gray-500">Halaman {page}</span>
+          <span className="text-sm font-medium text-blue-300">Halaman {page}</span>
           <button 
             disabled={songs.length < 10} 
             onClick={() => { setPage(p => p + 1); fetchSongs(page + 1); }}
-            className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg disabled:opacity-50 hover:bg-gray-100"
+            className="px-4 py-2 bg-blue-600/50 text-blue-200 rounded-lg disabled:opacity-40 hover:bg-blue-600/70 transition border border-blue-500/30"
           >
             Selanjutnya
           </button>
