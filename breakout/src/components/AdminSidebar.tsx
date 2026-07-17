@@ -13,7 +13,7 @@ const links = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Artist Approval", href: "/admin/artists", icon: Users },
   { name: "Music Review", href: "/admin/releases", icon: CheckCircle },
-  { name: "Artists", href: "/admin/artists", icon: Users },
+  { name: "Artists", href: "/admin/all-artists", icon: Users },
   { name: "Royalties", href: "/admin/royalties", icon: DollarSign },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: DollarSign },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart },
