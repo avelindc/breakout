@@ -31,7 +31,11 @@ export function DashboardSidebar() {
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#7000FF] to-[#00F0FF] flex items-center justify-center">
             <Music className="text-white w-4 h-4" />
           </div>
-          <span className="font-bold tracking-tighter text-blue-600">BREAKOUT.ID</span>
+          <div className="flex items-center gap-2">
+            <span className="font-bold tracking-tighter text-blue-600">BREAKOUT.ID</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Logo" className="w-6 h-auto invert" />
+          </div>
         </div>
         <button 
           onClick={() => setIsOpen(true)}
@@ -58,6 +62,8 @@ export function DashboardSidebar() {
         <div className="h-20 flex items-center justify-between px-8">
           <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
             <span className="font-bold text-xl tracking-tighter text-white">BREAKOUT.ID</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Logo" className="w-8 h-auto" />
           </Link>
           <button 
             className="md:hidden text-white/80 hover:text-white"
