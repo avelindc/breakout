@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { Check, X, Eye, FileText } from "lucide-react";
+import { Check, X, Eye, FileText, ExternalLink } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { RegistrationActionButtons } from "./RegistrationActionButtons";
+import Link from "next/link";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,9 @@ async function getSignedKtpUrl(path: string | null) {
   return data.signedUrl;
 }
 
-export default async function AdminRegistrationsPage() {
+export default async function AdminRegistrationsPage({ searchParams }: { searchParams: { tab?: string } }) {
+  const activeTab = searchParams.tab || "pending";
+
   const pendingUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'PENDING' },
     orderBy: { createdAt: 'desc' }
@@ -37,6 +40,15 @@ export default async function AdminRegistrationsPage() {
     orderBy: { createdAt: 'desc' }
   });
 
+  const approvedUsers = await prisma.user.findMany({
+    where: { role: 'USER', status: 'APPROVED' },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  let displayUsers = pendingUsers;
+  if (activeTab === "approved") displayUsers = approvedUsers;
+  if (activeTab === "rejected") displayUsers = rejectedUsers;
+
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
       <div className="mb-8 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
@@ -44,25 +56,42 @@ export default async function AdminRegistrationsPage() {
         <p className="text-gray-500 text-sm">{pendingUsers.length} pending registrations</p>
 
         <div className="flex items-center gap-6 mt-8 border-b border-gray-100 pb-4">
-          <button className="text-gray-900 font-bold border-b-2 border-blue-600 pb-4 -mb-[18px]">Pending</button>
-          <button className="text-gray-400 font-medium pb-4 -mb-[18px]">Rejected</button>
+          <Link 
+            href="?tab=pending" 
+            className={`font-bold pb-4 -mb-[18px] transition ${activeTab === 'pending' ? 'text-gray-900 border-b-2 border-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Pending ({pendingUsers.length})
+          </Link>
+          <Link 
+            href="?tab=approved" 
+            className={`font-bold pb-4 -mb-[18px] transition ${activeTab === 'approved' ? 'text-gray-900 border-b-2 border-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Approved ({approvedUsers.length})
+          </Link>
+          <Link 
+            href="?tab=rejected" 
+            className={`font-bold pb-4 -mb-[18px] transition ${activeTab === 'rejected' ? 'text-gray-900 border-b-2 border-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            Rejected ({rejectedUsers.length})
+          </Link>
         </div>
 
         <div className="mt-8 overflow-x-auto pb-4 scrollbar-hide">
-          <div className="min-w-[1000px] space-y-3">
+          <div className="min-w-[1100px] space-y-3">
             {/* Table Header */}
             <div className="flex items-center px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
               <div className="w-48">Name</div>
               <div className="w-48">Email</div>
-              <div className="w-36">WhatsApp</div>
+              <div className="w-32">WhatsApp</div>
+              <div className="w-32">YouTube</div>
               <div className="w-32">Date</div>
               <div className="w-24">KTP</div>
               <div className="w-32">Status</div>
-              <div className="w-32 flex justify-end">Action</div>
+              {activeTab === 'pending' && <div className="w-32 flex justify-end">Action</div>}
             </div>
 
-            {/* Pending Rows */}
-            {pendingUsers.map(async (user) => {
+            {/* Rows */}
+            {displayUsers.map(async (user) => {
               const ktpSignedUrl = await getSignedKtpUrl(user.ktpUrl);
               
               return (
@@ -78,8 +107,18 @@ export default async function AdminRegistrationsPage() {
                     {user.email}
                   </div>
 
-                  <div className="w-36 text-gray-500 text-sm pr-4">
+                  <div className="w-32 text-gray-500 text-sm pr-4">
                     {user.whatsapp || "-"}
+                  </div>
+
+                  <div className="w-32 text-gray-500 text-sm pr-4">
+                    {user.youtubeUrl ? (
+                      <a href={user.youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-red-600 hover:text-red-800 font-medium">
+                        <ExternalLink className="w-4 h-4" /> Link
+                      </a>
+                    ) : (
+                      "-"
+                    )}
                   </div>
                   
                   <div className="w-32 text-gray-500 text-sm">
@@ -99,24 +138,42 @@ export default async function AdminRegistrationsPage() {
                   </div>
                   
                   <div className="w-32 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                    <span className="text-orange-500 font-medium text-sm">Pending</span>
+                    {activeTab === 'pending' && (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                        <span className="text-orange-500 font-medium text-sm">Pending</span>
+                      </>
+                    )}
+                    {activeTab === 'approved' && (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                        <span className="text-green-500 font-medium text-sm">Approved</span>
+                      </>
+                    )}
+                    {activeTab === 'rejected' && (
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                        <span className="text-red-500 font-medium text-sm">Rejected</span>
+                      </>
+                    )}
                   </div>
                   
-                  <div className="w-32 flex justify-end gap-2">
-                    <RegistrationActionButtons 
-                      userId={user.id} 
-                      userName={user.name || "Artist"} 
-                      userEmail={user.email} 
-                    />
-                  </div>
+                  {activeTab === 'pending' && (
+                    <div className="w-32 flex justify-end gap-2">
+                      <RegistrationActionButtons 
+                        userId={user.id} 
+                        userName={user.name || "Artist"} 
+                        userEmail={user.email} 
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
             
-            {pendingUsers.length === 0 && (
+            {displayUsers.length === 0 && (
               <div className="text-center py-10 text-gray-500">
-                No pending registrations found.
+                No {activeTab} registrations found.
               </div>
             )}
           </div>

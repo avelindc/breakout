@@ -97,10 +97,11 @@ export async function registerAction(formData: FormData) {
   const whatsapp = formData.get("whatsapp") as string;
   const ktpFile = formData.get("ktp") as File | null;
   const otp = formData.get("otp") as string;
+  const youtubeUrl = formData.get("youtubeUrl") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp) {
-    return { error: "All fields including KTP and OTP are required" };
+  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp || !youtubeUrl) {
+    return { error: "All fields including KTP, OTP, and YouTube URL are required" };
   }
 
   try {
@@ -176,6 +177,7 @@ export async function registerAction(formData: FormData) {
         email,
         password: hashedPassword,
         whatsapp,
+        youtubeUrl,
         ktpUrl,
         role: "USER",
         status: "PENDING",

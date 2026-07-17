@@ -173,6 +173,17 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300">Link YouTube Artis</label>
+                  <input 
+                    name="youtubeUrl" 
+                    type="url" 
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
+                    placeholder="https://youtube.com/@artist"
+                  />
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300">Password</label>
                   <input 
                     name="password" 
