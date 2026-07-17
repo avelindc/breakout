@@ -276,3 +276,16 @@ model CatalogSong {
   @@index([artist])
   @@index([publisher])
 }
+
+model VerificationToken {
+  id          String   @id @default(cuid())
+  email       String
+  otp         String   // hashed OTP
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  resendCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+}

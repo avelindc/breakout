@@ -4,6 +4,7 @@ import { signIn } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
+import { sendOtpEmail } from "@/lib/email";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -42,16 +43,64 @@ export async function loginAction(formData: FormData) {
   }
 }
 
+export async function sendOtpAction(email: string) {
+  if (!email) return { error: "Email is required" };
+
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return { error: "Email already in use" };
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Check rate limit (resendCount) within last 30 minutes
+    const recentToken = await prisma.verificationToken.findFirst({
+      where: { 
+        email, 
+        createdAt: { gte: new Date(Date.now() - 30 * 60 * 1000) } 
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (recentToken && recentToken.resendCount >= 3) {
+      return { error: "Terlalu banyak permintaan. Silakan coba lagi setelah 30 menit." };
+    }
+
+    const resendCount = recentToken ? recentToken.resendCount + 1 : 0;
+
+    await prisma.verificationToken.create({
+      data: {
+        email,
+        otp: hashedOtp,
+        expiresAt,
+        resendCount
+      }
+    });
+
+    const emailRes = await sendOtpEmail(email, otp);
+    if (!emailRes.success) {
+      return { error: "Gagal mengirim email OTP" };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("sendOtpAction error:", error);
+    return { error: "Gagal mengirim OTP" };
+  }
+}
+
 export async function registerAction(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const ktpFile = formData.get("ktp") as File | null;
+  const otp = formData.get("otp") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0) {
-    return { error: "All fields including KTP are required" };
+  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp) {
+    return { error: "All fields including KTP and OTP are required" };
   }
 
   try {
@@ -61,6 +110,33 @@ export async function registerAction(formData: FormData) {
 
     if (existingUser) {
       return { error: "Email already in use" };
+    }
+
+    // Verify OTP
+    const tokenRecord = await prisma.verificationToken.findFirst({
+      where: { email },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (!tokenRecord) {
+      return { error: "Silakan minta kode OTP terlebih dahulu." };
+    }
+
+    if (tokenRecord.attempts >= 5) {
+      return { error: "Terlalu banyak percobaan yang salah. Silakan minta OTP baru." };
+    }
+
+    if (tokenRecord.expiresAt < new Date()) {
+      return { error: "Kode OTP telah kedaluwarsa. Silakan kirim ulang OTP." };
+    }
+
+    const isValidOtp = await bcrypt.compare(otp, tokenRecord.otp);
+    if (!isValidOtp) {
+      await prisma.verificationToken.update({
+        where: { id: tokenRecord.id },
+        data: { attempts: tokenRecord.attempts + 1 }
+      });
+      return { error: "Kode OTP salah." };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

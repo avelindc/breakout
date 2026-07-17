@@ -240,3 +240,37 @@ export async function sendNewMessageNotificationBatch(users: {email: string, nam
     return { error };
   }
 }
+
+export async function sendOtpEmail(to: string, otp: string) {
+  const subject = 'Kode Verifikasi OTP - BREAKOUT MUSIC';
+  const html = generateEmailHtml(
+    'Verifikasi Email Anda',
+    `
+      <p>Gunakan kode OTP berikut untuk melanjutkan proses pendaftaran Anda:</p>
+      
+      <div style="text-align: center; margin: 30px 0;">
+        <div style="background-color: #f0f4ff; border: 2px dashed #4f46e5; border-radius: 8px; padding: 15px; display: inline-block;">
+          <h1 style="color: #4f46e5; margin: 0; font-size: 36px; letter-spacing: 5px;">${otp}</h1>
+        </div>
+      </div>
+      
+      <p style="color: #555; line-height: 1.6; font-size: 14px;">
+        Kode OTP ini hanya berlaku selama <strong>10 menit</strong>.<br/>
+        Jangan berikan kode ini kepada siapapun.
+      </p>
+    `
+  );
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('Simulated Email Send OTP:', subject, to, otp);
+    return { success: true };
+  }
+
+  try {
+    await resend.emails.send({ from: fromEmail, to, subject, html });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send OTP email:', error);
+    return { error };
+  }
+}
