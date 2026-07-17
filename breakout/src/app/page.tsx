@@ -12,7 +12,7 @@ export default function LandingPage() {
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#7000FF] to-[#00F0FF] flex items-center justify-center">
               <Music className="text-white w-5 h-5" />
             </div>
-            <span className="font-bold text-xl tracking-tighter">BREAKOUTMUSIC.ONLINE</span>
+            <span className="font-bold text-xl tracking-tighter">BREAKOUT.ID</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
             <Link href="#features" className="hover:text-white transition">Features</Link>
