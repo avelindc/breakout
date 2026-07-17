@@ -33,30 +33,6 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
         </select>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">Song Name *</label>
-        {availableSongs.length > 0 ? (
-          <select 
-            required 
-            name="songName" 
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition"
-          >
-            <option value="">Select Song</option>
-            {availableSongs.map((song: any) => (
-              <option key={song.id} value={song.title}>{song.title}</option>
-            ))}
-          </select>
-        ) : (
-          <input 
-            required 
-            name="songName" 
-            type="text" 
-            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition bg-gray-50 text-gray-500" 
-            placeholder={selectedArtistId ? "No releases found for this artist" : "Select an artist first"} 
-            readOnly
-          />
-        )}
-      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">

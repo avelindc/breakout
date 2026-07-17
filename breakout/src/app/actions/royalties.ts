@@ -15,7 +15,7 @@ export async function addRoyaltyAction(formData: FormData) {
   }
 
   const artistId = formData.get("artistId") as string;
-  const songName = formData.get("songName") as string;
+  const songName = (formData.get("songName") as string) || "Global Royalty";
   const month = parseInt(formData.get("month") as string);
   const year = parseInt(formData.get("year") as string);
   const totalRevenue = parseFloat(formData.get("totalRevenue") as string);
@@ -27,7 +27,7 @@ export async function addRoyaltyAction(formData: FormData) {
   const amazonStreams = parseInt(formData.get("amazonStreams") as string) || 0;
   const otherStreams = parseInt(formData.get("otherStreams") as string) || 0;
 
-  if (!artistId || !songName || !month || !year || isNaN(totalRevenue)) {
+  if (!artistId || !month || !year || isNaN(totalRevenue)) {
     return { error: "Missing required fields" };
   }
 
