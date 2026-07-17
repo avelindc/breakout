@@ -3,7 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
 import { createClient } from '@supabase/supabase-js';
-import { sendNewMessageNotification } from "@/lib/email";
+import { sendNewMessageNotification, sendNewMessageNotificationBatch } from "@/lib/email";
 
 const prisma = new PrismaClient();
 
@@ -100,10 +100,11 @@ export async function sendMessageAction(formData: FormData) {
       select: { email: true, name: true }
     });
 
-    // Send emails synchronously to prevent Vercel serverless timeout
-    await Promise.allSettled(usersToEmail.map(user => 
-      sendNewMessageNotification(user.email, user.name || "User", subject)
-    ));
+    // Send emails using Resend Batch API to prevent hanging and rate limits
+    await sendNewMessageNotificationBatch(usersToEmail.map(u => ({
+      email: u.email,
+      name: u.name || "User"
+    })), subject);
 
     return { success: true, messageId: message.id };
   } catch (error: any) {

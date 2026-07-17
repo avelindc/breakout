@@ -198,3 +198,45 @@ export async function sendNewMessageNotification(to: string, name: string, messa
     return { error };
   }
 }
+
+// BATCH SENDING
+export async function sendNewMessageNotificationBatch(users: {email: string, name: string}[], messageSubject: string) {
+  const subject = 'Pesan Baru dari Admin BREAKOUT';
+  
+  const emails = users.map(user => ({
+    from: fromEmail,
+    to: user.email,
+    subject: subject,
+    html: generateEmailHtml(
+      'Anda Memiliki Pesan Baru',
+      `
+        <p>Halo ${user.name},</p>
+        <p>Anda memiliki pesan baru dari tim Admin BREAKOUT dengan subjek:</p>
+        <div style="background-color: #f3f4f6; color: #111827; padding: 16px; border-radius: 8px; margin: 20px 0;">
+          <strong>${messageSubject}</strong>
+        </div>
+        <p>Silakan login ke dashboard dan buka menu <strong>Inbox</strong> untuk membaca pesan selengkapnya dan mengunduh lampiran (jika ada).</p>
+        <a href="https://breakoutmusic.online/dashboard/inbox" style="${BUTTON_STYLES}">Buka Inbox</a>
+      `
+    )
+  }));
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('Simulated Batch Email Send:', emails.length, 'emails');
+    return { success: true };
+  }
+
+  try {
+    // Resend batch allows up to 100 emails per request
+    // We chunk it just in case
+    const CHUNK_SIZE = 90;
+    for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
+      const chunk = emails.slice(i, i + CHUNK_SIZE);
+      await resend.batch.send(chunk);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send batch emails:', error);
+    return { error };
+  }
+}
