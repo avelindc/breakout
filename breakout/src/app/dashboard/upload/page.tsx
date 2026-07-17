@@ -22,6 +22,20 @@ export default function UploadMusicPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
+      
+      const coverFile = formData.get("coverArtwork") as File;
+      const audioFile = formData.get("audioFile") as File;
+      
+      if (coverFile && audioFile) {
+        const totalSize = coverFile.size + audioFile.size;
+        // Vercel Serverless Function limit is 4.5MB
+        if (totalSize > 4 * 1024 * 1024) {
+          setError("File terlalu besar! Karena keterbatasan Vercel (maksimal 4MB per request), silakan upload file MP3/Gambar dengan ukuran lebih kecil untuk keperluan demo ini.");
+          setLoading(false);
+          return;
+        }
+      }
+
       const res = await uploadMusicAction(formData);
 
       setLoading(false);
