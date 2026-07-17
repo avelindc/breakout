@@ -7,12 +7,11 @@ import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
 export async function uploadMusicAction(formData: FormData) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -49,7 +48,7 @@ export async function uploadMusicAction(formData: FormData) {
     }
 
     if (!supabase) {
-      return { error: "Sistem belum mendeteksi kunci Supabase. Pastikan SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY benar-benar tersimpan di Vercel dan Anda sudah melakukan Redeploy." };
+      return { error: `Sistem belum mendeteksi kunci Supabase. (Status -> URL: ${supabaseUrl ? "ADA" : "KOSONG"}, KEY: ${supabaseKey ? "ADA" : "KOSONG"}). Pastikan variabel disimpan dengan nama yang benar di Vercel dan Redeploy.` };
     }
 
     let coverArtworkUrl = "";
