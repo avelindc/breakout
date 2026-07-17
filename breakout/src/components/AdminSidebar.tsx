@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { 
   Users, Music, CheckCircle, BarChart, 
-  DollarSign, Settings, LayoutDashboard, Menu, X, Mail
+  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
 const links = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
+  { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Artist Approval", href: "/admin/artists", icon: Users },
   { name: "Music Review", href: "/admin/releases", icon: CheckCircle },

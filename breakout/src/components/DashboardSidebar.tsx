@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Music, User, UploadCloud, Disc, BarChart2, 
-  DollarSign, CreditCard, Bell, Settings, LogOut, Menu, X, Mail
+  DollarSign, CreditCard, Bell, Settings, LogOut, Menu, X, Mail, Library
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const links = [
   { name: "Streaming Analytics", href: "/dashboard", icon: BarChart2 },
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
+  { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
   { name: "Royalties", href: "/dashboard/royalties", icon: DollarSign },

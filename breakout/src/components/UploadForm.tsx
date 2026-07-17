@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { uploadMusicAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus } from "lucide-react";
 
 export function UploadForm({ artists, userId }: { artists: any[]; userId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isCover = searchParams.get("cover") === "true";
+  const defaultTitle = searchParams.get("title") || "";
+  const defaultArtist = searchParams.get("originalArtist") || "";
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -143,7 +148,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-300">Song Title *</label>
-                <input required name="title" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="e.g. Midnight City" />
+                <input defaultValue={defaultTitle} required name="title" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="e.g. Midnight City" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-300">Primary Artist *</label>
@@ -206,8 +211,8 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Composer</label>
-                <input name="composer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Writer name" />
+                <label className="text-sm font-medium text-gray-300">Composer / Original Artist {isCover && "(Cover)"}</label>
+                <input defaultValue={defaultArtist} name="composer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Writer name or Original Artist" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-300">Producer</label>

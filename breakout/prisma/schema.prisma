@@ -256,3 +256,21 @@ model MessageRecipient {
   
   @@unique([messageId, userId])
 }
+
+model CatalogSong {
+  id        String   @id @default(cuid())
+  title     String
+  artist    String
+  publisher String?
+  genre     String?
+  isrc      String?
+  duration  String?
+  year      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([title])
+  @@index([artist])
+  @@index([publisher])
+}

@@ -1,3 +1,4 @@
+import React from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { PrismaClient } from "@prisma/client";
@@ -30,7 +31,9 @@ export default async function UploadMusicPage() {
         <p className="text-gray-400">Release your new track to the world.</p>
       </div>
 
-      <UploadForm artists={artists} userId={user.id} />
+      <React.Suspense fallback={<div>Loading form...</div>}>
+        <UploadForm artists={artists} userId={user.id} />
+      </React.Suspense>
     </div>
   );
 }
