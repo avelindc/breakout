@@ -14,15 +14,14 @@ export default async function UploadMusicPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { artist: true },
+    include: { artists: true },
   });
 
-  if (!user || !user.artist) {
-    // If they don't have an artist profile, they shouldn't be uploading yet
-    // Or maybe redirect to a setup page. For now, fallback to user name.
+  if (!user) {
+    redirect("/login");
   }
 
-  const stageName = user?.artist?.stageName || user?.name || "Unknown Artist";
+  const artists = user.artists || [];
 
   return (
     <div className="animate-fade-in max-w-3xl mx-auto">
@@ -31,7 +30,7 @@ export default async function UploadMusicPage() {
         <p className="text-gray-400">Release your new track to the world.</p>
       </div>
 
-      <UploadForm stageName={stageName} />
+      <UploadForm artists={artists} userId={user.id} />
     </div>
   );
 }

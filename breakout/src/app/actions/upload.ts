@@ -19,18 +19,26 @@ export async function uploadMusicAction(formData: FormData) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { artist: true }
+    include: { artists: true }
   });
 
-  if (!user?.artist) {
-    return { error: "Artist profile not found" };
+  if (!user || user.artists.length === 0) {
+    return { error: "No artist profile found. Please create an artist first." };
   }
 
   try {
     const title = formData.get("title") as string;
     const genre = formData.get("genre") as string;
     const language = formData.get("language") as string;
-    const primaryArtist = formData.get("primaryArtist") as string || user.artist.stageName;
+    const primaryArtistId = formData.get("primaryArtistId") as string;
+    
+    // Find the specific artist the user selected
+    const selectedArtist = user.artists.find(a => a.id === primaryArtistId);
+    if (!selectedArtist) {
+      return { error: "Invalid artist selected." };
+    }
+    
+    const primaryArtist = selectedArtist.stageName;
     const featuredArtist = formData.get("featuredArtist") as string;
     const composer = formData.get("composer") as string;
     const producer = formData.get("producer") as string;
@@ -56,7 +64,7 @@ export async function uploadMusicAction(formData: FormData) {
 
     // Upload Cover
     const coverExt = coverFile.name.split('.').pop();
-    const coverPath = `covers/${user.artist.id}-${Date.now()}.${coverExt}`;
+    const coverPath = `covers/${selectedArtist.id}-${Date.now()}.${coverExt}`;
     const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
     
     const { error: coverError } = await supabase.storage
@@ -75,7 +83,7 @@ export async function uploadMusicAction(formData: FormData) {
 
     // Upload Audio
     const audioExt = audioFile.name.split('.').pop();
-    const audioPath = `audio/${user.artist.id}-${Date.now()}.${audioExt}`;
+    const audioPath = `audio/${selectedArtist.id}-${Date.now()}.${audioExt}`;
     const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
     
     const { error: audioError } = await supabase.storage
@@ -95,7 +103,7 @@ export async function uploadMusicAction(formData: FormData) {
     // Create Release & Track in DB
     const release = await prisma.release.create({
       data: {
-        artistId: user.artist.id,
+        artistId: selectedArtist.id,
         title,
         type: "SINGLE",
         genre,

@@ -24,16 +24,20 @@ export async function withdrawAction(formData: FormData) {
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: {
-      artist: { include: { royalties: true } },
+      artists: { include: { royalties: true } },
       withdrawRequests: true
     }
   });
 
-  if (!user || !user.artist) {
-    return { error: "User or artist not found" };
+  if (!user || user.artists.length === 0) {
+    return { error: "User or artists not found" };
   }
 
-  const totalRevenue = user.artist.royalties.reduce((acc, curr) => acc + curr.totalRevenue, 0);
+  let totalRevenue = 0;
+  user.artists.forEach(artist => {
+    totalRevenue += artist.royalties.reduce((acc, curr) => acc + curr.totalRevenue, 0);
+  });
+  
   const totalWithdrawn = user.withdrawRequests.filter(w => w.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0);
   const pendingWithdrawal = user.withdrawRequests.filter(w => w.status === 'PENDING' || w.status === 'APPROVED').reduce((acc, curr) => acc + curr.amount, 0);
   
@@ -62,7 +66,7 @@ export async function withdrawAction(formData: FormData) {
         data: admins.map(a => ({
           userId: a.id,
           title: "New Withdrawal Request",
-          message: `${user.artist?.stageName} requested a withdrawal of Rp ${amount.toLocaleString('id-ID')}.`
+          message: `${user.name || user.email} requested a withdrawal of Rp ${amount.toLocaleString('id-ID')}.`
         }))
       });
     }

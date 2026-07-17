@@ -7,13 +7,13 @@ const prisma = new PrismaClient();
 export default async function AdminWithdrawalsPage() {
   const pendingRequests = await prisma.withdrawRequest.findMany({
     where: { status: 'PENDING' },
-    include: { user: { include: { artist: true } } },
+    include: { user: { include: { artists: true } } },
     orderBy: { createdAt: 'asc' }
   });
 
   const historyRequests = await prisma.withdrawRequest.findMany({
     where: { status: { not: 'PENDING' } },
-    include: { user: { include: { artist: true } } },
+    include: { user: { include: { artists: true } } },
     orderBy: { updatedAt: 'desc' },
     take: 50
   });
@@ -67,7 +67,7 @@ export default async function AdminWithdrawalsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900">Rp {req.amount.toLocaleString('id-ID')}</h3>
-                      <p className="text-blue-600 font-medium">{req.user.artist?.stageName}</p>
+                      <p className="text-blue-600 font-medium">{req.user.artists?.[0]?.stageName || req.user.name}</p>
                     </div>
                     <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">PENDING</span>
                   </div>
@@ -124,7 +124,7 @@ export default async function AdminWithdrawalsPage() {
               <tbody>
                 {historyRequests.map(req => (
                   <tr key={req.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-900">{req.user.artist?.stageName}</td>
+                    <td className="p-4 font-semibold text-gray-900">{req.user.artists?.[0]?.stageName || req.user.name}</td>
                     <td className="p-4 font-bold text-gray-900">Rp {req.amount.toLocaleString('id-ID')}</td>
                     <td className="p-4 text-sm">
                       <p className="text-gray-900">{req.bankName}</p>

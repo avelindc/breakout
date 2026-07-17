@@ -7,13 +7,13 @@ const prisma = new PrismaClient();
 export default async function AdminArtistsPage() {
   const pendingUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'PENDING' },
-    include: { artist: true },
+    include: { artists: true },
     orderBy: { createdAt: 'desc' }
   });
   
   const approvedUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'APPROVED' },
-    include: { artist: true },
+    include: { artists: true },
     orderBy: { createdAt: 'desc' }
   });
 
@@ -31,7 +31,7 @@ export default async function AdminArtistsPage() {
       data: {
         userId,
         title: "Account Status Updated",
-        message: `Your artist account has been ${status.toLowerCase()}.`
+        message: `Your account has been ${status.toLowerCase()}.`
       }
     });
 
@@ -42,7 +42,7 @@ export default async function AdminArtistsPage() {
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
       <div className="mb-8 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Artist Approvals</h1>
-        <p className="text-gray-500 text-sm">{pendingUsers.length + approvedUsers.length} artists found</p>
+        <p className="text-gray-500 text-sm">{pendingUsers.length + approvedUsers.length} users found</p>
 
         <div className="flex items-center gap-6 mt-8 border-b border-gray-100 pb-4">
           <button className="text-gray-900 font-bold border-b-2 border-blue-600 pb-4 -mb-[18px]">Pending</button>
@@ -54,7 +54,7 @@ export default async function AdminArtistsPage() {
             {/* Table Header */}
             <div className="flex items-center px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
               <div className="w-20">Id</div>
-              <div className="flex-1">Name</div>
+              <div className="flex-1">Name / Primary Artist</div>
               <div className="flex-1">Email</div>
               <div className="w-32">Date</div>
               <div className="w-32">Status</div>
@@ -73,7 +73,7 @@ export default async function AdminArtistsPage() {
                 
                 <div className="flex-1 flex items-center gap-3 pr-4">
                   <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
-                  <span className="font-bold text-gray-900 group-hover:text-white transition truncate">{user.artist?.stageName || user.name}</span>
+                  <span className="font-bold text-gray-900 group-hover:text-white transition truncate">{user.artists?.[0]?.stageName || user.name}</span>
                 </div>
                 
                 <div className="flex-1 text-gray-500 text-sm group-hover:text-blue-100 pr-4 truncate">
@@ -120,7 +120,7 @@ export default async function AdminArtistsPage() {
                 
                 <div className="flex-1 flex items-center gap-3 pr-4">
                   <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
-                  <span className="font-bold text-gray-900 group-hover:text-white transition truncate">{user.artist?.stageName || user.name}</span>
+                  <span className="font-bold text-gray-900 group-hover:text-white transition truncate">{user.artists?.[0]?.stageName || user.name}</span>
                 </div>
                 
                 <div className="flex-1 text-gray-500 text-sm group-hover:text-blue-100 pr-4 truncate">

@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { uploadMusicAction } from "@/app/actions/upload";
+import { createArtistAction } from "@/app/actions/artist";
 import { useRouter } from "next/navigation";
-import { Loader2, UploadCloud, CheckCircle2 } from "lucide-react";
+import { Loader2, UploadCloud, CheckCircle2, Plus } from "lucide-react";
 
-export function UploadForm({ stageName }: { stageName: string }) {
+export function UploadForm({ artists, userId }: { artists: any[]; userId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +14,31 @@ export function UploadForm({ stageName }: { stageName: string }) {
 
   const [coverFileName, setCoverFileName] = useState("");
   const [audioFileName, setAudioFileName] = useState("");
+
+  const [showNewArtistModal, setShowNewArtistModal] = useState(false);
+  const [newArtistName, setNewArtistName] = useState("");
+  const [creatingArtist, setCreatingArtist] = useState(false);
+
+  async function handleCreateArtist(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newArtistName.trim()) return;
+    
+    setCreatingArtist(true);
+    try {
+      const res = await createArtistAction(newArtistName, userId);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        setShowNewArtistModal(false);
+        setNewArtistName("");
+        router.refresh();
+      }
+    } catch (err) {
+      alert("Failed to create artist.");
+    } finally {
+      setCreatingArtist(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,6 +82,44 @@ export function UploadForm({ stageName }: { stageName: string }) {
 
   return (
     <>
+      {showNewArtistModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-[#12121A] rounded-2xl p-6 w-full max-w-md border border-white/10 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4">Create New Artist</h3>
+            <form onSubmit={handleCreateArtist} className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Artist Name</label>
+                <input 
+                  autoFocus
+                  required
+                  type="text" 
+                  value={newArtistName}
+                  onChange={(e) => setNewArtistName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] text-white"
+                  placeholder="e.g. Breakout Band"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewArtistModal(false)}
+                  className="flex-1 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={creatingArtist}
+                  className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 transition font-medium disabled:opacity-50 flex justify-center items-center text-white"
+                >
+                  {creatingArtist ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Artist"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {success ? (
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center mb-6">
@@ -83,13 +147,26 @@ export function UploadForm({ stageName }: { stageName: string }) {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-300">Primary Artist *</label>
-                <select 
-                  required 
-                  name="primaryArtist" 
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white"
-                >
-                  <option value={stageName} className="bg-[#09090B]">{stageName}</option>
-                </select>
+                <div className="flex gap-2">
+                  <select 
+                    required 
+                    name="primaryArtistId" 
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white"
+                  >
+                    {artists.length === 0 && <option value="">No artists created yet</option>}
+                    {artists.map(artist => (
+                      <option key={artist.id} value={artist.id} className="bg-[#09090B]">{artist.stageName}</option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowNewArtistModal(true)}
+                    className="px-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-[#00F0FF] transition flex items-center justify-center"
+                    title="Create New Artist"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
 
