@@ -99,7 +99,7 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
       
       {/* Header & Back Button */}
       <div className="flex items-center justify-between mb-8">
-        <Link href="/admin/artists" className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition">
+        <Link href="/admin/all-artists" className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition">
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back to Artists</span>
         </Link>
