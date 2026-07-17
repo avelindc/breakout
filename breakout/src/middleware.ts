@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server"
 
 export default auth((req) => {
   const { nextUrl } = req
-  const isLoggedIn = !!req.auth
+  const isLoggedIn = !!req.auth?.user
   // @ts-ignore
   const role = req.auth?.user?.role || req.auth?.role || (req.auth?.user?.email === 'admin@breakout.id' ? 'ADMIN' : 'USER')
   // @ts-ignore

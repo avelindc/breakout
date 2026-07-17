@@ -63,6 +63,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.status = token.status;
       }
       return session;
+    },
+    authorized({ request, auth }) {
+      return true;
     }
   },
   pages: {
