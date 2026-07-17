@@ -28,10 +28,17 @@ export async function loginAction(formData: FormData) {
         case "CredentialsSignin":
           return { error: "Invalid credentials." };
         default:
-          return { error: "Something went wrong." };
+          return { error: "Something went wrong during authentication." };
       }
     }
-    throw error;
+    
+    // Check if it's a NEXT_REDIRECT error
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error;
+    }
+    
+    console.error("Login error:", error);
+    return { error: "Internal server error. Please try again later." };
   }
 }
 
