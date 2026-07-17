@@ -72,48 +72,53 @@ export function AdminSidebar({ artists = [] }: { artists?: any[] }) {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             return (
-              <div key={link.name}>
-                <Link
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
-                    isActive 
-                      ? "bg-gray-50 text-blue-600 rounded-l-full" 
-                      : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  {link.name}
-                  
-                  {/* Fake inner shadow elements to simulate the inverted border radius effect */}
-                  {isActive && (
-                    <>
-                      <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
-                      <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
-                    </>
-                  )}
-                </Link>
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
+                  isActive 
+                    ? "bg-gray-50 text-blue-600 rounded-l-full" 
+                    : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                {link.name}
                 
-                {/* Artist List Sub-menu */}
-                {link.name === "Artist Approval" && artists.length > 0 && (
-                  <div className="flex flex-col gap-2 mt-2 mb-2 ml-14 pr-4">
-                    {artists.map(artist => (
-                      <Link 
-                        key={artist.id} 
-                        href={`/admin/artists?artistId=${artist.id}`}
-                        onClick={() => setIsOpen(false)}
-                        className="text-xs text-blue-200 hover:text-white transition flex items-center gap-2 truncate"
-                        title={artist.stageName}
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-300 opacity-50" />
-                        <span className="truncate">{artist.stageName}</span>
-                      </Link>
-                    ))}
-                  </div>
+                {/* Fake inner shadow elements to simulate the inverted border radius effect */}
+                {isActive && (
+                  <>
+                    <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
+                    <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
+                  </>
                 )}
-              </div>
+              </Link>
             );
           })}
+
+          {/* Registered Artists Section */}
+          {artists.length > 0 && (
+            <div className="mt-6 mb-2">
+              <div className="pl-6 mb-3 flex items-center gap-2 text-blue-300">
+                <Users className="w-4 h-4" />
+                <span className="text-xs font-bold tracking-wider uppercase">Registered Artists</span>
+              </div>
+              <div className="flex flex-col gap-1 pl-12 pr-4">
+                {artists.map(artist => (
+                  <Link 
+                    key={artist.id} 
+                    href={`/admin/artists?artistId=${artist.id}`}
+                    onClick={() => setIsOpen(false)}
+                    className="text-sm py-2 text-blue-100 hover:text-white transition flex items-center gap-2 truncate"
+                    title={artist.stageName}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 opacity-70" />
+                    <span className="truncate">{artist.stageName}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-6">
