@@ -136,10 +136,10 @@ export function CatalogClient() {
             <div 
               key={`${song.id}-${i}`}
               onClick={() => setSelectedSong(song)}
-              className="bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-[#10B981] hover:bg-[#10B981]/5 transition group"
+              className="bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-600/10 transition group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                   <Music className="w-6 h-6" />
                 </div>
                 <div className="min-w-0">
@@ -159,7 +159,7 @@ export function CatalogClient() {
 
       {loading && (
         <div className="flex justify-center p-8">
-          <Loader2 className="w-8 h-8 text-[#10B981] animate-spin" />
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
         </div>
       )}
 
@@ -181,7 +181,7 @@ export function CatalogClient() {
             <div className="p-6 border-b border-white/5 flex justify-between items-start">
               <div>
                 <h2 className="text-2xl font-bold text-white">{selectedSong.title}</h2>
-                <p className="text-[#10B981] font-medium mt-1">{selectedSong.artist}</p>
+                <p className="text-blue-400 font-medium mt-1">{selectedSong.artist}</p>
               </div>
               <button 
                 onClick={() => setSelectedSong(null)}
@@ -219,7 +219,7 @@ export function CatalogClient() {
             <div className="p-6 border-t border-white/5 bg-black/20">
               <button 
                 onClick={() => handleAjukanCover(selectedSong)}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-bold text-lg hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold text-lg hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
               >
                 <Mic2 className="w-5 h-5" />
                 Ajukan Cover Lagu Ini
