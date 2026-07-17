@@ -179,11 +179,6 @@ export async function registerAction(formData: FormData) {
         ktpUrl,
         role: "USER",
         status: "PENDING",
-        artists: {
-          create: {
-            stageName,
-          },
-        },
       },
     });
 
