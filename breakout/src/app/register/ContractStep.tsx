@@ -3,8 +3,7 @@
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
-import { toJpeg } from "html-to-image";
-import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { getContractUploadUrlsAction, finalizeContractAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
@@ -51,43 +50,34 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // 1. Get Signature as Base64 PNG
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
 
-      // Temporarily remove fixed height to capture full content
+      // 2. Generate full-height image using html2canvas
+      if (!contractRef.current) throw new Error("Contract element not found");
+      
       const contractEl = contractRef.current!;
-      const originalHeight = contractEl.style.height;
-      const originalMaxHeight = contractEl.style.maxHeight;
-      const originalOverflow = contractEl.style.overflow;
-      const originalClassName = contractEl.className;
       
-      // Remove classes that restrict height
-      contractEl.className = contractEl.className.replace(/h-64|overflow-y-auto|max-h-[^ ]+/g, "");
-      contractEl.style.height = "auto";
-      contractEl.style.overflow = "visible";
+      // We will clone the node, set it to full height and append it to body invisibly to capture it perfectly
+      const clone = contractEl.cloneNode(true) as HTMLDivElement;
+      clone.style.position = "absolute";
+      clone.style.top = "-9999px";
+      clone.style.left = "-9999px";
+      clone.style.width = "800px"; // Fixed width for consistent formatting
+      clone.style.height = "auto";
+      clone.style.maxHeight = "none";
+      clone.style.overflow = "visible";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.color = "#000000";
       
-      // Give DOM time to update
-      await new Promise(resolve => setTimeout(resolve, 50));
+      document.body.appendChild(clone);
       
-      const imgData = await toJpeg(contractEl, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ffffff' });
-      
-      // Restore original styles
-      contractEl.className = originalClassName;
-      contractEl.style.height = originalHeight;
-      contractEl.style.maxHeight = originalMaxHeight;
-      contractEl.style.overflow = originalOverflow;
-      
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true
+      const canvas = await html2canvas(clone, {
+        scale: 2, // High resolution
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: 800
       });
       
-      // Calculate width and height to fit A4
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const rect = contractRef.current!.getBoundingClientRect();
-      const pdfHeight = (rect.height * pdfWidth) / rect.width;
-      
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
-      
+      document.body.removeChild(clone);
+
       // 3. Get signed upload URLs from server
       const urlsRes = await getContractUploadUrlsAction(userId);
       if (urlsRes?.error || !urlsRes.signature || !urlsRes.pdf) {
@@ -109,14 +99,20 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       });
       if (!sigUpload.ok) throw new Error("Gagal mengunggah tanda tangan");
 
-      // 5. Upload PDF Blob
-      const pdfBlob = pdf.output("blob");
+      // 5. Upload Contract JPEG Blob
+      const contractBlob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create contract blob"));
+        }, "image/jpeg", 0.9); // High quality JPEG
+      });
+      
       const pdfUpload = await fetch(urlsRes.pdf.url, {
         method: "PUT",
-        body: pdfBlob,
-        headers: { "Content-Type": "application/pdf" }
+        body: contractBlob,
+        headers: { "Content-Type": "image/jpeg" }
       });
-      if (!pdfUpload.ok) throw new Error("Gagal mengunggah PDF kontrak");
+      if (!pdfUpload.ok) throw new Error("Gagal mengunggah gambar kontrak");
 
       // 6. Finalize in database
       const finalizeRes = await finalizeContractAction(userId, urlsRes.signature.path, urlsRes.pdf.path);

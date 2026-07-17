@@ -223,7 +223,7 @@ export async function getContractUploadUrlsAction(userId: string) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const timestamp = Date.now();
     const signaturePath = `signatures/${userId}-${timestamp}.png`;
-    const pdfPath = `pdfs/${userId}-${timestamp}.pdf`;
+    const pdfPath = `contracts/${userId}-${timestamp}.jpg`;
     
     const { data: sigData, error: sigError } = await supabase.storage
       .from('contracts')

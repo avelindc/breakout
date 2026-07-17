@@ -154,7 +154,7 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
                         rel="noopener noreferrer" 
                         className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm font-medium bg-green-50 px-2 py-1 rounded-md w-max"
                       >
-                        <FileText className="w-4 h-4" /> PDF ({user.contracts[0].version})
+                        <FileText className="w-4 h-4" /> Kontrak
                       </a>
                     ) : (
                       <span className="text-red-400 text-xs font-medium bg-red-50 px-2 py-1 rounded-md w-max">No Contract</span>
