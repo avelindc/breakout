@@ -4,19 +4,33 @@ import { Users } from "lucide-react";
 const prisma = new PrismaClient();
 
 export default async function AllArtistsPage() {
-  const artists = await prisma.artist.findMany({
+  // Get all artists with their user and releases
+  const allArtists = await prisma.artist.findMany({
     include: {
-      user: true,
+      user: {
+        include: {
+          artists: {
+            orderBy: { createdAt: 'asc' },
+            select: { id: true }
+          }
+        }
+      },
       releases: true,
     },
     orderBy: { createdAt: 'desc' }
   });
 
+  // Filter out the primary artist (the first artist created for each user)
+  const artists = allArtists.filter(artist => {
+    const primaryArtistId = artist.user?.artists[0]?.id;
+    return artist.id !== primaryArtistId;
+  });
+
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
       <div className="mb-8 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Registered Artists</h1>
-        <p className="text-gray-500 text-sm">All artist profiles created by users</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Additional Artists</h1>
+        <p className="text-gray-500 text-sm">Artist profiles manually created by existing users (excluding their primary artist)</p>
 
         <div className="mt-8 overflow-x-auto pb-4 scrollbar-hide">
           <div className="min-w-[900px] space-y-3">
