@@ -47,8 +47,9 @@ async function getSignedContractUrl(path: string | null) {
   return data.signedUrl;
 }
 
-export default async function AdminRegistrationsPage({ searchParams }: { searchParams: { tab?: string } }) {
-  const activeTab = searchParams.tab || "pending";
+export default async function AdminRegistrationsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const params = await searchParams;
+  const activeTab = params.tab || "pending";
 
   const pendingUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'PENDING' },
