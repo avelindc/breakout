@@ -48,48 +48,50 @@ export async function uploadMusicAction(formData: FormData) {
       return { error: "Missing required fields" };
     }
 
-    let coverArtworkUrl = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500&auto=format&fit=crop";
-    let audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-
-    if (supabase) {
-      // Upload Cover
-      const coverExt = coverFile.name.split('.').pop();
-      const coverPath = `covers/${user.artist.id}-${Date.now()}.${coverExt}`;
-      const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
-      
-      const { error: coverError } = await supabase.storage
-        .from('releases')
-        .upload(coverPath, coverBuffer, {
-          contentType: coverFile.type,
-          upsert: false
-        });
-        
-      if (coverError) {
-        console.error("Cover upload error:", coverError);
-        return { error: `Gagal mengupload cover ke Supabase: ${coverError.message}. Pastikan nama bucket 'releases' benar.` };
-      }
-      
-      coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
-
-      // Upload Audio
-      const audioExt = audioFile.name.split('.').pop();
-      const audioPath = `audio/${user.artist.id}-${Date.now()}.${audioExt}`;
-      const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-      
-      const { error: audioError } = await supabase.storage
-        .from('releases')
-        .upload(audioPath, audioBuffer, {
-          contentType: audioFile.type,
-          upsert: false
-        });
-        
-      if (audioError) {
-        console.error("Audio upload error:", audioError);
-        return { error: `Gagal mengupload lagu ke Supabase: ${audioError.message}` };
-      }
-      
-      audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+    if (!supabase) {
+      return { error: "Sistem belum mendeteksi kunci Supabase. Pastikan SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY benar-benar tersimpan di Vercel dan Anda sudah melakukan Redeploy." };
     }
+
+    let coverArtworkUrl = "";
+    let audioUrl = "";
+
+    // Upload Cover
+    const coverExt = coverFile.name.split('.').pop();
+    const coverPath = `covers/${user.artist.id}-${Date.now()}.${coverExt}`;
+    const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+    
+    const { error: coverError } = await supabase.storage
+      .from('releases')
+      .upload(coverPath, coverBuffer, {
+        contentType: coverFile.type,
+        upsert: false
+      });
+      
+    if (coverError) {
+      console.error("Cover upload error:", coverError);
+      return { error: `Gagal mengupload cover ke Supabase: ${coverError.message}. Pastikan nama bucket 'releases' benar.` };
+    }
+    
+    coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+
+    // Upload Audio
+    const audioExt = audioFile.name.split('.').pop();
+    const audioPath = `audio/${user.artist.id}-${Date.now()}.${audioExt}`;
+    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+    
+    const { error: audioError } = await supabase.storage
+      .from('releases')
+      .upload(audioPath, audioBuffer, {
+        contentType: audioFile.type,
+        upsert: false
+      });
+      
+    if (audioError) {
+      console.error("Audio upload error:", audioError);
+      return { error: `Gagal mengupload lagu ke Supabase: ${audioError.message}` };
+    }
+    
+    audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
 
     // Create Release & Track in DB
     const release = await prisma.release.create({
