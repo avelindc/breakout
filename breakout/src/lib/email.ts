@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
-const fromEmail = process.env.RESEND_FROM_EMAIL || 'BREAKOUT <noreply@breakout.id>';
+const fromEmail = process.env.RESEND_FROM_EMAIL || 'BREAKOUT <noreply@breakoutmusic.online>';
 
 const BASE_STYLES = `
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -42,14 +42,14 @@ function generateEmailHtml(title: string, content: string) {
     <div style="${BASE_STYLES}">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
         <div style="${HEADER_STYLES}">
-          <h1 style="${LOGO_TEXT_STYLES}">BREAKOUT.ID</h1>
+          <h1 style="${LOGO_TEXT_STYLES}">BREAKOUTMUSIC.ONLINE</h1>
         </div>
         <h2 style="color: #111827; font-size: 20px; font-weight: 700; margin-bottom: 20px;">${title}</h2>
         <div style="color: #4b5563; font-size: 16px;">
           ${content}
         </div>
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 14px; text-align: center;">
-          <p>&copy; ${new Date().getFullYear()} BREAKOUT.ID. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} BREAKOUTMUSIC.ONLINE. All rights reserved.</p>
         </div>
       </div>
     </div>

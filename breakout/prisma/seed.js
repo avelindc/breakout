@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Start seeding...');
   
-  const adminEmail = 'admin@breakout.id'; // You can change this
+  const adminEmail = 'admin@breakoutmusic.online'; // You can change this
   const adminUsername = 'Avelin11';
   
   const existingAdmin = await prisma.user.findFirst({

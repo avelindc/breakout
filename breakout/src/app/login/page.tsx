@@ -38,7 +38,7 @@ export default function LoginPage() {
               <Music className="text-white w-6 h-6" />
             </div>
             <h1 className="text-2xl font-bold">Welcome Back</h1>
-            <p className="text-gray-400 text-sm mt-2">Login to your BREAKOUT.ID account</p>
+            <p className="text-gray-400 text-sm mt-2">Login to your BREAKOUTMUSIC.ONLINE account</p>
           </div>
 
           {error && (

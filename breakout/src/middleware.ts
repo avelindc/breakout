@@ -6,7 +6,7 @@ export default auth((req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth?.user
   // @ts-ignore
-  const role = req.auth?.user?.role || req.auth?.role || (req.auth?.user?.email === 'admin@breakout.id' ? 'ADMIN' : 'USER')
+  const role = req.auth?.user?.role || req.auth?.role || (req.auth?.user?.email === 'admin@breakoutmusic.online' ? 'ADMIN' : 'USER')
   // @ts-ignore
   const status = req.auth?.user?.status || req.auth?.status || 'APPROVED'
 
