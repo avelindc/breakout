@@ -300,9 +300,13 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
                     </span>
                     
                     <div className="flex items-center gap-2">
-                      <Link href={`/admin/releases/${track.release.id}`} className="p-2 bg-white/5 hover:bg-green-500/20 hover:text-green-400 rounded-lg transition text-gray-400" title="View Release">
-                        <Eye className="w-4 h-4" />
-                      </Link>
+                      <button 
+                        onClick={() => handlePlay(track.id, track.audioUrl)}
+                        className="p-2 bg-white/5 hover:bg-green-500/20 hover:text-green-400 rounded-lg transition text-gray-400 flex items-center justify-center" 
+                        title={playingTrack === track.id ? "Pause" : "Play"}
+                      >
+                        {playingTrack === track.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                 </div>
