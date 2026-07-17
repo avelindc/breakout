@@ -25,6 +25,11 @@ export function MessageComposeForm({ users }: { users: any[] }) {
 
     const formData = new FormData(e.currentTarget);
     formData.append("broadcast", isBroadcast.toString());
+    
+    // Append the file manually because the input element is unmounted when a file is selected
+    if (file) {
+      formData.set("attachment", file);
+    }
 
     const res = await sendMessageAction(formData);
 
