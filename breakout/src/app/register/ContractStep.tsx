@@ -51,10 +51,28 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // 1. Get Signature as Base64 PNG
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
 
-      // 2. Generate PDF using html-to-image and jsPDF
-      if (!contractRef.current) throw new Error("Contract element not found");
+      // Temporarily remove fixed height to capture full content
+      const contractEl = contractRef.current;
+      const originalHeight = contractEl.style.height;
+      const originalMaxHeight = contractEl.style.maxHeight;
+      const originalOverflow = contractEl.style.overflow;
+      const originalClassName = contractEl.className;
       
-      const imgData = await toJpeg(contractRef.current, { quality: 0.6, pixelRatio: 1, backgroundColor: '#ffffff' });
+      // Remove classes that restrict height
+      contractEl.className = contractEl.className.replace(/h-64|overflow-y-auto|max-h-[^ ]+/g, "");
+      contractEl.style.height = "auto";
+      contractEl.style.overflow = "visible";
+      
+      // Give DOM time to update
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const imgData = await toJpeg(contractEl, { quality: 0.6, pixelRatio: 1, backgroundColor: '#ffffff' });
+      
+      // Restore original styles
+      contractEl.className = originalClassName;
+      contractEl.style.height = originalHeight;
+      contractEl.style.maxHeight = originalMaxHeight;
+      contractEl.style.overflow = originalOverflow;
       
       const pdf = new jsPDF({
         orientation: "portrait",
