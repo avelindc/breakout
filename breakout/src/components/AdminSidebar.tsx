@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { 
   Users, Music, CheckCircle, BarChart, 
   DollarSign, Settings, LayoutDashboard, Menu, X 
@@ -21,6 +21,7 @@ const links = [
 
 export function AdminSidebar({ artists = [] }: { artists?: any[] }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -70,29 +71,68 @@ export function AdminSidebar({ artists = [] }: { artists?: any[] }) {
         <div className="flex-1 overflow-y-auto py-6 pl-4 flex flex-col gap-2 mt-4">
           {links.map((link) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href;
+            // Artist Approval is only active if we are on /admin/artists AND there is no artistId
+            const isArtistApproval = link.name === "Artist Approval";
+            const currentArtistId = searchParams.get("artistId");
+            const isActive = isArtistApproval 
+              ? pathname === link.href && !currentArtistId
+              : pathname === link.href;
+
             return (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
-                  isActive 
-                    ? "bg-gray-50 text-blue-600 rounded-l-full" 
-                    : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                {link.name}
-                
-                {/* Fake inner shadow elements to simulate the inverted border radius effect */}
-                {isActive && (
-                  <>
-                    <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
-                    <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
-                  </>
+              <div key={link.name}>
+                <Link
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
+                    isActive 
+                      ? "bg-gray-50 text-blue-600 rounded-l-full" 
+                      : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {link.name}
+                  
+                  {/* Fake inner shadow elements to simulate the inverted border radius effect */}
+                  {isActive && (
+                    <>
+                      <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
+                      <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
+                    </>
+                  )}
+                </Link>
+
+                {/* Inject Artists directly below Music Review */}
+                {link.name === "Music Review" && artists.length > 0 && (
+                  <div className="flex flex-col gap-2 mt-2">
+                    {artists.map((artist) => {
+                      const isArtistActive = currentArtistId === artist.id;
+                      return (
+                        <Link
+                          key={`artist-${artist.id}`}
+                          href={`/admin/artists?artistId=${artist.id}`}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center gap-3 pl-6 py-3.5 transition font-medium text-sm relative ${
+                            isArtistActive 
+                              ? "bg-gray-50 text-blue-600 rounded-l-full" 
+                              : "text-blue-100 hover:text-white hover:bg-white/10 rounded-l-full"
+                          }`}
+                        >
+                          <Users className="w-5 h-5 opacity-70" />
+                          <span className="truncate pr-4">{artist.stageName}</span>
+                          
+                          {/* Fake inner shadow elements */}
+                          {isArtistActive && (
+                            <>
+                              <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
+                              <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
+                            </>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              </Link>
+              </div>
             );
           })}
         </div>

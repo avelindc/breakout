@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
-import { ArtistTabs } from "@/components/ArtistTabs";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -32,9 +31,6 @@ export default async function AdminLayout({
       <AdminSidebar artists={artists} />
       <div className="flex-1 md:ml-64 p-4 pt-20 md:p-8 md:pt-8 overflow-y-auto min-h-screen bg-gray-50 w-full">
         <div className="max-w-7xl mx-auto">
-          
-          <ArtistTabs artists={artists} />
-
           {children}
         </div>
       </div>
