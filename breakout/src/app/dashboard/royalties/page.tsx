@@ -9,10 +9,10 @@ export default async function UserRoyaltiesPage() {
   
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
-    include: { artist: { include: { royalties: { orderBy: { createdAt: 'desc' } } } } }
+    include: { artists: { include: { royalties: { orderBy: { createdAt: 'desc' } } } } }
   });
 
-  const royalties = user?.artist?.royalties || [];
+  const royalties = user?.artists?.flatMap(a => a.royalties).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
   const totalRevenue = royalties.reduce((acc, curr) => acc + curr.totalRevenue, 0);
 
   return (

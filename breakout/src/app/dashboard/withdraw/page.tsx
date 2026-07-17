@@ -11,7 +11,7 @@ export default async function WithdrawPage() {
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
     include: { 
-      artist: {
+      artists: {
         include: { royalties: true }
       },
       withdrawRequests: {
@@ -20,7 +20,7 @@ export default async function WithdrawPage() {
     }
   });
 
-  const totalRevenue = user?.artist?.royalties.reduce((acc, curr) => acc + curr.totalRevenue, 0) || 0;
+  const totalRevenue = user?.artists?.reduce((acc, curr) => acc + curr.royalties.reduce((sum, r) => sum + r.totalRevenue, 0), 0) || 0;
   const totalWithdrawn = user?.withdrawRequests.filter(w => w.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0) || 0;
   const pendingWithdrawal = user?.withdrawRequests.filter(w => w.status === 'PENDING' || w.status === 'APPROVED').reduce((acc, curr) => acc + curr.amount, 0) || 0;
   

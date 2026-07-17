@@ -70,7 +70,7 @@ export async function registerAction(formData: FormData) {
         password: hashedPassword,
         role: "USER",
         status: "PENDING",
-        artist: {
+        artists: {
           create: {
             stageName,
           },

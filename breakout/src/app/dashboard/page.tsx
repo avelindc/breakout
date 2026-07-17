@@ -11,16 +11,19 @@ export default async function UserDashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
 
-  const artist = await prisma.artist.findUnique({
-    where: { userId: session.user.id }
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: { artists: true }
   });
 
-  const totalReleases = artist ? await prisma.release.count({ where: { artistId: artist.id, status: 'APPROVED' } }) : 0;
-  const pendingReleases = artist ? await prisma.release.count({ where: { artistId: artist.id, status: 'PENDING' } }) : 0;
+  const artistIds = user?.artists.map(a => a.id) || [];
 
-  const totalRevenueData = artist ? await prisma.royalty.aggregate({
+  const totalReleases = artistIds.length > 0 ? await prisma.release.count({ where: { artistId: { in: artistIds }, status: 'APPROVED' } }) : 0;
+  const pendingReleases = artistIds.length > 0 ? await prisma.release.count({ where: { artistId: { in: artistIds }, status: 'PENDING' } }) : 0;
+
+  const totalRevenueData = artistIds.length > 0 ? await prisma.royalty.aggregate({
     _sum: { totalRevenue: true },
-    where: { artistId: artist.id }
+    where: { artistId: { in: artistIds } }
   }) : { _sum: { totalRevenue: 0 } };
   
   const totalRevenue = totalRevenueData._sum.totalRevenue || 0;
@@ -34,9 +37,9 @@ export default async function UserDashboardPage() {
   
   const availableBalance = totalRevenue - totalWithdrawn - pendingWithdrawal;
   
-  const totalStreamsData = artist ? await prisma.royalty.aggregate({
+  const totalStreamsData = artistIds.length > 0 ? await prisma.royalty.aggregate({
     _sum: { spotifyStreams: true, appleMusicStreams: true, youtubeStreams: true, tiktokStreams: true, amazonStreams: true, otherStreams: true },
-    where: { artistId: artist.id }
+    where: { artistId: { in: artistIds } }
   }) : null;
 
   const totalStreams = totalStreamsData 

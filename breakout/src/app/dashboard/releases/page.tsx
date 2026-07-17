@@ -10,10 +10,10 @@ export default async function MyReleasesPage() {
   
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
-    include: { artist: { include: { releases: { orderBy: { createdAt: 'desc' } } } } }
+    include: { artists: { include: { releases: { orderBy: { createdAt: 'desc' } } } } }
   });
 
-  const releases = user?.artist?.releases || [];
+  const releases = user?.artists?.flatMap(a => a.releases).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
