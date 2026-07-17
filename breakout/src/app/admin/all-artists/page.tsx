@@ -59,9 +59,19 @@ export default async function AllArtistsPage() {
                 
                 <div className="flex-1 pr-4">
                   <Link href={`/admin/artists/${artist.userId}`} className="flex items-center gap-3 w-max">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                      <Users className="w-4 h-4" />
-                    </div>
+                    {artist.avatarUrl || artist.user.image ? (
+                      <img 
+                        src={artist.avatarUrl || artist.user.image!} 
+                        alt={artist.stageName} 
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <img 
+                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${artist.stageName}`}
+                        alt={artist.stageName} 
+                        className="w-8 h-8 rounded-full bg-blue-100 flex-shrink-0"
+                      />
+                    )}
                     <span className="font-bold text-gray-900 truncate hover:underline">{artist.stageName}</span>
                   </Link>
                 </div>
