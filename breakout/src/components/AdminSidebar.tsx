@@ -14,6 +14,7 @@ const links = [
   { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Artist Approval", href: "/admin/artists", icon: Users },
+  { name: "Identity Verif", href: "/admin/registrations", icon: CheckCircle },
   { name: "Music Review", href: "/admin/releases", icon: CheckCircle },
   { name: "Artists", href: "/admin/all-artists", icon: Users },
   { name: "Royalties", href: "/admin/royalties", icon: DollarSign },

@@ -18,6 +18,22 @@ export default function RegisterPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+    const ktp = formData.get("ktp") as File;
+    
+    if (password !== confirmPassword) {
+      setError("Password dan Konfirmasi Password tidak cocok.");
+      setLoading(false);
+      return;
+    }
+
+    if (ktp && ktp.size > 4 * 1024 * 1024) {
+      setError("Ukuran foto KTP maksimal 4MB.");
+      setLoading(false);
+      return;
+    }
+
     const res = await registerAction(formData);
 
     if (res?.error) {
@@ -26,7 +42,8 @@ export default function RegisterPage() {
     } else {
       const name = formData.get("name") as string;
       const email = formData.get("email") as string;
-      router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`);
+      const whatsapp = formData.get("whatsapp") as string;
+      router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&whatsapp=${encodeURIComponent(whatsapp)}`);
     }
   }
 
@@ -50,7 +67,7 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Full Name</label>
+              <label className="text-sm font-medium text-gray-300">Nama Lengkap (sesuai KTP)</label>
               <input 
                 name="name" 
                 type="text" 
@@ -72,7 +89,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Email Address</label>
+              <label className="text-sm font-medium text-gray-300">Email</label>
               <input 
                 name="email" 
                 type="email" 
@@ -83,15 +100,67 @@ export default function RegisterPage() {
             </div>
             
             <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Nomor WhatsApp</label>
+              <input 
+                name="whatsapp" 
+                type="tel" 
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
+                placeholder="081234567890"
+              />
+            </div>
+
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-300">Password</label>
               <input 
                 name="password" 
+                type="password" 
+                required
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
+                placeholder="••••••••"
+                minLength={8}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Konfirmasi Password</label>
+              <input 
+                name="confirmPassword" 
                 type="password" 
                 required
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
                 placeholder="••••••••"
                 minLength={8}
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-300">Upload Foto KTP</label>
+              <div className="relative">
+                <input 
+                  type="file" 
+                  name="ktp" 
+                  accept="image/jpeg, image/png, application/pdf"
+                  required
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 outline-none focus:border-[#00F0FF] transition text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#00F0FF]/10 file:text-[#00F0FF] hover:file:bg-[#00F0FF]/20"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Format JPG, PNG, atau PDF. Maksimal 4MB.</p>
+            </div>
+
+            <div className="flex items-start gap-3 mt-2">
+              <div className="flex items-center h-5">
+                <input 
+                  id="consent" 
+                  name="consent" 
+                  type="checkbox" 
+                  required 
+                  className="w-4 h-4 rounded border-gray-600 text-[#00F0FF] bg-white/5 focus:ring-[#00F0FF] focus:ring-offset-gray-900" 
+                />
+              </div>
+              <label htmlFor="consent" className="text-sm text-gray-300 leading-tight cursor-pointer">
+                Saya menyatakan bahwa seluruh data yang saya kirim adalah benar dan sesuai identitas asli saya.
+              </label>
             </div>
 
             <button 

@@ -40,6 +40,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Invalid credentials");
         }
 
+        if (user.status === "PENDING") {
+          throw new Error("Akun Anda masih menunggu proses verifikasi Admin.");
+        }
+
+        if (user.status === "REJECTED") {
+          throw new Error("Pendaftaran ditolak: " + (user.rejectionReason || "Silakan hubungi Admin."));
+        }
+
         return user;
       }
     })

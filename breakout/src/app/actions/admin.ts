@@ -15,7 +15,10 @@ export async function updateArtistStatusAction(
 ) {
   await prisma.user.update({
     where: { id: userId },
-    data: { status }
+    data: { 
+      status,
+      ...(status === "REJECTED" ? { rejectionReason: reason } : {})
+    }
   });
 
   await prisma.notification.create({

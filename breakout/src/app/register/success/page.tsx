@@ -11,16 +11,25 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name") || "Artist";
   const email = searchParams.get("email") || "Email";
+  const whatsapp = searchParams.get("whatsapp") || "-";
 
   const adminNumber = "6281330923740";
   const message = `Halo Admin BREAKOUT,
 
-Saya telah berhasil membuat akun artis di BREAKOUT ID
+Saya telah berhasil membuat akun di BREAKOUT MUSIC.
 
-Nama: ${name}
-Email: ${email}
+Nama:
+${name}
 
-Mohon untuk melakukan review dan persetujuan akun saya.
+Email:
+${email}
+
+Nomor WhatsApp:
+${whatsapp}
+
+Saya juga telah mengupload identitas sesuai KTP.
+
+Mohon dilakukan proses verifikasi akun saya.
 
 Terima kasih.`;
 
@@ -58,8 +67,7 @@ Terima kasih.`;
         rel="noopener noreferrer"
         className="w-full bg-[#25D366] hover:bg-[#1DA851] transition-all duration-300 text-white font-bold py-4 px-6 rounded-xl flex justify-center items-center gap-3 shadow-lg shadow-[#25D366]/20 hover:shadow-[#25D366]/40 hover:-translate-y-1"
       >
-        <MessageCircle className="w-6 h-6" />
-        <span>💬 Minta Persetujuan Admin</span>
+        <span>💬 Hubungi Admin untuk Verifikasi</span>
       </a>
 
       <div className="mt-8 flex justify-center">
