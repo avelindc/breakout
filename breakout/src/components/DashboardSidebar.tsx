@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Music, User, UploadCloud, Disc, BarChart2, 
-  DollarSign, CreditCard, Bell, Settings, LogOut, Menu, X, Mail, Library
+  DollarSign, CreditCard, Bell, Settings, LogOut, Menu, X, Mail, Library, FileText
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -17,6 +17,7 @@ const links = [
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
   { name: "Royalties", href: "/dashboard/royalties", icon: DollarSign },
   { name: "Withdraw", href: "/dashboard/withdraw", icon: CreditCard },
+  { name: "Kontrak Saya", href: "/dashboard/contracts", icon: FileText },
   { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

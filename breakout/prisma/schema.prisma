@@ -18,6 +18,8 @@ model User {
   whatsapp      String?
   youtubeUrl    String?
   ktpUrl        String?
+  nik           String?
+  address       String?
   role          Role      @default(USER)
   status        UserStatus @default(PENDING)
   rejectionReason String?
@@ -29,6 +31,7 @@ model User {
   notifications Notification[]
   activityLogs  ActivityLog[]
   withdrawRequests WithdrawRequest[]
+  contracts     Contract[]
   
   sentMessages      Message[] @relation("SentMessages")
   receivedMessages  MessageRecipient[] @relation("ReceivedMessages")
@@ -289,4 +292,18 @@ model VerificationToken {
   updatedAt   DateTime @updatedAt
 
   @@index([email])
+}
+
+model Contract {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  version      String   @default("1.0")
+  pdfUrl       String   // Supabase storage URL
+  signatureUrl String   // Supabase storage URL
+  signedAt     DateTime @default(now())
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

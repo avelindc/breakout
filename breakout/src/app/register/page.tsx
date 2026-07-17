@@ -8,17 +8,22 @@ import { AuroraBackground } from "@/components/AuroraBackground";
 import { Music, Loader2, ArrowLeft, Mail } from "lucide-react";
 import Image from "next/image";
 
+import dynamic from "next/dynamic";
+
+const ContractStep = dynamic(() => import("./ContractStep"), { ssr: false });
+
 export default function RegisterPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // State for OTP
+  // State for OTP & Contract
   const [savedFormData, setSavedFormData] = useState<FormData | null>(null);
   const [emailForOtp, setEmailForOtp] = useState<string>("");
   const [otpValue, setOtpValue] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Timer for resend OTP
   useEffect(() => {
@@ -95,10 +100,8 @@ export default function RegisterPage() {
       setError(res.error);
       setLoading(false);
     } else {
-      const name = savedFormData.get("name") as string;
-      const email = savedFormData.get("email") as string;
-      const whatsapp = savedFormData.get("whatsapp") as string;
-      router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&whatsapp=${encodeURIComponent(whatsapp)}`);
+      setUserId(res.userId || null);
+      setStep(3); // Go to contract signing
     }
   }
 
@@ -160,6 +163,29 @@ export default function RegisterPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
                     placeholder="you@example.com"
                   />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300">NIK (Nomor Induk Kependudukan)</label>
+                  <input 
+                    name="nik" 
+                    type="text" 
+                    required
+                    minLength={16}
+                    maxLength={16}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
+                    placeholder="16 Digit NIK"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-300">Alamat Lengkap (Sesuai KTP)</label>
+                  <textarea 
+                    name="address" 
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500 resize-none h-24" 
+                    placeholder="Jl. Contoh No. 123..."
+                  ></textarea>
                 </div>
                 
                 <div className="space-y-1">
@@ -253,7 +279,7 @@ export default function RegisterPage() {
                 </Link>
               </p>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
               <button 
                 onClick={() => setStep(1)} 
@@ -317,7 +343,16 @@ export default function RegisterPage() {
                 </div>
               </form>
             </>
-          )}
+          ) : step === 3 && userId && savedFormData ? (
+            <ContractStep 
+              userId={userId}
+              name={savedFormData.get("name") as string}
+              nik={savedFormData.get("nik") as string}
+              address={savedFormData.get("address") as string}
+              email={savedFormData.get("email") as string}
+              whatsapp={savedFormData.get("whatsapp") as string}
+            />
+          ) : null}
 
         </div>
       </AuroraBackground>

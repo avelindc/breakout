@@ -98,10 +98,12 @@ export async function registerAction(formData: FormData) {
   const ktpFile = formData.get("ktp") as File | null;
   const otp = formData.get("otp") as string;
   const youtubeUrl = formData.get("youtubeUrl") as string;
+  const nik = formData.get("nik") as string;
+  const address = formData.get("address") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp || !youtubeUrl) {
-    return { error: "All fields including KTP, OTP, and YouTube URL are required" };
+  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp || !youtubeUrl || !nik || !address) {
+    return { error: "All fields including KTP, NIK, Address, OTP, and YouTube URL are required" };
   }
 
   try {
@@ -179,6 +181,8 @@ export async function registerAction(formData: FormData) {
         whatsapp,
         youtubeUrl,
         ktpUrl,
+        nik,
+        address,
         role: "USER",
         status: "PENDING",
       },
@@ -200,9 +204,65 @@ export async function registerAction(formData: FormData) {
       });
     }
 
-    return { success: true };
+    return { success: true, userId: user.id };
   } catch (error) {
     console.error(error);
     return { error: "Failed to register user. Please try again." };
+  }
+}
+
+export async function signContractAction(userId: string, signatureBase64: string, pdfBase64: string) {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return { error: "Supabase credentials missing" };
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Parse base64
+    const signatureBuffer = Buffer.from(signatureBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    const pdfBuffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ""), "base64");
+    
+    const timestamp = Date.now();
+    const signaturePath = `signatures/${userId}-${timestamp}.png`;
+    const pdfPath = `pdfs/${userId}-${timestamp}.pdf`;
+    
+    // Upload signature
+    const { error: sigError, data: sigData } = await supabase.storage
+      .from('contracts')
+      .upload(signaturePath, signatureBuffer, {
+        contentType: 'image/png',
+        upsert: false
+      });
+      
+    if (sigError) return { error: "Gagal mengunggah tanda tangan" };
+    
+    // Upload PDF
+    const { error: pdfError, data: pdfData } = await supabase.storage
+      .from('contracts')
+      .upload(pdfPath, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: false
+      });
+      
+    if (pdfError) return { error: "Gagal mengunggah PDF kontrak" };
+    
+    // Save to database
+    await prisma.contract.create({
+      data: {
+        userId,
+        version: "1.0",
+        pdfUrl: pdfData.path,
+        signatureUrl: sigData.path
+      }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error("signContractAction error:", error);
+    return { error: "Gagal menyimpan kontrak. Silakan coba lagi." };
   }
 }

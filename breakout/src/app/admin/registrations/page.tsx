@@ -23,6 +23,26 @@ async function getSignedKtpUrl(path: string | null) {
     console.error("Error creating signed URL:", error);
     return null;
   }
+  return data.signedUrl;
+}
+
+async function getSignedContractUrl(path: string | null) {
+  if (!path) return null;
+  
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  
+  if (!supabaseUrl || !supabaseKey) return null;
+  
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data, error } = await supabase.storage
+    .from('contracts')
+    .createSignedUrl(path, 60 * 60); // 1 hour valid
+    
+  if (error || !data) {
+    console.error("Error creating signed URL:", error);
+    return null;
+  }
   
   return data.signedUrl;
 }
@@ -32,16 +52,19 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
 
   const pendingUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'PENDING' },
+    include: { contracts: true },
     orderBy: { createdAt: 'desc' }
   });
   
   const rejectedUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'REJECTED' },
+    include: { contracts: true },
     orderBy: { createdAt: 'desc' }
   });
 
   const approvedUsers = await prisma.user.findMany({
     where: { role: 'USER', status: 'APPROVED' },
+    include: { contracts: true },
     orderBy: { createdAt: 'desc' }
   });
 
@@ -83,11 +106,10 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
               <div className="w-48">Name</div>
               <div className="w-48">Email</div>
               <div className="w-32">WhatsApp</div>
-              <div className="w-32">YouTube</div>
-              <div className="w-32">Date</div>
               <div className="w-24">KTP</div>
-              <div className="w-32">Status</div>
-              {activeTab === 'pending' && <div className="w-32 flex justify-end">Action</div>}
+              <div className="w-40">Contract</div>
+              <div className="w-24">Status</div>
+              {activeTab === 'pending' && <div className="flex-1 flex justify-end">Action</div>}
             </div>
 
             {/* Rows */}
@@ -110,25 +132,11 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
                   <div className="w-32 text-gray-500 text-sm pr-4">
                     {user.whatsapp || "-"}
                   </div>
-
-                  <div className="w-32 text-gray-500 text-sm pr-4">
-                    {user.youtubeUrl ? (
-                      <a href={user.youtubeUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-red-600 hover:text-red-800 font-medium">
-                        <ExternalLink className="w-4 h-4" /> Link
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </div>
                   
-                  <div className="w-32 text-gray-500 text-sm">
-                    {new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </div>
-
                   <div className="w-24">
                     {ktpSignedUrl ? (
                       <a href={ktpSignedUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        <Eye className="w-4 h-4" /> View
+                        <Eye className="w-4 h-4" /> KTP
                       </a>
                     ) : (
                       <span className="text-gray-400 text-sm flex items-center gap-1">
@@ -136,8 +144,23 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
                       </span>
                     )}
                   </div>
+
+                  <div className="w-40 flex flex-col gap-1 justify-center">
+                    {user.contracts && user.contracts.length > 0 ? (
+                      <a 
+                        href={await getSignedContractUrl(user.contracts[0].pdfUrl) || "#"} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm font-medium bg-green-50 px-2 py-1 rounded-md w-max"
+                      >
+                        <FileText className="w-4 h-4" /> PDF ({user.contracts[0].version})
+                      </a>
+                    ) : (
+                      <span className="text-red-400 text-xs font-medium bg-red-50 px-2 py-1 rounded-md w-max">No Contract</span>
+                    )}
+                  </div>
                   
-                  <div className="w-32 flex items-center gap-2">
+                  <div className="w-24 flex items-center gap-2">
                     {activeTab === 'pending' && (
                       <>
                         <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
@@ -159,7 +182,7 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
                   </div>
                   
                   {activeTab === 'pending' && (
-                    <div className="w-32 flex justify-end gap-2">
+                    <div className="flex-1 flex justify-end gap-2">
                       <RegistrationActionButtons 
                         userId={user.id} 
                         userName={user.name || "Artist"} 
