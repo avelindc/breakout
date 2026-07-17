@@ -50,70 +50,105 @@ export async function uploadCatalogExcelAction(formData: FormData) {
     // Wait, for tens of thousands, looping 1000 at a time with Promise.all is better.
     
     const BATCH_SIZE = 500;
-    for (let i = 0; i < rawData.length; i += BATCH_SIZE) {
-      const batch = rawData.slice(i, i + BATCH_SIZE) as any[];
-      
-      await Promise.all(batch.map(async (row) => {
-        // Find matching column names gracefully (case-insensitive if possible, or expect standard)
-        const getVal = (keys: string[]) => {
-          for (const key of Object.keys(row)) {
-            if (keys.includes(key.toLowerCase().trim())) {
-              return row[key] ? String(row[key]).trim() : null;
-            }
+    
+    // First, map and clean the data
+    const validRows = [];
+    for (const row of rawData as any[]) {
+      const getVal = (keys: string[]) => {
+        for (const key of Object.keys(row)) {
+          if (keys.includes(key.toLowerCase().trim())) {
+            return row[key] ? String(row[key]).trim() : null;
           }
-          return null;
-        };
-
-        const title = getVal(['judul lagu', 'judul', 'title', 'song title', 'track']);
-        const artist = getVal(['nama artis', 'artis', 'artist', 'primary artist']);
-        const publisher = getVal(['publisher', 'label']);
-        const genre = getVal(['genre']);
-        const isrc = getVal(['isrc']);
-        const duration = getVal(['durasi', 'duration', 'time']);
-        const year = getVal(['tahun', 'year']);
-
-        if (!title || !artist) return; // Skip invalid rows without title and artist
-
-        // Upsert strategy:
-        // If ISRC is provided, try to find by ISRC.
-        // If no ISRC, fallback to find by title + artist.
-        // Since Prisma doesn't have a unique constraint on title+artist, we will do findFirst then create/update.
-        
-        try {
-          let existing = null;
-          
-          if (isrc) {
-            existing = await prisma.catalogSong.findFirst({ where: { isrc } });
-          }
-          
-          if (!existing) {
-            existing = await prisma.catalogSong.findFirst({
-              where: {
-                title: { equals: title, mode: 'insensitive' },
-                artist: { equals: artist, mode: 'insensitive' }
-              }
-            });
-          }
-
-          if (existing) {
-            await prisma.catalogSong.update({
-              where: { id: existing.id },
-              data: {
-                title, artist, publisher, genre, isrc, duration, year
-              }
-            });
-          } else {
-            await prisma.catalogSong.create({
-              data: {
-                title, artist, publisher, genre, isrc, duration, year
-              }
-            });
-          }
-          successCount++;
-        } catch (e) {
-          console.error("Error processing row", title, e);
         }
-      }));
+        return null;
+      };
+
+      const title = getVal(['judul lagu', 'judul', 'title', 'song title', 'track']);
+      const artist = getVal(['nama artis', 'artis', 'artist', 'primary artist']);
+      const publisher = getVal(['publisher', 'label']);
+      const genre = getVal(['genre']);
+      const isrc = getVal(['isrc']);
+      const duration = getVal(['durasi', 'duration', 'time']);
+      const year = getVal(['tahun', 'year']);
+
+      if (!title || !artist) continue;
+      validRows.push({ title, artist, publisher, genre, isrc, duration, year });
+    }
+    
+    if (validRows.length === 0) {
+      return { error: "No valid data found in the Excel file" };
+    }
+
+    for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
+      const batch = validRows.slice(i, i + BATCH_SIZE);
+      
+      const isrcs = batch.map(r => r.isrc).filter(Boolean) as string[];
+      const titleArtistPairs = batch.map(r => ({ title: r.title, artist: r.artist }));
+
+      // Fetch existing records for this batch
+      const existingRecords = await prisma.catalogSong.findMany({
+        where: {
+          OR: [
+            ...(isrcs.length > 0 ? [{ isrc: { in: isrcs } }] : []),
+            ...titleArtistPairs.map(p => ({
+              title: { equals: p.title, mode: 'insensitive' as const },
+              artist: { equals: p.artist, mode: 'insensitive' as const }
+            }))
+          ]
+        },
+        select: { id: true, isrc: true, title: true, artist: true }
+      });
+
+      const isrcMap = new Map();
+      const titleArtistMap = new Map();
+      
+      for (const record of existingRecords) {
+        if (record.isrc) isrcMap.set(record.isrc, record);
+        titleArtistMap.set(`${record.title.toLowerCase()}||${record.artist.toLowerCase()}`, record);
+      }
+
+      const toCreate = [];
+      const toUpdate = [];
+
+      for (const row of batch) {
+        let existing = null;
+        if (row.isrc && isrcMap.has(row.isrc)) {
+          existing = isrcMap.get(row.isrc);
+        } else {
+          const key = `${row.title.toLowerCase()}||${row.artist.toLowerCase()}`;
+          if (titleArtistMap.has(key)) {
+            existing = titleArtistMap.get(key);
+          }
+        }
+
+        if (existing) {
+          toUpdate.push({ id: existing.id, data: row });
+        } else {
+          toCreate.push(row);
+          // To prevent duplicates within the same batch
+          if (row.isrc) isrcMap.set(row.isrc, { id: 'temp' });
+          titleArtistMap.set(`${row.title.toLowerCase()}||${row.artist.toLowerCase()}`, { id: 'temp' });
+        }
+      }
+
+      // Execute creations
+      if (toCreate.length > 0) {
+        await prisma.catalogSong.createMany({
+          data: toCreate,
+        });
+        successCount += toCreate.length;
+      }
+
+      // Execute updates
+      if (toUpdate.length > 0) {
+        await Promise.all(toUpdate.map(item => 
+          prisma.catalogSong.update({
+            where: { id: item.id },
+            data: item.data
+          }).catch(e => console.error("Error updating", e))
+        ));
+        successCount += toUpdate.length;
+      }
     }
 
     revalidatePath("/admin/catalog");

@@ -83,15 +83,15 @@ export function CatalogClient() {
 
   return (
     <div className="space-y-6">
-      <div className="glass-card p-6 flex flex-col md:flex-row gap-4 items-center">
+      <div className="bg-blue-600 rounded-2xl p-6 flex flex-col md:flex-row gap-4 items-center shadow-lg">
         <div className="relative flex-1 w-full">
-          <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-blue-200 absolute left-4 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
             placeholder="Cari berdasarkan judul, artis, atau publisher..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl outline-none focus:border-[#10B981] text-white transition placeholder-gray-500"
+            className="w-full pl-12 pr-4 py-3 bg-blue-700/50 border border-blue-400/30 rounded-xl outline-none focus:border-white text-white transition placeholder-blue-200"
           />
         </div>
         
@@ -99,22 +99,22 @@ export function CatalogClient() {
           <select 
             value={selectedPublisher}
             onChange={(e) => setSelectedPublisher(e.target.value)}
-            className="flex-1 md:w-48 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#10B981] text-white transition appearance-none"
+            className="flex-1 md:w-48 bg-blue-700/50 border border-blue-400/30 rounded-xl px-4 py-3 outline-none focus:border-white text-white transition appearance-none"
           >
-            <option value="" className="bg-[#09090B]">Semua Publisher</option>
+            <option value="" className="bg-blue-800 text-white">Semua Publisher</option>
             {publishers.map(p => (
-              <option key={p} value={p} className="bg-[#09090B]">{p}</option>
+              <option key={p} value={p} className="bg-blue-800 text-white">{p}</option>
             ))}
           </select>
           
           <select 
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
-            className="flex-1 md:w-48 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#10B981] text-white transition appearance-none"
+            className="flex-1 md:w-48 bg-blue-700/50 border border-blue-400/30 rounded-xl px-4 py-3 outline-none focus:border-white text-white transition appearance-none"
           >
-            <option value="" className="bg-[#09090B]">Semua Genre</option>
+            <option value="" className="bg-blue-800 text-white">Semua Genre</option>
             {genres.map(g => (
-              <option key={g} value={g} className="bg-[#09090B]">{g}</option>
+              <option key={g} value={g} className="bg-blue-800 text-white">{g}</option>
             ))}
           </select>
         </div>
