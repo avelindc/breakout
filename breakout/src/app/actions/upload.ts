@@ -64,9 +64,12 @@ export async function uploadMusicAction(formData: FormData) {
           upsert: false
         });
         
-      if (!coverError) {
-        coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+      if (coverError) {
+        console.error("Cover upload error:", coverError);
+        return { error: `Gagal mengupload cover ke Supabase: ${coverError.message}. Pastikan nama bucket 'releases' benar.` };
       }
+      
+      coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
 
       // Upload Audio
       const audioExt = audioFile.name.split('.').pop();
@@ -80,9 +83,12 @@ export async function uploadMusicAction(formData: FormData) {
           upsert: false
         });
         
-      if (!audioError) {
-        audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+      if (audioError) {
+        console.error("Audio upload error:", audioError);
+        return { error: `Gagal mengupload lagu ke Supabase: ${audioError.message}` };
       }
+      
+      audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
     }
 
     // Create Release & Track in DB
