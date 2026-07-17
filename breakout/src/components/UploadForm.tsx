@@ -262,7 +262,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
                 <input 
                   type="file" 
                   name="audioFile" 
-                  accept="audio/wav, audio/flac, audio/mp3"
+                  accept="audio/*, .wav, .mp3, .flac, audio/wav, audio/mpeg, audio/flac"
                   required
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   onChange={(e) => setAudioFileName(e.target.files?.[0]?.name || "")}
