@@ -7,10 +7,45 @@ import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
-export async function uploadMusicAction(formData: FormData) {
+export async function getMusicUploadUrlsAction(artistId: string, coverExt: string, audioExt: string) {
+  try {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return { error: "Supabase credentials missing" };
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const timestamp = Date.now();
+    const coverPath = `covers/${artistId}-${timestamp}.${coverExt}`;
+    const audioPath = `audio/${artistId}-${timestamp}.${audioExt}`;
+    
+    const { data: coverData, error: coverError } = await supabase.storage
+      .from('releases')
+      .createSignedUploadUrl(coverPath);
+      
+    if (coverError || !coverData) return { error: "Failed to generate cover upload URL" };
+
+    const { data: audioData, error: audioError } = await supabase.storage
+      .from('releases')
+      .createSignedUploadUrl(audioPath);
+      
+    if (audioError || !audioData) return { error: "Failed to generate audio upload URL" };
+
+    return { 
+      success: true, 
+      cover: { url: coverData.signedUrl, path: coverPath, token: coverData.token },
+      audio: { url: audioData.signedUrl, path: audioPath, token: audioData.token }
+    };
+  } catch (error) {
+    console.error("getUploadUrls error:", error);
+    return { error: "Gagal menyiapkan penyimpanan lagu." };
+  }
+}
+
+export async function submitMusicMetadataAction(formData: FormData, coverPath: string, audioPath: string) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
   const session = await auth();
   if (!session?.user?.id) {
@@ -48,57 +83,12 @@ export async function uploadMusicAction(formData: FormData) {
     const releaseDateStr = formData.get("releaseDate") as string;
     const releaseDate = new Date(releaseDateStr);
     
-    const coverFile = formData.get("coverArtwork") as File;
-    const audioFile = formData.get("audioFile") as File;
-
-    if (!title || !genre || !language || !releaseDateStr || !coverFile || !audioFile) {
+    if (!title || !genre || !language || !releaseDateStr) {
       return { error: "Missing required fields" };
     }
 
-    if (!supabase) {
-      return { error: `Sistem belum mendeteksi kunci Supabase. (Status -> URL: ${supabaseUrl ? "ADA" : "KOSONG"}, KEY: ${supabaseKey ? "ADA" : "KOSONG"}). Pastikan variabel disimpan dengan nama yang benar di Vercel dan Redeploy.` };
-    }
-
-    let coverArtworkUrl = "";
-    let audioUrl = "";
-
-    // Upload Cover
-    const coverExt = coverFile.name.split('.').pop();
-    const coverPath = `covers/${selectedArtist.id}-${Date.now()}.${coverExt}`;
-    const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
-    
-    const { error: coverError } = await supabase.storage
-      .from('releases')
-      .upload(coverPath, coverBuffer, {
-        contentType: coverFile.type,
-        upsert: false
-      });
-      
-    if (coverError) {
-      console.error("Cover upload error:", coverError);
-      return { error: `Gagal mengupload cover ke Supabase: ${coverError.message}. Pastikan nama bucket 'releases' benar.` };
-    }
-    
-    coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
-
-    // Upload Audio
-    const audioExt = audioFile.name.split('.').pop();
-    const audioPath = `audio/${selectedArtist.id}-${Date.now()}.${audioExt}`;
-    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-    
-    const { error: audioError } = await supabase.storage
-      .from('releases')
-      .upload(audioPath, audioBuffer, {
-        contentType: audioFile.type,
-        upsert: false
-      });
-      
-    if (audioError) {
-      console.error("Audio upload error:", audioError);
-      return { error: `Gagal mengupload lagu ke Supabase: ${audioError.message}` };
-    }
-    
-    audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    const audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
 
     // Create Release & Track in DB
     const release = await prisma.release.create({

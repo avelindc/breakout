@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadMusicAction } from "@/app/actions/upload";
+import { getMusicUploadUrlsAction, submitMusicMetadataAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus } from "lucide-react";
@@ -58,26 +58,51 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
       const audioFile = formData.get("audioFile") as File;
       
       if (coverFile && audioFile) {
-        const totalSize = coverFile.size + audioFile.size;
-        if (totalSize > 4 * 1024 * 1024) {
-          setError("File terlalu besar! Karena keterbatasan Vercel, silakan upload file maksimal 4MB.");
-          setLoading(false);
-          return;
+        // Find selected artist ID
+        const primaryArtistId = formData.get("primaryArtistId") as string;
+        if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
+
+        const coverExt = coverFile.name.split('.').pop() || "jpg";
+        const audioExt = audioFile.name.split('.').pop() || "wav";
+
+        // 1. Get Signed URLs
+        const urlsRes = await getMusicUploadUrlsAction(primaryArtistId, coverExt, audioExt);
+        if (urlsRes?.error || !urlsRes.cover || !urlsRes.audio) {
+          throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan file.");
         }
-      }
 
-      const res = await uploadMusicAction(formData);
+        // 2. Upload Cover directly to Supabase
+        const coverUpload = await fetch(urlsRes.cover.url, {
+          method: "PUT",
+          body: coverFile,
+          headers: { "Content-Type": coverFile.type || "image/jpeg" }
+        });
+        if (!coverUpload.ok) throw new Error("Gagal mengunggah cover artwork.");
 
-      setLoading(false);
+        // 3. Upload Audio directly to Supabase
+        const audioUpload = await fetch(urlsRes.audio.url, {
+          method: "PUT",
+          body: audioFile,
+          headers: { "Content-Type": audioFile.type || "audio/wav" }
+        });
+        if (!audioUpload.ok) throw new Error("Gagal mengunggah file audio.");
 
-      if (res?.error) {
-        setError(res.error);
+        // 4. Submit Metadata
+        const res = await submitMusicMetadataAction(formData, urlsRes.cover.path, urlsRes.audio.path);
+
+        setLoading(false);
+
+        if (res?.error) {
+          setError(res.error);
+        } else {
+          setSuccess(true);
+          setTimeout(() => {
+            router.push("/dashboard/releases");
+            router.refresh();
+          }, 2000);
+        }
       } else {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/dashboard/releases");
-          router.refresh();
-        }, 2000);
+        throw new Error("File audio atau cover tidak ditemukan.");
       }
     } catch (err: any) {
       setLoading(false);
