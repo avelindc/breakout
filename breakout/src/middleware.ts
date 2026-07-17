@@ -14,12 +14,7 @@ export default auth((req) => {
   const isAdminRoute = nextUrl.pathname.startsWith('/admin')
   const isUserRoute = nextUrl.pathname.startsWith('/dashboard')
 
-  // Force production domain if accessed via vercel.app
-  if (nextUrl.hostname.endsWith('vercel.app')) {
-    const url = new URL(req.url)
-    url.hostname = 'www.breakoutmusic.online'
-    return NextResponse.redirect(url)
-  }
+
 
   if (isAuthRoute) {
     if (isLoggedIn) {
