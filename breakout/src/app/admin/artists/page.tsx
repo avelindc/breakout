@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Check, X, Ban, Settings } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import { ArtistActionButtons } from "./ArtistActionButtons";
+import { updateArtistStatusAction } from "@/app/actions/admin";
 
 const prisma = new PrismaClient();
 
@@ -17,26 +19,6 @@ export default async function AdminArtistsPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  async function updateStatusAction(formData: FormData) {
-    "use server";
-    const userId = formData.get("userId") as string;
-    const status = formData.get("status") as any;
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { status }
-    });
-
-    await prisma.notification.create({
-      data: {
-        userId,
-        title: "Account Status Updated",
-        message: `Your account has been ${status.toLowerCase()}.`
-      }
-    });
-
-    revalidatePath("/admin/artists");
-  }
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
@@ -90,20 +72,11 @@ export default async function AdminArtistsPage() {
                 </div>
                 
                 <div className="w-32 flex justify-end gap-2">
-                  <form action={updateStatusAction}>
-                    <input type="hidden" name="userId" value={user.id} />
-                    <input type="hidden" name="status" value="APPROVED" />
-                    <button type="submit" title="Approve" className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-green-500 hover:bg-green-50 group-hover:text-white group-hover:hover:bg-white/20 transition">
-                      <Check className="w-4 h-4" />
-                    </button>
-                  </form>
-                  <form action={updateStatusAction}>
-                    <input type="hidden" name="userId" value={user.id} />
-                    <input type="hidden" name="status" value="REJECTED" />
-                    <button type="submit" title="Reject" className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 group-hover:text-white group-hover:hover:bg-white/20 transition">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </form>
+                  <ArtistActionButtons 
+                    userId={user.id} 
+                    userName={user.name || "Artist"} 
+                    userEmail={user.email} 
+                  />
                 </div>
               </div>
             ))}
@@ -137,7 +110,10 @@ export default async function AdminArtistsPage() {
                 </div>
                 
                 <div className="w-32 flex justify-end gap-2">
-                  <form action={updateStatusAction}>
+                  <form action={async () => {
+                    "use server";
+                    await updateArtistStatusAction(user.id, "SUSPENDED", user.name || "Artist", user.email);
+                  }}>
                     <input type="hidden" name="userId" value={user.id} />
                     <input type="hidden" name="status" value="SUSPENDED" />
                     <button type="submit" title="Suspend" className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 group-hover:text-white group-hover:hover:bg-white/20 transition">

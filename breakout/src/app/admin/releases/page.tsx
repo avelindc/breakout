@@ -3,52 +3,25 @@ import { Check, X, Download, PlayCircle, Music } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ImageModal } from "@/components/ImageModal";
+import { ReleaseActionButtons } from "./ReleaseActionButtons";
 
 const prisma = new PrismaClient();
 
 export default async function AdminReleasesPage() {
   const pendingReleases = await prisma.release.findMany({
     where: { status: 'PENDING' },
-    include: { artist: true, tracks: true },
+    include: { artist: { include: { user: true } }, tracks: true },
     orderBy: { createdAt: 'asc' }
   });
 
   const approvedReleases = await prisma.release.findMany({
     where: { status: 'APPROVED' },
-    include: { artist: true, tracks: true },
+    include: { artist: { include: { user: true } }, tracks: true },
     orderBy: { updatedAt: 'desc' },
     take: 20
   });
 
-  async function updateReleaseStatus(formData: FormData) {
-    "use server";
-    const releaseId = formData.get("releaseId") as string;
-    const status = formData.get("status") as any;
-    const artistId = formData.get("artistId") as string;
-    const title = formData.get("title") as string;
 
-    await prisma.release.update({
-      where: { id: releaseId },
-      data: { status }
-    });
-
-    const user = await prisma.artist.findUnique({
-      where: { id: artistId },
-      select: { userId: true }
-    });
-
-    if (user) {
-      await prisma.notification.create({
-        data: {
-          userId: user.userId,
-          title: `Release ${status}`,
-          message: `Your release "${title}" has been ${status.toLowerCase()}.`
-        }
-      });
-    }
-
-    revalidatePath("/admin/releases");
-  }
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
@@ -114,24 +87,13 @@ export default async function AdminReleasesPage() {
                   </div>
                   
                   <div className="w-40 flex justify-end gap-2">
-                    <form action={updateReleaseStatus}>
-                      <input type="hidden" name="releaseId" value={release.id} />
-                      <input type="hidden" name="artistId" value={release.artist.id} />
-                      <input type="hidden" name="title" value={release.title} />
-                      <input type="hidden" name="status" value="REJECTED" />
-                      <button type="submit" title="Reject" className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </form>
-                    <form action={updateReleaseStatus}>
-                      <input type="hidden" name="releaseId" value={release.id} />
-                      <input type="hidden" name="artistId" value={release.artist.id} />
-                      <input type="hidden" name="title" value={release.title} />
-                      <input type="hidden" name="status" value="APPROVED" />
-                      <button type="submit" title="Approve" className="w-9 h-9 flex items-center justify-center rounded-xl bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition">
-                        <Check className="w-4 h-4" />
-                      </button>
-                    </form>
+                    <ReleaseActionButtons 
+                      releaseId={release.id} 
+                      artistUserId={release.artist.userId}
+                      userName={release.artist.user.name || "Artist"} 
+                      userEmail={release.artist.user.email} 
+                      title={release.title} 
+                    />
                   </div>
                 </div>
               ))}
