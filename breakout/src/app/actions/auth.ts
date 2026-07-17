@@ -222,9 +222,9 @@ export async function signContractAction(userId: string, signatureBase64: string
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Parse base64
-    const signatureBuffer = Buffer.from(signatureBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
-    const pdfBuffer = Buffer.from(pdfBase64.replace(/^data:application\/pdf;base64,/, ""), "base64");
+    // Parse base64 robustly
+    const signatureBuffer = Buffer.from(signatureBase64.split(",")[1], "base64");
+    const pdfBuffer = Buffer.from(pdfBase64.split(",")[1], "base64");
     
     const timestamp = Date.now();
     const signaturePath = `signatures/${userId}-${timestamp}.png`;
