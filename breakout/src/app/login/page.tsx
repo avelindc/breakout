@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { Music, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,8 +35,8 @@ export default function LoginPage() {
       <AuroraBackground>
         <div className="w-full max-w-md glass-card p-8 rounded-2xl animate-fade-in relative z-10">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#7000FF] to-[#00F0FF] flex items-center justify-center mb-4">
-              <Music className="text-white w-6 h-6" />
+            <div className="w-24 h-24 mb-4 relative">
+              <Image src="/logo.png" alt="Break Out Logo" fill className="object-contain" priority />
             </div>
             <h1 className="text-2xl font-bold">Welcome Back</h1>
             <p className="text-gray-400 text-sm mt-2">Login to your BREAKOUT.ID account</p>
