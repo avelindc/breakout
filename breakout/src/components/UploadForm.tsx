@@ -88,11 +88,23 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         if (!audioUpload.ok) throw new Error("Gagal mengunggah file audio.");
 
         // 4. Submit Metadata
-        // IMPORTANT: We must delete the files from formData before sending to the server action
-        // Otherwise it will exceed Vercel's 4.5MB Server Action payload limit!
-        formData.delete("coverArtwork");
-        formData.delete("audioFile");
-        const res = await submitMusicMetadataAction(formData, urlsRes.cover.path, urlsRes.audio.path);
+        // Convert FormData to a plain object to avoid Next.js serializing it as a multipart request,
+        // which can trigger Vercel's 4.5MB payload limit if the original form had large files.
+        const metadata = {
+          title: formData.get("title"),
+          genre: formData.get("genre"),
+          language: formData.get("language"),
+          primaryArtistId: formData.get("primaryArtistId"),
+          featuredArtist: formData.get("featuredArtist"),
+          composer: formData.get("composer"),
+          producer: formData.get("producer"),
+          lyrics: formData.get("lyrics"),
+          isrc: formData.get("isrc"),
+          upc: formData.get("upc"),
+          releaseDateStr: formData.get("releaseDate")
+        };
+        
+        const res = await submitMusicMetadataAction(metadata, urlsRes.cover.path, urlsRes.audio.path);
 
         setLoading(false);
 

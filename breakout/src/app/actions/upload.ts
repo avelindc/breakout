@@ -44,7 +44,7 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
   }
 }
 
-export async function submitMusicMetadataAction(formData: FormData, coverPath: string, audioPath: string) {
+export async function submitMusicMetadataAction(data: any, coverPath: string, audioPath: string) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 
   const session = await auth();
@@ -62,25 +62,27 @@ export async function submitMusicMetadataAction(formData: FormData, coverPath: s
   }
 
   try {
-    const title = formData.get("title") as string;
-    const genre = formData.get("genre") as string;
-    const language = formData.get("language") as string;
-    const primaryArtistId = formData.get("primaryArtistId") as string;
+    const {
+      title,
+      genre,
+      language,
+      primaryArtistId,
+      featuredArtist,
+      composer,
+      producer,
+      lyrics,
+      isrc,
+      upc,
+      releaseDateStr
+    } = data;
     
     // Find the specific artist the user selected
-    const selectedArtist = user.artists.find(a => a.id === primaryArtistId);
+    const selectedArtist = user.artists.find((a: any) => a.id === primaryArtistId);
     if (!selectedArtist) {
       return { error: "Invalid artist selected." };
     }
     
     const primaryArtist = selectedArtist.stageName;
-    const featuredArtist = formData.get("featuredArtist") as string;
-    const composer = formData.get("composer") as string;
-    const producer = formData.get("producer") as string;
-    const lyrics = formData.get("lyrics") as string;
-    const isrc = formData.get("isrc") as string;
-    const upc = formData.get("upc") as string;
-    const releaseDateStr = formData.get("releaseDate") as string;
     const releaseDate = new Date(releaseDateStr);
     
     if (!title || !genre || !language || !releaseDateStr) {
