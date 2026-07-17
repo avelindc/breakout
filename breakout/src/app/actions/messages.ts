@@ -7,10 +7,9 @@ import { sendNewMessageNotification } from "@/lib/email";
 
 const prisma = new PrismaClient();
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export async function sendMessageAction(formData: FormData) {
   try {
@@ -38,6 +37,9 @@ export async function sendMessageAction(formData: FormData) {
     let fileName = null;
 
     if (attachment && attachment.size > 0) {
+      if (!supabase) {
+        return { error: "Supabase credentials missing." };
+      }
       const fileExt = attachment.name.split('.').pop();
       const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       
@@ -98,11 +100,10 @@ export async function sendMessageAction(formData: FormData) {
       select: { email: true, name: true }
     });
 
-    // Send emails asynchronously without blocking the response too much
-    // In a real production app, use a background job queue
-    Promise.all(usersToEmail.map(user => 
+    // Send emails synchronously to prevent Vercel serverless timeout
+    await Promise.allSettled(usersToEmail.map(user => 
       sendNewMessageNotification(user.email, user.name || "User", subject)
-    )).catch(err => console.error("Error sending message emails:", err));
+    ));
 
     return { success: true, messageId: message.id };
   } catch (error: any) {
