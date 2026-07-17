@@ -95,30 +95,6 @@ export function AdminSidebar({ artists = [] }: { artists?: any[] }) {
               </Link>
             );
           })}
-
-          {/* Registered Artists Section */}
-          {artists.length > 0 && (
-            <div className="mt-6 mb-2">
-              <div className="pl-6 mb-3 flex items-center gap-2 text-blue-300">
-                <Users className="w-4 h-4" />
-                <span className="text-xs font-bold tracking-wider uppercase">Registered Artists</span>
-              </div>
-              <div className="flex flex-col gap-1 pl-12 pr-4">
-                {artists.map(artist => (
-                  <Link 
-                    key={artist.id} 
-                    href={`/admin/artists?artistId=${artist.id}`}
-                    onClick={() => setIsOpen(false)}
-                    className="text-sm py-2 text-blue-100 hover:text-white transition flex items-center gap-2 truncate"
-                    title={artist.stageName}
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400 opacity-70" />
-                    <span className="truncate">{artist.stageName}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="p-6">
