@@ -4,8 +4,8 @@ import { ArtistDetailClient } from "./ArtistDetailClient";
 
 const prisma = new PrismaClient();
 
-export default async function AdminArtistDetailPage({ params }: { params: { id: string } }) {
-  const userId = params.id;
+export default async function AdminArtistDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: userId } = await params;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
