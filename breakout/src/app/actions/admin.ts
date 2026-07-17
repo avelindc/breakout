@@ -3,6 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { sendAccountApprovedEmail, sendAccountRejectedEmail, sendReleaseApprovedEmail, sendReleaseRejectedEmail } from "@/lib/email";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -13,13 +14,14 @@ export async function updateArtistStatusAction(
   userEmail: string,
   reason: string = ""
 ) {
-  await prisma.user.update({
-    where: { id: userId },
-    data: { 
-      status,
-      ...(status === "REJECTED" ? { rejectionReason: reason } : {})
-    }
-  });
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        status,
+        ...(status === "REJECTED" ? { rejectionReason: reason } : {})
+      }
+    });
 
   await prisma.notification.create({
     data: {
@@ -35,7 +37,26 @@ export async function updateArtistStatusAction(
     await sendAccountRejectedEmail(userEmail, userName, reason);
   }
 
-  revalidatePath("/admin/artists");
+    revalidatePath("/admin/artists");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to update status" };
+  }
+}
+
+export async function resetUserPassword(userId: string, newPassword: string) {
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+    
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to reset password" };
+  }
 }
 
 export async function updateReleaseStatusAction(

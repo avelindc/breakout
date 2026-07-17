@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Users } from "lucide-react";
+import Link from "next/link";
 
 const prisma = new PrismaClient();
 
@@ -59,11 +60,13 @@ export default async function AllArtistsPage() {
                   #{artist.id.slice(-4).toUpperCase()}
                 </div>
                 
-                <div className="flex-1 flex items-center gap-3 pr-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <span className="font-bold text-gray-900 truncate">{artist.stageName}</span>
+                <div className="flex-1 pr-4">
+                  <Link href={`/admin/artists/${artist.userId}`} className="flex items-center gap-3 w-max">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <span className="font-bold text-gray-900 truncate hover:underline">{artist.stageName}</span>
+                  </Link>
                 </div>
                 
                 <div className="flex-1 text-gray-500 text-sm pr-4 truncate flex flex-col">
