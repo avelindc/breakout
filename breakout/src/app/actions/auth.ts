@@ -211,7 +211,7 @@ export async function registerAction(formData: FormData) {
   }
 }
 
-export async function signContractAction(userId: string, signatureBase64: string, pdfBase64: string) {
+export async function getContractUploadUrlsAction(userId: string) {
   try {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -221,48 +221,46 @@ export async function signContractAction(userId: string, signatureBase64: string
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Parse base64 robustly
-    const signatureBuffer = Buffer.from(signatureBase64.split(",")[1], "base64");
-    const pdfBuffer = Buffer.from(pdfBase64.split(",")[1], "base64");
-    
     const timestamp = Date.now();
     const signaturePath = `signatures/${userId}-${timestamp}.png`;
     const pdfPath = `pdfs/${userId}-${timestamp}.pdf`;
     
-    // Upload signature
-    const { error: sigError, data: sigData } = await supabase.storage
+    const { data: sigData, error: sigError } = await supabase.storage
       .from('contracts')
-      .upload(signaturePath, signatureBuffer, {
-        contentType: 'image/png',
-        upsert: false
-      });
+      .createSignedUploadUrl(signaturePath);
       
-    if (sigError) return { error: "Gagal mengunggah tanda tangan" };
-    
-    // Upload PDF
-    const { error: pdfError, data: pdfData } = await supabase.storage
+    if (sigError || !sigData) return { error: "Failed to generate signature upload URL" };
+
+    const { data: pdfData, error: pdfError } = await supabase.storage
       .from('contracts')
-      .upload(pdfPath, pdfBuffer, {
-        contentType: 'application/pdf',
-        upsert: false
-      });
+      .createSignedUploadUrl(pdfPath);
       
-    if (pdfError) return { error: "Gagal mengunggah PDF kontrak" };
-    
-    // Save to database
+    if (pdfError || !pdfData) return { error: "Failed to generate PDF upload URL" };
+
+    return { 
+      success: true, 
+      signature: { url: sigData.signedUrl, path: signaturePath, token: sigData.token },
+      pdf: { url: pdfData.signedUrl, path: pdfPath, token: pdfData.token }
+    };
+  } catch (error) {
+    console.error("getUploadUrls error:", error);
+    return { error: "Gagal menyiapkan penyimpanan. Silakan coba lagi." };
+  }
+}
+
+export async function finalizeContractAction(userId: string, signaturePath: string, pdfPath: string) {
+  try {
     await prisma.contract.create({
       data: {
         userId,
         version: "1.0",
-        pdfUrl: pdfData.path,
-        signatureUrl: sigData.path
+        pdfUrl: pdfPath,
+        signatureUrl: signaturePath
       }
     });
-    
     return { success: true };
   } catch (error) {
-    console.error("signContractAction error:", error);
-    return { error: "Gagal menyimpan kontrak. Silakan coba lagi." };
+    console.error("finalizeContractAction error:", error);
+    return { error: "Gagal menyimpan kontrak ke database." };
   }
 }

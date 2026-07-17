@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 import { toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
-import { signContractAction } from "@/app/actions/auth";
+import { getContractUploadUrlsAction, finalizeContractAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
 interface ContractStepProps {
@@ -52,7 +52,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
 
       // Temporarily remove fixed height to capture full content
-      const contractEl = contractRef.current;
+      const contractEl = contractRef.current!;
       const originalHeight = contractEl.style.height;
       const originalMaxHeight = contractEl.style.maxHeight;
       const originalOverflow = contractEl.style.overflow;
@@ -66,7 +66,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // Give DOM time to update
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      const imgData = await toJpeg(contractEl, { quality: 0.6, pixelRatio: 1, backgroundColor: '#ffffff' });
+      const imgData = await toJpeg(contractEl, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ffffff' });
       
       // Restore original styles
       contractEl.className = originalClassName;
@@ -83,23 +83,50 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       
       // Calculate width and height to fit A4
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const rect = contractRef.current.getBoundingClientRect();
+      const rect = contractRef.current!.getBoundingClientRect();
       const pdfHeight = (rect.height * pdfWidth) / rect.width;
       
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       
-      // Get PDF as base64 string
-      const pdfDataUrl = pdf.output("datauristring");
+      // 3. Get signed upload URLs from server
+      const urlsRes = await getContractUploadUrlsAction(userId);
+      if (urlsRes?.error || !urlsRes.signature || !urlsRes.pdf) {
+        throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan.");
+      }
 
-      // 3. Send to Server Action
-      const res = await signContractAction(userId, signatureDataUrl, pdfDataUrl);
+      // 4. Upload Signature Blob
+      const signatureBlob = await new Promise<Blob>((resolve, reject) => {
+        signatureRef.current.getTrimmedCanvas().toBlob((blob: Blob | null) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create signature blob"));
+        }, "image/png");
+      });
       
-      if (res?.error) {
-        setError(res.error);
+      const sigUpload = await fetch(urlsRes.signature.url, {
+        method: "PUT",
+        body: signatureBlob,
+        headers: { "Content-Type": "image/png" }
+      });
+      if (!sigUpload.ok) throw new Error("Gagal mengunggah tanda tangan");
+
+      // 5. Upload PDF Blob
+      const pdfBlob = pdf.output("blob");
+      const pdfUpload = await fetch(urlsRes.pdf.url, {
+        method: "PUT",
+        body: pdfBlob,
+        headers: { "Content-Type": "application/pdf" }
+      });
+      if (!pdfUpload.ok) throw new Error("Gagal mengunggah PDF kontrak");
+
+      // 6. Finalize in database
+      const finalizeRes = await finalizeContractAction(userId, urlsRes.signature.path, urlsRes.pdf.path);
+      
+      if (finalizeRes?.error) {
+        setError(finalizeRes.error);
         setLoading(false);
       } else {
-        // Redirect to success
         router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&whatsapp=${encodeURIComponent(whatsapp)}`);
+        router.refresh();
       }
     } catch (err: any) {
       console.error(err);
