@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { BrandSettingsForm } from "@/components/BrandSettingsForm";
 
 export default async function AdminSettingsPage() {
   const session = await auth();
@@ -9,6 +10,8 @@ export default async function AdminSettingsPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Platform Settings</h1>
         <p className="text-gray-500">Configure global platform rules and your admin profile.</p>
       </div>
+
+      <BrandSettingsForm />
 
       <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Profile Settings</h2>

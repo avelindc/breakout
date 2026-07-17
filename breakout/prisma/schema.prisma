@@ -15,6 +15,7 @@ model User {
   password      String
   emailVerified DateTime?
   image         String?
+  whatsapp      String?
   role          Role      @default(USER)
   status        UserStatus @default(PENDING)
   createdAt     DateTime  @default(now())

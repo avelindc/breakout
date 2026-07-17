@@ -52,7 +52,7 @@ export default async function UserDashboardPage() {
         <h1 className="text-2xl font-bold text-gray-900">Artist Dashboard</h1>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="Profile" />
+            <img src={user?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.name}`} alt="Profile" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>

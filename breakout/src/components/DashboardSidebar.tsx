@@ -19,7 +19,7 @@ const links = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: string }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,7 +28,7 @@ export function DashboardSidebar() {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40 shadow-sm">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Breakout Logo" className="w-8 h-8 object-contain invert" />
+          <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain invert" />
           <span className="font-bold tracking-tighter text-blue-600">BREAKOUT.ID</span>
         </div>
         <button 
@@ -55,7 +55,7 @@ export function DashboardSidebar() {
       >
         <div className="h-20 flex items-center justify-between px-8">
           <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-            <img src="/logo.png" alt="Breakout Logo" className="w-8 h-8 object-contain" />
+            <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain" />
             <span className="font-bold text-xl tracking-tighter text-white">BREAKOUT.ID</span>
           </Link>
           <button 
