@@ -32,7 +32,7 @@ export default async function AdminOverviewPage() {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-            <img src={session.user?.image || "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin"} alt="Admin" className="w-full h-full object-cover" />
+            <img src={session?.user?.image || "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin"} alt="Admin" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
