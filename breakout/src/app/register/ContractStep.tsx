@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
-import html2canvas from "html2canvas";
+import { toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 import { signContractAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
@@ -51,11 +51,10 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // 1. Get Signature as Base64 PNG
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
 
-      // 2. Generate PDF using html2canvas and jsPDF
+      // 2. Generate PDF using html-to-image and jsPDF
       if (!contractRef.current) throw new Error("Contract element not found");
       
-      const canvas = await html2canvas(contractRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      const imgData = await toJpeg(contractRef.current, { quality: 0.95, pixelRatio: 2, backgroundColor: '#ffffff' });
       
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -63,8 +62,10 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
         format: "a4",
       });
       
+      // Calculate width and height to fit A4
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const rect = contractRef.current.getBoundingClientRect();
+      const pdfHeight = (rect.height * pdfWidth) / rect.width;
       
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
       
