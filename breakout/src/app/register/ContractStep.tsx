@@ -37,30 +37,17 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
     try {
       // 1. Generate full-height image using html-to-image
       if (!contractRef.current) throw new Error("Contract element not found");
-      
       const contractEl = contractRef.current!;
       
-      // We will clone the node, set it to full height and append it to body invisibly to capture it perfectly
-      const clone = contractEl.cloneNode(true) as HTMLDivElement;
-      clone.style.position = "absolute";
-      clone.style.top = "-9999px";
-      clone.style.left = "-9999px";
-      clone.style.width = "800px"; // Fixed width for consistent formatting
-      clone.style.height = "auto";
-      clone.style.maxHeight = "none";
-      clone.style.overflow = "visible";
-      clone.style.backgroundColor = "#ffffff";
-      clone.style.color = "#000000";
-      
-      document.body.appendChild(clone);
-      
-      const dataUrl = await toJpeg(clone, {
-        quality: 0.9,
-        backgroundColor: "#ffffff",
-        pixelRatio: 2
-      });
-      
-      document.body.removeChild(clone);
+      // We directly use the element to avoid mobile browser hanging on detached/off-screen DOM
+      const dataUrl = await Promise.race([
+        toJpeg(contractEl, {
+          quality: 0.7,
+          backgroundColor: "#ffffff",
+          pixelRatio: 1 // 1 instead of 2 to avoid memory crash on mobile devices
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Gagal merender dokumen (Timeout). Coba gunakan perangkat lain atau hubungi admin.")), 15000))
+      ]) as string;
 
       if (!dataUrl) throw new Error("Failed to create contract image");
       const contractBlob = await (await fetch(dataUrl)).blob();
