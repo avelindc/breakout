@@ -12,10 +12,10 @@ import {
 } from "@/app/actions/publisherCatalog";
 import {
   Loader2, RefreshCw, Trash2, Search, Plus, Edit, X,
-  Upload, Database, LayoutList, CheckCircle2, AlertCircle, PlayCircle
+  Upload, Database, LayoutList, CheckCircle2, AlertCircle, PlayCircle, Settings
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { TableVirtuoso } from "react-virtuoso";
+import { VirtuosoGrid } from "react-virtuoso";
 
 const getYoutubeLink = (song: any) => {
   const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
@@ -245,77 +245,93 @@ export function PublisherCatalogAdminClient() {
         </div>
       </div>
 
-      {/* Premium Virtualized Table */}
-      <div className="bg-[#0f141e]/80 md:bg-white/5 md:backdrop-blur-md rounded-[2rem] border border-white/10 overflow-clip shadow-xl transform-gpu">
+      {/* Premium Virtualized Grid */}
+      <div className="transform-gpu">
         {loading && songs.length === 0 ? (
            <div className="py-24 flex justify-center"><Loader2 className="w-10 h-10 text-blue-400 animate-spin" /></div>
         ) : songs.length === 0 ? (
            <div className="py-24 text-center text-blue-300 font-medium">Belum ada data. Import Excel atau tambah manual.</div>
         ) : (
           <div className="overflow-x-auto touch-pan-y">
-            <TableVirtuoso
+          <div className="bg-transparent border-none shadow-none pb-10">
+            <VirtuosoGrid
               useWindowScroll
               data={songs}
               endReached={loadMore}
               overscan={200}
-              className="w-full text-left min-w-[900px]"
-              fixedHeaderContent={() => (
-                <tr className="bg-black/40 border-b border-white/10">
-                  {["Judul", "Artis", "Publisher", "Composer", "Album", "ISRC", "Tahun", "Aksi"].map(h => (
-                    <th key={h} className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              )}
-              itemContent={(i, song) => {
+              listClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+              itemClassName="w-full"
+              itemContent={(index, song) => {
                 const ytLink = getYoutubeLink(song);
                 return (
-                <>
-                  <td className="px-5 py-4 font-bold text-white max-w-[200px] truncate group-hover:text-blue-300 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate">{song.title || "-"}</span>
-                      {ytLink && (
-                        <a href={ytLink} target="_blank" rel="noreferrer" className="text-red-500 hover:text-red-400 shrink-0" title="Buka di YouTube">
-                          <PlayCircle className="w-4 h-4" />
+                  <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all p-5 sm:p-6 group flex flex-col h-full">
+                    <div className="flex gap-4 items-start mb-5">
+                      <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-inner">
+                        <img src="/images/music-default.jpg" alt="Cover" className="w-full h-full object-cover opacity-80" />
+                        <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      </div>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          {song.title || "-"}
+                        </h3>
+                        <p className="text-sm font-medium text-gray-500 truncate mt-1 uppercase tracking-wider">{getCleanText(song.artist)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 flex-1 mb-5">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-400">Composer</span>
+                        <span className="text-sm font-bold text-gray-700 truncate max-w-[60%] text-right">{getCleanText(song.composer)}</span>
+                      </div>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-400">Publisher</span>
+                        <span className="text-sm font-black text-gray-900 truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-gray-100 flex items-center gap-3">
+                      {ytLink ? (
+                        <a 
+                          href={ytLink} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="w-12 h-12 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-red-100 hover:border-red-500"
+                          title="Buka di YouTube"
+                        >
+                          <PlayCircle className="w-5 h-5" />
                         </a>
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center shrink-0 border border-gray-100 cursor-not-allowed">
+                          <PlayCircle className="w-5 h-5" />
+                        </div>
                       )}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-blue-100/90 text-sm font-medium max-w-[140px] truncate">{getCleanText(song.artist)}</td>
-                  <td className="px-5 py-4 text-gray-400 text-sm max-w-[130px] truncate">
-                    {song.publisher ? <span className="px-2.5 py-1 bg-white/5 rounded-md border border-white/5">{song.publisher}</span> : "-"}
-                  </td>
-                  <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{getCleanText(song.composer)}</td>
-                  <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
-                  <td className="px-5 py-4 text-blue-300/80 text-xs font-mono">{song.isrc || "-"}</td>
-                  <td className="px-5 py-4 text-gray-400 text-sm font-medium">{song.year || "-"}</td>
-                  <td className="px-5 py-4">
-                    <div className="flex gap-2">
-                      <button onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }}
-                        className="p-2 text-blue-300 hover:text-white bg-blue-500/10 hover:bg-blue-500/40 rounded-xl transition-all border border-transparent hover:border-blue-400/30">
-                        <Edit className="w-4 h-4" />
+                      
+                      <button 
+                        onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }}
+                        className="flex-1 h-12 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-600 font-bold flex items-center justify-center gap-2 transition-colors border border-gray-100 hover:border-blue-200"
+                      >
+                        <Settings className="w-4 h-4" /> Buka Detail
                       </button>
-                      <button onClick={() => handleDelete(song.id)}
-                        className="p-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/40 rounded-xl transition-all border border-transparent hover:border-red-400/30">
-                        <Trash2 className="w-4 h-4" />
+                      
+                      <button 
+                        onClick={() => handleDelete(song.id)}
+                        className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors shrink-0 border border-gray-100 hover:border-red-200"
+                        title="Hapus"
+                      >
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
-                  </td>
-                </>
+                  </div>
                 );
               }}
               components={{
-                TableRow: ({ item, children, ...props }) => (
-                  <tr {...props} className="group hover:bg-white/[0.08] transition-all bg-transparent border-b border-white/5 cursor-default">
-                    {children}
-                  </tr>
-                ),
-                TableFoot: React.forwardRef((props, ref) => (
+                Footer: () => (
                   loadingMore ? (
-                    <tfoot {...props} ref={ref as React.Ref<HTMLTableSectionElement>} className="bg-transparent">
-                      <tr><td colSpan={8} className="py-6 text-center"><Loader2 className="w-6 h-6 text-blue-400 animate-spin mx-auto" /></td></tr>
-                    </tfoot>
-                  ) : <tfoot {...props} ref={ref as React.Ref<HTMLTableSectionElement>} />
-                ))
+                    <div className="col-span-full py-8 flex justify-center">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                    </div>
+                  ) : null
+                )
               }}
             />
           </div>
