@@ -35,10 +35,13 @@ export default async function AdminRegistrationsPage() {
   const allUsers = await prisma.user.findMany({
     where: { role: 'USER', status: { in: ['PENDING', 'APPROVED'] } },
     include: { contracts: true },
-    orderBy: [
-      { status: 'desc' }, // PENDING starts with P which is alphabetically after APPROVED (A), so desc puts PENDING (P) before APPROVED (A)
-      { createdAt: 'desc' }
-    ]
+  });
+
+  // Explicitly sort: PENDING first, APPROVED second. Within each, newest first.
+  allUsers.sort((a, b) => {
+    if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+    if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
   const pendingCount = allUsers.filter(u => u.status === 'PENDING').length;

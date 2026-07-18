@@ -72,8 +72,16 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
   const handleApprove = async (card: CardData) => {
     setLoadingApprove(true);
     await updateArtistStatusAction(card.id, "APPROVED", card.name, card.email, "");
-    // Update status in local state instead of removing
-    setVisibleCards(prev => prev.map(c => c.id === card.id ? { ...c, status: "APPROVED" } : c));
+    
+    // Update status in local state and re-sort: PENDING first, then APPROVED
+    setVisibleCards(prev => {
+      const updated = prev.map(c => c.id === card.id ? { ...c, status: "APPROVED" } : c);
+      return [...updated].sort((a, b) => {
+        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+        if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    });
     setLoadingApprove(false);
     setSelectedCard(null);
   };
