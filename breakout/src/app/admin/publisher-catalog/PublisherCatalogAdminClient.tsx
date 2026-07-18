@@ -252,7 +252,6 @@ export function PublisherCatalogAdminClient() {
         ) : songs.length === 0 ? (
            <div className="py-24 text-center text-blue-300 font-medium">Belum ada data. Import Excel atau tambah manual.</div>
         ) : (
-          <div className="overflow-x-auto touch-pan-y">
           <div className="bg-transparent border-none shadow-none pb-10">
             <VirtuosoGrid
               useWindowScroll

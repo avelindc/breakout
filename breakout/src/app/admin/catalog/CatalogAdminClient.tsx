@@ -197,7 +197,6 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         ) : songs.length === 0 ? (
            <div className="py-24 text-center text-blue-300 font-medium">Katalog kosong atau lagu tidak ditemukan.</div>
         ) : (
-          <div className="overflow-x-auto touch-pan-y">
           <div className="bg-transparent border-none shadow-none pb-10">
             <VirtuosoGrid
               useWindowScroll
@@ -285,7 +284,6 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
                 )
               }}
             />
-          </div>
           </div>
         )}
       </div>
