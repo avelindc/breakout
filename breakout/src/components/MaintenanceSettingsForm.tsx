@@ -15,6 +15,9 @@ interface MaintenanceSettingsFormProps {
     maintenance_start: string;
     maintenance_end: string;
     maintenance_type: string;
+    maintenance_bg_type: string;
+    maintenance_bg_video: string;
+    maintenance_logo_url: string;
   };
   brandLogo: string;
 }
@@ -34,6 +37,12 @@ function getIndonesianType(type: string) {
     default:
       return "Pemeliharaan Sistem";
   }
+}
+
+function getYouTubeId(url: string) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : "";
 }
 
 const toLocalDatetimeString = (isoString: string) => {
@@ -57,6 +66,13 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
   const [start, setStart] = useState(toLocalDatetimeString(initialData.maintenance_start) || "");
   const [end, setEnd] = useState(toLocalDatetimeString(initialData.maintenance_end) || "");
   const [type, setType] = useState(initialData.maintenance_type || "system");
+  const [bgType, setBgType] = useState(initialData.maintenance_bg_type || "gradient");
+  const [bgVideo, setBgVideo] = useState(initialData.maintenance_bg_video || "");
+  
+  // Custom Logo states
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(initialData.maintenance_logo_url || null);
+  const [resetLogo, setResetLogo] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
@@ -82,6 +98,21 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     }
   }, []);
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+      setResetLogo(false);
+    }
+  };
+
+  const handleResetLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setResetLogo(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -99,6 +130,13 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     formData.append("start", startIso);
     formData.append("end", endIso);
     formData.append("type", type);
+    formData.append("bg_type", bgType);
+    formData.append("bg_video", bgVideo);
+    formData.append("reset_logo", resetLogo ? "true" : "false");
+    
+    if (logoFile) {
+      formData.append("logo", logoFile);
+    }
 
     const res = await saveMaintenanceSettingsAction(formData);
 
@@ -126,6 +164,8 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     }
   };
 
+  const previewLogoUrl = logoPreview || brandLogo;
+
   return (
     <div className="space-y-8 animate-fade-in mb-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -152,6 +192,72 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
                 />
                 <div className="w-14 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#f000ff] peer-checked:to-[#8a2be2]"></div>
               </label>
+            </div>
+
+            {/* Custom Logo Upload */}
+            <div className="space-y-2 border-b border-gray-100 pb-4">
+              <span className="text-xs font-bold text-gray-600 uppercase block">Logo Khusus Maintenance (Opsional)</span>
+              <div className="flex items-center gap-4 mt-1">
+                <div className="w-20 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden p-2">
+                  <img src={previewLogoUrl} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                </div>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                    id="m-logo-file"
+                  />
+                  <label
+                    htmlFor="m-logo-file"
+                    className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition cursor-pointer"
+                  >
+                    Pilih Logo
+                  </label>
+                  {logoPreview && (
+                    <button
+                      type="button"
+                      onClick={handleResetLogo}
+                      className="px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-bold transition"
+                    >
+                      Reset Default
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Background Style */}
+            <div className="space-y-4 border-b border-gray-100 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-gray-600 uppercase block">Tampilan Background</span>
+                  <select
+                    value={bgType}
+                    onChange={(e) => setBgType(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900 outline-none focus:border-blue-500 transition font-medium cursor-pointer"
+                  >
+                    <option value="gradient">Gradient Neon (Default)</option>
+                    <option value="solid">Gelap Polos (Pure Dark)</option>
+                    <option value="video">Video Background</option>
+                  </select>
+                </div>
+
+                {bgType === "video" && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-gray-600 uppercase block">Link Video (MP4 / YouTube)</span>
+                    <input
+                      type="text"
+                      value={bgVideo}
+                      onChange={(e) => setBgVideo(e.target.value)}
+                      placeholder="https://example.com/video.mp4"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900 outline-none focus:border-blue-500 transition font-medium"
+                      required
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Type & Title */}
@@ -294,15 +400,45 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
           <div className={`bg-[#0A0A0C] border border-gray-800 rounded-[2.5rem] shadow-2xl relative overflow-hidden transition-all duration-300 w-full flex items-center justify-center p-6 ${
             previewMode === "mobile" ? "max-w-[360px] mx-auto aspect-[9/16] min-h-[580px]" : "aspect-[16/10] min-h-[480px]"
           }`}>
-            {/* Background Neon Glows */}
-            <div className="absolute top-1/4 left-1/4 w-40 h-40 bg-[#f000ff]/10 rounded-full blur-[50px] pointer-events-none"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-[#8a2be2]/10 rounded-full blur-[50px] pointer-events-none"></div>
+            {/* Background Types */}
+            {bgType === "gradient" && (
+              <>
+                <div className="absolute top-1/4 left-1/4 w-40 h-40 bg-[#f000ff]/10 rounded-full blur-[50px] pointer-events-none"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-[#8a2be2]/10 rounded-full blur-[50px] pointer-events-none"></div>
+              </>
+            )}
+            
+            {bgType === "solid" && (
+              <div className="absolute inset-0 bg-black pointer-events-none z-0"></div>
+            )}
+
+            {bgType === "video" && bgVideo && (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10"></div>
+                {bgVideo.includes("youtube.com") || bgVideo.includes("youtu.be") ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(bgVideo)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(bgVideo)}&controls=0&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+                    className="absolute w-[300%] h-[300%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover aspect-video pointer-events-none border-none opacity-40"
+                    allow="autoplay; encrypted-media"
+                  ></iframe>
+                ) : (
+                  <video
+                    src={bgVideo}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="absolute w-full h-full top-0 left-0 object-cover opacity-45"
+                  ></video>
+                )}
+              </div>
+            )}
 
             <div className="w-full bg-white/[0.02] backdrop-blur-md border border-white/15 rounded-3xl p-5 md:p-6 text-center relative z-10 flex flex-col items-center shadow-[0_8px_32px_0_rgba(240,0,255,0.05)]">
               {/* Logo */}
-              <div className="w-24 h-8 mb-4 relative">
+              <div className="w-32 h-10 mb-4 flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={brandLogo} alt="BREAKOUT.ID" className="w-full h-full object-contain" />
+                <img src={previewLogoUrl} alt="BREAKOUT.ID" className="max-w-full max-h-full object-contain" />
               </div>
 
               {/* Animated Icon */}

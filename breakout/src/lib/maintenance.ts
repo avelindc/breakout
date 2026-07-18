@@ -50,7 +50,10 @@ export async function getMaintenanceData() {
       "maintenance_message",
       "maintenance_start",
       "maintenance_end",
-      "maintenance_type"
+      "maintenance_type",
+      "maintenance_bg_type",
+      "maintenance_bg_video",
+      "maintenance_logo_url"
     ];
 
     const settings = await prisma.settings.findMany({
@@ -63,7 +66,10 @@ export async function getMaintenanceData() {
       maintenance_message: "Dashboard sedang tidak dapat diakses.",
       maintenance_start: "",
       maintenance_end: "",
-      maintenance_type: "system"
+      maintenance_type: "system",
+      maintenance_bg_type: "gradient",
+      maintenance_bg_video: "",
+      maintenance_logo_url: ""
     };
 
     settings.forEach((s) => {
@@ -79,7 +85,10 @@ export async function getMaintenanceData() {
       maintenance_message: "Dashboard sedang tidak dapat diakses.",
       maintenance_start: "",
       maintenance_end: "",
-      maintenance_type: "system"
+      maintenance_type: "system",
+      maintenance_bg_type: "gradient",
+      maintenance_bg_video: "",
+      maintenance_logo_url: ""
     };
   }
 }
