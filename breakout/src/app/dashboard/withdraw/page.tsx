@@ -36,15 +36,15 @@ export default async function WithdrawPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="glass-card p-6 border border-[#00F0FF]/30 bg-gradient-to-br from-[#00F0FF]/10 to-transparent">
           <p className="text-gray-400 text-sm font-medium mb-1">Available Balance</p>
-          <h3 className="text-4xl font-bold text-[#00F0FF]">Rp {availableBalance.toLocaleString('id-ID')}</h3>
+          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#00F0FF] break-all">Rp {availableBalance.toLocaleString('id-ID')}</h3>
         </div>
         <div className="glass-card p-6">
           <p className="text-gray-400 text-sm font-medium mb-1">Pending Payouts</p>
-          <h3 className="text-3xl font-bold text-yellow-500">Rp {pendingWithdrawal.toLocaleString('id-ID')}</h3>
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-500 break-all">Rp {pendingWithdrawal.toLocaleString('id-ID')}</h3>
         </div>
         <div className="glass-card p-6">
           <p className="text-gray-400 text-sm font-medium mb-1">Total Withdrawn</p>
-          <h3 className="text-3xl font-bold text-gray-300">Rp {totalWithdrawn.toLocaleString('id-ID')}</h3>
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-300 break-all">Rp {totalWithdrawn.toLocaleString('id-ID')}</h3>
         </div>
       </div>
 

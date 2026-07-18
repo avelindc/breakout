@@ -17,19 +17,19 @@ export default async function UserRoyaltiesPage() {
 
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Royalty Statements</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Royalty Statements</h1>
           <p className="text-gray-400">View your earnings and stream data.</p>
         </div>
-        <button className="px-5 py-2.5 rounded-lg glass border border-white/10 text-white font-semibold hover:bg-white/5 transition flex items-center gap-2">
+        <button className="self-start sm:self-auto px-5 py-2.5 rounded-lg glass border border-white/10 text-white font-semibold hover:bg-white/5 transition flex items-center gap-2 shrink-0">
           <DownloadCloud className="w-4 h-4" /> Download CSV
         </button>
       </div>
 
-      <div className="glass-card p-8 mb-10 bg-gradient-to-br from-[#7000FF]/20 to-transparent border-[#7000FF]/30">
+      <div className="glass-card p-6 sm:p-8 mb-10 bg-gradient-to-br from-[#7000FF]/20 to-transparent border-[#7000FF]/30">
         <p className="text-gray-400 font-medium mb-1">Lifetime Earnings</p>
-        <h2 className="text-5xl font-bold text-white">Rp {totalRevenue.toLocaleString('id-ID')}</h2>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white break-all">Rp {totalRevenue.toLocaleString('id-ID')}</h2>
       </div>
 
       <div className="glass-card overflow-hidden">

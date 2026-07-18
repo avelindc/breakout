@@ -62,60 +62,72 @@ export default async function UserDashboardPage() {
           <OverviewChart hasData={totalStreams > 0} />
         </div>
 
-        <div className="w-full lg:w-2/5 grid grid-cols-2 gap-4">
+        <div className="w-full lg:w-2/5 grid grid-cols-2 gap-3">
           {/* Card 1: Gradient */}
-          <div className="bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 p-6 rounded-3xl shadow-lg text-white flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <div className="bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 p-4 rounded-3xl shadow-lg text-white flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
                 <PlayCircle className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold bg-white/20 px-2 py-1 rounded-full">+24%</span>
+              <span className="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full">+24%</span>
             </div>
             <div>
-              <h3 className="text-3xl font-bold mb-1">{totalStreams.toLocaleString()}</h3>
+              <h3 className="text-base sm:text-xl font-bold mb-1 leading-tight">
+                {totalStreams >= 1_000_000
+                  ? `${(totalStreams / 1_000_000).toFixed(1)}M`
+                  : totalStreams >= 1_000
+                  ? `${(totalStreams / 1_000).toFixed(1)}K`
+                  : totalStreams.toLocaleString()}
+              </h3>
               <p className="text-white/80 text-xs font-medium">Total Streams</p>
             </div>
           </div>
 
           {/* Card 2: White */}
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-4 h-4 text-green-600" />
               </div>
-              <span className="text-xs font-semibold text-green-500 flex items-center gap-1">
+              <span className="text-xs font-semibold text-green-500 flex items-center gap-0.5">
                 <ArrowUpRight className="w-3 h-3" /> 12.5%
               </span>
             </div>
             <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">Rp {availableBalance.toLocaleString('id-ID')}</h3>
-              <p className="text-gray-400 text-xs font-medium">Available Balance</p>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 leading-tight">
+                Rp {availableBalance >= 1_000_000
+                  ? `${(availableBalance / 1_000_000).toFixed(1)}Jt`
+                  : availableBalance >= 1_000
+                  ? `${(availableBalance / 1_000).toFixed(0)}K`
+                  : availableBalance.toLocaleString('id-ID')}
+              </h3>
+              <p className="text-gray-400 text-xs font-medium">Balance</p>
             </div>
           </div>
 
           {/* Card 3: White */}
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center">
                 <Disc className="w-4 h-4 text-pink-500" />
               </div>
             </div>
             <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">{totalReleases}</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-1">{totalReleases}</h3>
               <p className="text-gray-400 text-xs font-medium">Active Releases</p>
             </div>
           </div>
 
           {/* Card 4: White */}
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center">
                 <Clock className="w-4 h-4 text-yellow-500" />
               </div>
             </div>
             <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-1">{pendingReleases}</h3>
-              <p className="text-gray-400 text-xs font-medium">Pending Approvals</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-1">{pendingReleases}</h3>
+              <p className="text-gray-400 text-xs font-medium">Pending</p>
             </div>
           </div>
         </div>

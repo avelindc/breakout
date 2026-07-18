@@ -23,22 +23,29 @@ export function OverviewChart({ hasData = true }: { hasData?: boolean }) {
     { name: 'Jul', revenue: 3490, streams: 4300 },
   ];
 
-  if (!mounted) return null;
-
-  return (
+  if (!mounted) return (
     <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Project statistics</h2>
+      </div>
+      <div className="flex-1 w-full h-[200px] md:h-[260px] bg-gray-50 rounded-2xl animate-pulse" />
+    </div>
+  );
+
+  return (
+    <div className="bg-white p-4 md:p-6 rounded-3xl border border-gray-100 shadow-sm h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 shrink-0">Project statistics</h2>
         {hasData && (
-          <div className="flex gap-2">
-            <button className="px-4 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded-full">30 days</button>
-            <button className="px-4 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50">90 days</button>
-            <button className="px-4 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50">6 months</button>
-            <button className="px-4 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50">12 months</button>
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            <button className="px-3 py-1.5 bg-blue-500 text-white text-xs font-semibold rounded-full whitespace-nowrap shrink-0">30 days</button>
+            <button className="px-3 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50 whitespace-nowrap shrink-0">90 days</button>
+            <button className="px-3 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50 whitespace-nowrap shrink-0">6 months</button>
+            <button className="px-3 py-1.5 text-gray-400 text-xs font-semibold rounded-full hover:bg-gray-50 whitespace-nowrap shrink-0">12 months</button>
           </div>
         )}
       </div>
-      <div className="flex-1 w-full min-h-[300px] relative">
+      <div className="flex-1 w-full h-[200px] sm:h-[240px] md:h-[300px] relative">
         {!hasData ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
