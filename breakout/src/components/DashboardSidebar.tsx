@@ -41,14 +41,14 @@ export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: stri
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-40 shadow-sm">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-[#f000ff] to-[#8a2be2] border-b border-white/10 flex items-center justify-between px-4 z-40 shadow-[0_4px_20px_rgba(240,0,255,0.3)]">
         <div className="flex items-center gap-2">
-          <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain invert" />
-          <span className="font-bold tracking-tighter text-blue-600">BREAKOUT.ID</span>
+          <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain" />
+          <span className="font-bold tracking-tighter text-white drop-shadow-md">BREAKOUT.ID</span>
         </div>
         <button 
           onClick={() => setIsOpen(true)}
-          className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+          className="p-2 text-white/90 hover:text-white focus:outline-none"
         >
           <Menu className="w-6 h-6" />
         </button>
