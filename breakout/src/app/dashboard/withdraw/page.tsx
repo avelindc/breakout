@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
-import { CreditCard, DollarSign } from "lucide-react";
-import { withdrawAction } from "@/app/actions/withdraw";
+import { CreditCard } from "lucide-react";
+import { WithdrawForm } from "@/components/WithdrawForm";
 
 const prisma = new PrismaClient();
 
@@ -54,40 +54,7 @@ export default async function WithdrawPage() {
             <CreditCard className="w-5 h-5 text-[#7000FF]" />
             Request Withdrawal
           </h2>
-          
-          <form action={async (formData) => { "use server"; await withdrawAction(formData); }} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Amount (IDR)</label>
-              <div className="relative">
-                <span className="absolute left-4 top-3.5 text-gray-500 font-bold">Rp</span>
-                <input required name="amount" type="number" step="1" max={availableBalance} className="w-full bg-white/5 border border-white/10 rounded-lg pl-12 pr-4 py-3 outline-none focus:border-[#7000FF] transition" placeholder="0" />
-              </div>
-              <p className="text-xs text-gray-500">Minimum withdrawal is Rp 50.000</p>
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Bank Name</label>
-              <input required name="bankName" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition" placeholder="e.g. BCA, Mandiri, BRI" />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Account Name</label>
-              <input required name="accountName" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition" placeholder="Budi Santoso" />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Account Number</label>
-              <input required name="accountNumber" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition" placeholder="1234567890" />
-            </div>
-
-            <button 
-              type="submit"
-              disabled={availableBalance < 50}
-              className="mt-4 w-full py-4 rounded-xl bg-gradient-to-r from-[#7000FF] to-[#0047FF] text-white font-bold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Submit Request
-            </button>
-          </form>
+          <WithdrawForm availableBalance={availableBalance} />
         </div>
 
         <div>
