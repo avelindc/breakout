@@ -171,7 +171,7 @@ export default async function WithdrawPage() {
                     'border-l-blue-500'
                   }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-base sm:text-lg">Rp {req.amount.toLocaleString('id-ID')}</h4>
+                      <h4 className="font-bold text-base sm:text-lg text-white tracking-wide">Rp {req.amount.toLocaleString('id-ID')}</h4>
                       <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5
                         ${isPaid ? 'bg-green-500/20 text-green-400' : 
                           isPending ? 'bg-yellow-500/20 text-yellow-400' :
@@ -184,12 +184,12 @@ export default async function WithdrawPage() {
                         {req.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span>{dateStr}</span>
-                      <span className="w-1 h-1 rounded-full bg-gray-600" />
-                      <span>{req.bankName}</span>
-                      <span className="w-1 h-1 rounded-full bg-gray-600" />
-                      <span className="font-mono">{req.accountNumber.slice(-4).padStart(req.accountNumber.length, '•')}</span>
+                    <div className="flex items-center gap-2 text-xs text-gray-300 mt-2">
+                      <span className="font-medium bg-white/10 px-2 py-0.5 rounded text-white">{dateStr}</span>
+                      <span className="w-1 h-1 rounded-full bg-gray-400" />
+                      <span className="font-medium text-white/90">{req.bankName}</span>
+                      <span className="w-1 h-1 rounded-full bg-gray-400" />
+                      <span className="font-mono tracking-widest text-white/90">{req.accountNumber.slice(-4).padStart(req.accountNumber.length, '•')}</span>
                     </div>
                   </div>
                 );
