@@ -38,8 +38,8 @@ export default async function WithdrawPage() {
         <h1 className="text-3xl sm:text-4xl font-black mb-2 tracking-tight text-gray-900 relative">
           Withdraw <span className="bg-gradient-to-r from-[#7000FF] to-[#00F0FF] text-transparent bg-clip-text">Earnings</span>
         </h1>
-        <p className="text-gray-500 text-sm sm:text-base font-medium max-w-md relative">
-          Transfer your available balance directly to your registered bank account.
+        <p className="text-red-400 text-sm sm:text-base font-bold max-w-md relative leading-relaxed">
+          HARAP DIPERHATIKAN! MENGISI DATA PEMBAYARAN YANG BENAR BANK ATAU E-WALLET HARUS SAMA DENGAN NAMA BANK. JIKA SALAH KAMI TIDAK BERTANGGUNG JAWAB.
         </p>
       </div>
 
