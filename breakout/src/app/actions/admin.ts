@@ -59,6 +59,28 @@ export async function resetUserPassword(userId: string, newPassword: string) {
   }
 }
 
+export async function deleteUserAction(userId: string) {
+  try {
+    // Delete all related records first (if no cascade delete setup)
+    await prisma.notification.deleteMany({ where: { userId } });
+    await prisma.verificationToken.deleteMany({ where: { email: (await prisma.user.findUnique({ where: { id: userId } }))?.email || "" } });
+    await prisma.contract.deleteMany({ where: { userId } });
+    await prisma.royalty.deleteMany({ where: { release: { userId } } });
+    await prisma.release.deleteMany({ where: { userId } });
+    await prisma.withdrawal.deleteMany({ where: { userId } });
+    await prisma.bankAccount.deleteMany({ where: { userId } });
+
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+    
+    revalidatePath("/admin/artists");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to delete user" };
+  }
+}
+
 export async function updateReleaseStatusAction(
   releaseId: string,
   artistUserId: string,

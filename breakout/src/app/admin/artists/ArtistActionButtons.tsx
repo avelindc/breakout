@@ -1,14 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, Loader2 } from "lucide-react";
-import { updateArtistStatusAction } from "@/app/actions/admin";
+import { Check, X, Loader2, Trash2 } from "lucide-react";
+import { updateArtistStatusAction, deleteUserAction } from "@/app/actions/admin";
 
 export function ArtistActionButtons({ userId, userName, userEmail }: { userId: string, userName: string, userEmail: string }) {
   const [isRejecting, setIsRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [loadingApprove, setLoadingApprove] = useState(false);
   const [loadingReject, setLoadingReject] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
+  const handleDelete = async () => {
+    if (confirm(`Apakah Anda yakin ingin MENGHAPUS akun ${userName} secara permanen? Email ini akan bisa digunakan lagi untuk mendaftar.`)) {
+      setLoadingDelete(true);
+      await deleteUserAction(userId);
+      setLoadingDelete(false);
+    }
+  };
 
   const handleApprove = async () => {
     setLoadingApprove(true);
@@ -62,7 +71,7 @@ export function ArtistActionButtons({ userId, userName, userEmail }: { userId: s
       <button
         onClick={handleApprove}
         title="Approve"
-        disabled={loadingApprove || loadingReject}
+        disabled={loadingApprove || loadingReject || loadingDelete}
         className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-green-500 hover:bg-green-50 group-hover:text-white group-hover:hover:bg-white/20 transition disabled:opacity-50"
       >
         {loadingApprove ? <Loader2 className="w-4 h-4 animate-spin text-green-500" /> : <Check className="w-4 h-4" />}
@@ -71,10 +80,19 @@ export function ArtistActionButtons({ userId, userName, userEmail }: { userId: s
       <button
         onClick={() => setIsRejecting(true)}
         title="Reject"
-        disabled={loadingApprove || loadingReject}
+        disabled={loadingApprove || loadingReject || loadingDelete}
         className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 group-hover:text-white group-hover:hover:bg-white/20 transition disabled:opacity-50"
       >
         <X className="w-4 h-4" />
+      </button>
+
+      <button
+        onClick={handleDelete}
+        title="Delete User Permanently"
+        disabled={loadingApprove || loadingReject || loadingDelete}
+        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 group-hover:text-red-400 group-hover:hover:bg-red-500/20 transition disabled:opacity-50"
+      >
+        {loadingDelete ? <Loader2 className="w-4 h-4 animate-spin text-red-500" /> : <Trash2 className="w-4 h-4" />}
       </button>
     </div>
   );
