@@ -28,31 +28,31 @@ SkeletonSongCard.displayName = "SkeletonSongCard";
 const SongCard = React.memo(({ song, onClick }: { song: any; onClick: (song: any) => void }) => (
   <div 
     onClick={() => onClick(song)}
-    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group"
+    className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-2xl border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group"
   >
     <div className="flex items-start gap-4 mb-4">
-      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
+      <div className="w-14 h-14 rounded-xl bg-white/10 md:bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
         <img src="/images/music-default.jpg" alt="Music Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title}</div>
-        <div className="text-sm font-medium text-gray-500 mt-1 truncate">{song.artist}</div>
+        <div className="font-bold text-white md:text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title}</div>
+        <div className="text-sm font-medium text-white/80 md:text-gray-500 mt-1 truncate">{song.artist}</div>
       </div>
     </div>
 
     <div className="flex flex-col gap-2.5">
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-gray-400 shrink-0">Vokal</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.vokal || "Instrumental"}</span>
+        <span className="text-sm font-semibold text-white/60 md:text-gray-400 shrink-0">Vokal</span>
+        <span className="text-sm font-bold text-white md:text-gray-700 text-right break-words">{song.vokal || "Instrumental"}</span>
       </div>
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-gray-400 shrink-0">Publisher</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.publisher || "Independent"}</span>
+        <span className="text-sm font-semibold text-white/60 md:text-gray-400 shrink-0">Publisher</span>
+        <span className="text-sm font-bold text-white md:text-gray-700 text-right break-words">{song.publisher || "Independent"}</span>
       </div>
     </div>
 
-    <div className="mt-5 pt-4 border-t border-gray-100">
-      <button className="w-full h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
+    <div className="mt-5 pt-4 border-t border-white/15 md:border-gray-100">
+      <button className="w-full h-11 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white md:bg-gray-50 md:text-gray-600 md:group-hover:bg-blue-600 md:group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
         <Settings className="w-4 h-4 shrink-0" /> Buka Detail
       </button>
     </div>

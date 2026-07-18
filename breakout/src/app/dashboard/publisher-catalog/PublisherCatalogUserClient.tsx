@@ -38,37 +38,37 @@ const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index:
   
   return (
   <div onClick={() => onClick(song)}
-    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group mb-4 mx-4 sm:mx-0">
+    className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] p-5 cursor-pointer transition group mb-4 mx-4 sm:mx-0">
     <div className="flex items-start gap-4 mb-4">
-      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
+      <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 transition overflow-hidden">
         <img src="/images/publisher-default.jpg" alt="Publisher Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition flex items-center gap-2">
+        <div className="font-bold text-white text-lg leading-tight line-clamp-2 transition flex items-center gap-2">
           <span>{song.title || "Unknown"}</span>
         </div>
-        <div className="text-sm font-medium text-gray-500 mt-1 truncate">{getCleanText(song.artist)}</div>
+        <div className="text-sm font-medium text-white/80 mt-1 truncate">{getCleanText(song.artist)}</div>
       </div>
     </div>
 
     <div className="flex flex-col gap-2.5">
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-gray-400 shrink-0">Composer</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words line-clamp-2">{getCleanText(song.composer)}</span>
+        <span className="text-sm font-semibold text-white/60 shrink-0">Composer</span>
+        <span className="text-sm font-bold text-white text-right break-words line-clamp-2">{getCleanText(song.composer)}</span>
       </div>
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-gray-400 shrink-0">Publisher</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words line-clamp-1">{song.publisher || "-"}</span>
+        <span className="text-sm font-semibold text-white/60 shrink-0">Publisher</span>
+        <span className="text-sm font-bold text-white text-right break-words line-clamp-1">{song.publisher || "-"}</span>
       </div>
     </div>
 
-    <div className="mt-5 pt-4 border-t border-gray-100 flex gap-2">
+    <div className="mt-5 pt-4 border-t border-white/15 flex gap-2">
       {ytLink && (
-        <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="w-11 h-11 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center shrink-0 transition" title="Buka di YouTube">
+        <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="w-11 h-11 rounded-xl bg-white/10 text-white hover:bg-white hover:text-[#f000ff] flex items-center justify-center shrink-0 transition" title="Buka di YouTube">
           <PlayCircle className="w-5 h-5" />
         </a>
       )}
-      <button className="flex-1 h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
+      <button className="flex-1 h-11 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white font-bold flex items-center justify-center gap-2 transition text-sm">
         <Settings className="w-4 h-4 shrink-0" /> Buka Detail
       </button>
     </div>
