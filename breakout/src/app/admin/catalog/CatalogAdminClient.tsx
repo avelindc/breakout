@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getCatalogSongsAction, deleteCatalogSongAction, createCatalogSongAction, updateCatalogSongAction, toggleCatalogSongStatusAction, deleteAllCatalogAction } from "@/app/actions/catalog";
-import { Loader2, RefreshCw, Trash2, Search, Plus, Edit, Music, X, Link, Mic2 } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Search, Plus, Edit, Music, X, Link, Mic2, AlertCircle, LayoutList, Database } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
@@ -113,113 +113,138 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Action Bar */}
-      <div className="flex flex-wrap items-center gap-4 bg-blue-700/60 backdrop-blur-sm p-6 rounded-3xl border border-blue-500/30">
-        <button 
-          onClick={openAddModal}
-          className="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          Tambah Lagu Baru
-        </button>
-
-        <button 
-          onClick={() => fetchSongs(page, search)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-500/50 text-white rounded-xl font-bold hover:bg-blue-500/70 transition border border-blue-400/30"
-        >
-          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-
-        <button 
-          onClick={handleClearAll}
-          disabled={isClearing}
-          className="flex items-center gap-2 px-6 py-3 bg-red-500/20 text-red-300 rounded-xl font-bold hover:bg-red-500/30 transition border border-red-400/20 ml-auto disabled:opacity-50"
-        >
-          {isClearing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-          Hapus Semua Katalog
-        </button>
-      </div>
-
-      {/* Songs Table */}
-      <div className="bg-blue-700/60 backdrop-blur-sm rounded-3xl border border-blue-500/30 overflow-hidden shadow-lg">
-        <div className="p-6 border-b border-blue-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <h2 className="text-xl font-bold text-white">Daftar Katalog</h2>
-          <div className="relative w-full sm:w-auto">
-            <Search className="w-5 h-5 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Cari judul, artis, vokal..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-blue-600/50 border border-blue-400/30 text-white placeholder-blue-300 rounded-lg outline-none focus:border-white/50 w-full sm:w-64"
-            />
+    <div className="space-y-8 animate-fade-in pb-10">
+      {/* Header Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-gradient-to-br from-blue-900/60 to-blue-800/20 backdrop-blur-xl rounded-[2rem] p-6 border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-400/30">
+              <Database className="w-6 h-6 text-blue-300" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Database Katalog MP3</h2>
+              <p className="text-blue-200/70 text-sm font-medium">{initialTotal.toLocaleString("id-ID")} lagu terdaftar di sistem</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <button 
+              onClick={openAddModal}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all border border-blue-400/50"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Data Baru
+            </button>
           </div>
         </div>
 
+        <div className="bg-gradient-to-br from-red-900/40 to-red-800/10 backdrop-blur-xl rounded-[2rem] p-6 border border-red-500/20 flex flex-col justify-between shadow-lg">
+          <div>
+            <h3 className="text-lg font-bold text-red-100 flex items-center gap-2 mb-1">
+              <AlertCircle className="w-5 h-5 text-red-400" /> Zona Bahaya
+            </h3>
+            <p className="text-sm text-red-200/70 font-medium">Tindakan ini tidak bisa dikembalikan.</p>
+          </div>
+          <button 
+            onClick={handleClearAll}
+            disabled={isClearing || initialTotal === 0}
+            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 bg-red-500/20 text-red-300 rounded-xl font-bold hover:bg-red-500/40 hover:text-red-100 transition-all border border-red-400/30 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            {isClearing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            Hapus Seluruh Katalog
+          </button>
+        </div>
+      </div>
+
+      {/* Advanced Filters */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 border border-white/10 shadow-xl">
+        <div className="flex items-center gap-3 mb-5">
+          <LayoutList className="w-5 h-5 text-blue-300" />
+          <h3 className="text-lg font-bold text-white">Cari Data Katalog MP3</h3>
+          
+          <button onClick={() => fetchSongs(page, search)} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 text-blue-200 rounded-lg text-sm font-bold hover:bg-blue-500/40 transition-all border border-blue-400/20">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </button>
+        </div>
+        
+        <div className="relative">
+          <Search className="w-4 h-4 text-blue-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input 
+            type="text" 
+            placeholder="Cari berdasarkan judul, artis, vokal..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-11 pr-4 py-3.5 w-full bg-black/20 border border-white/10 text-white placeholder-blue-200/50 rounded-xl outline-none focus:border-blue-400/50 focus:bg-black/40 transition-all font-medium"
+          />
+        </div>
+      </div>
+
+      {/* Premium Table */}
+      <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
+          <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
-              <tr className="bg-blue-800/50">
-                <th className="p-4 text-sm font-semibold text-blue-200">Judul</th>
-                <th className="p-4 text-sm font-semibold text-blue-200">Artist</th>
-                <th className="p-4 text-sm font-semibold text-blue-200">Vokal</th>
-                <th className="p-4 text-sm font-semibold text-blue-200">Publisher</th>
-                <th className="p-4 text-sm font-semibold text-blue-200">Link Drive</th>
-                <th className="p-4 text-sm font-semibold text-blue-200 text-center">Status</th>
-                <th className="p-4 text-sm font-semibold text-blue-200 text-right">Aksi</th>
+              <tr className="bg-black/20 border-b border-white/10">
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">Judul</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">Artist</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">Vokal</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">Publisher</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider">Link Drive</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider text-center">Status</th>
+                <th className="px-5 py-4 text-xs font-bold text-blue-300/70 uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-blue-600/30">
+            <tbody className="divide-y divide-white/5">
               {loading && songs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-blue-300">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                  <td colSpan={7} className="p-12 text-center text-blue-300">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                     Memuat katalog...
                   </td>
                 </tr>
               ) : songs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-blue-300">
+                  <td colSpan={7} className="p-12 text-center text-blue-300 font-medium">
                     Katalog kosong atau lagu tidak ditemukan.
                   </td>
                 </tr>
               ) : (
-                songs.map(song => (
-                  <tr key={song.id} className="hover:bg-blue-600/30 transition">
-                    <td className="p-4 font-medium text-white">{song.title}</td>
-                    <td className="p-4 text-blue-200 text-sm">{song.artist}</td>
-                    <td className="p-4 text-blue-200 text-sm">{song.vokal || '-'}</td>
-                    <td className="p-4 text-blue-300 text-sm">{song.publisher || '-'}</td>
-                    <td className="p-4 text-sm">
+                songs.map((song, i) => (
+                  <tr key={song.id} className={`group hover:bg-white/[0.08] transition-all ${i % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'}`}>
+                    <td className="px-5 py-4 font-bold text-white group-hover:text-blue-300 transition-colors max-w-[200px] truncate">{song.title}</td>
+                    <td className="px-5 py-4 text-blue-100/90 text-sm font-medium max-w-[140px] truncate">{song.artist}</td>
+                    <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{song.vokal || '-'}</td>
+                    <td className="px-5 py-4 text-gray-400 text-sm max-w-[130px] truncate">
+                      {song.publisher ? <span className="px-2.5 py-1 bg-white/5 rounded-md border border-white/5">{song.publisher}</span> : "-"}
+                    </td>
+                    <td className="px-5 py-4 text-sm">
                       {song.driveLink ? (
-                        <a href={song.driveLink} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-white underline flex items-center gap-1">
-                          <Link className="w-3 h-3" /> Buka
+                        <a href={song.driveLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 font-bold hover:bg-blue-500/20 hover:text-white transition-all border border-transparent hover:border-blue-400/30">
+                          <Link className="w-3 h-3" /> Buka Link
                         </a>
                       ) : (
-                        <span className="text-blue-500">-</span>
+                        <span className="text-gray-500 italic">-</span>
                       )}
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="px-5 py-4 text-center">
                       <button 
                         onClick={() => handleToggle(song.id)}
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${song.isActive ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${song.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 hover:border-emerald-500/50' : 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20 hover:border-red-500/50'}`}
                       >
-                        {song.isActive ? 'Aktif' : 'Nonaktif'}
+                        {song.isActive ? '✅ Aktif' : '❌ Nonaktif'}
                       </button>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => openEditModal(song)}
-                          className="p-2 text-blue-300 hover:bg-blue-500/20 rounded-lg transition"
+                          className="p-2 text-blue-300 hover:text-white bg-blue-500/10 hover:bg-blue-500/40 rounded-xl transition-all border border-transparent hover:border-blue-400/30"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(song.id)}
-                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition"
+                          className="p-2 text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/40 rounded-xl transition-all border border-transparent hover:border-red-400/30"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -233,98 +258,106 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         </div>
         
         {/* Pagination */}
-        <div className="p-4 border-t border-blue-600/30 flex items-center justify-between">
+        <div className="p-5 border-t border-white/5 bg-black/10 flex items-center justify-between gap-4 flex-wrap">
           <button 
             disabled={page === 1} 
             onClick={() => { setPage(p => p - 1); fetchSongs(page - 1); }}
-            className="px-4 py-2 bg-blue-600/50 text-blue-200 rounded-lg disabled:opacity-40 hover:bg-blue-600/70 transition border border-blue-500/30"
+            className="px-5 py-2.5 bg-white/5 text-white rounded-xl disabled:opacity-30 hover:bg-white/10 transition-all border border-white/10 text-sm font-bold flex items-center gap-2"
           >
-            Sebelumnya
+            ← Prev
           </button>
-          <span className="text-sm font-medium text-blue-300">Halaman {page}</span>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400 font-medium">Halaman</span>
+            <span className="w-8 h-8 flex items-center justify-center bg-blue-600 rounded-lg text-white font-bold text-sm shadow-lg">{page}</span>
+          </div>
+
           <button 
             disabled={songs.length < 10} 
             onClick={() => { setPage(p => p + 1); fetchSongs(page + 1); }}
-            className="px-4 py-2 bg-blue-600/50 text-blue-200 rounded-lg disabled:opacity-40 hover:bg-blue-600/70 transition border border-blue-500/30"
+            className="px-5 py-2.5 bg-white/5 text-white rounded-xl disabled:opacity-30 hover:bg-white/10 transition-all border border-white/10 text-sm font-bold flex items-center gap-2"
           >
-            Selanjutnya
+            Next →
           </button>
         </div>
       </div>
 
-      {/* Modal Add/Edit */}
+      {/* Premium Modal Add/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
-                {editingSong ? 'Edit Lagu' : 'Tambah Lagu Baru'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-fade-in">
+          <div className="bg-gradient-to-b from-[#1c2331] to-[#121620] rounded-[2rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[90vh] flex flex-col border border-white/10 transform animate-scale-up">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                {editingSong ? <Edit className="w-5 h-5 text-blue-400"/> : <Plus className="w-5 h-5 text-blue-400"/>}
+                {editingSong ? 'Edit Data Lagu' : 'Tambah Data Baru'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex items-center justify-center transition-all">
+                <X className="w-4 h-4" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
               {errorMsg && (
-                <div className="p-3 bg-red-100 text-red-600 text-sm rounded-lg border border-red-200">
-                  {errorMsg}
+                <div className="p-4 bg-red-500/20 border border-red-500/30 text-red-200 text-sm font-medium rounded-xl flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 shrink-0" /> {errorMsg}
                 </div>
               )}
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Judul *</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Judul *</label>
                 <input required name="title" defaultValue={editingSong?.title} type="text" 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
                   placeholder="Masukkan judul lagu" />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Artist *</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Artist *</label>
                 <input required name="artist" defaultValue={editingSong?.artist} type="text" 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
                   placeholder="Nama artis / pengarang" />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Vokal</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Vokal</label>
                 <input name="vokal" defaultValue={editingSong?.vokal} type="text" 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
                   placeholder="Nama penyanyi / vokal" />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700">Publisher</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Publisher</label>
                 <input name="publisher" defaultValue={editingSong?.publisher} type="text" 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
                   placeholder="Nama publisher / label" />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5"><Link className="w-4 h-4 text-blue-500" /> Link Drive</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1 flex items-center gap-1.5">Link Drive</label>
                 <input name="driveLink" defaultValue={editingSong?.driveLink} type="url" 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
                   placeholder="https://drive.google.com/..." />
               </div>
 
-              <div className="pt-2 border-t">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="pt-4 border-t border-white/10">
+                <label className="flex items-center gap-3 cursor-pointer bg-white/5 p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
                   <input type="hidden" name="isActive" value="false" />
                   <input type="checkbox" name="isActive" value="true" 
                     defaultChecked={editingSong ? editingSong.isActive : true} 
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
-                  <span className="text-sm font-medium text-gray-700">Status Aktif (Ditampilkan ke pengguna)</span>
+                    className="w-5 h-5 text-blue-600 rounded border-gray-600 bg-black focus:ring-blue-500 focus:ring-offset-gray-900" />
+                  <span className="text-sm font-bold text-white">Status Aktif (Ditampilkan ke pengguna)</span>
                 </label>
               </div>
 
-              <button 
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold mt-2 hover:bg-blue-700 transition disabled:opacity-50 flex justify-center items-center gap-2"
-              >
-                {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-                {isSubmitting ? "Menyimpan..." : "Simpan Lagu"}
-              </button>
+              <div className="pt-2 mt-2">
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 flex justify-center items-center gap-2 border border-blue-400/50"
+                >
+                  {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                  {isSubmitting ? "Menyimpan Data..." : "Simpan Data Lagu"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
