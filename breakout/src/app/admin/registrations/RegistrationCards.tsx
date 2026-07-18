@@ -50,63 +50,7 @@ function StatusDot({ status }: { status: string }) {
 /* ========================= */
 /* Document Zoom Viewer      */
 /* ========================= */
-function DocViewer({ url, label, onClose }: { url: string; label: string; onClose: () => void }) {
-  const [zoom, setZoom] = useState(1);
 
-  const isPdf = url.toLowerCase().includes(".pdf");
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex flex-col items-center justify-center"
-      onClick={onClose}
-    >
-      {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 flex items-center justify-between px-4 z-10" onClick={e => e.stopPropagation()}>
-        <p className="text-white font-bold text-sm">{label}</p>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
-          <span className="text-white text-xs font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
-          <button
-            onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white ml-2"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto flex items-center justify-center w-full pt-14 pb-4" onClick={e => e.stopPropagation()}>
-        {isPdf ? (
-          <iframe
-            src={url}
-            className="bg-white rounded-xl shadow-2xl"
-            style={{ width: `${Math.min(90, 60 * zoom)}vw`, height: `${Math.min(90, 70 * zoom)}vh` }}
-          />
-        ) : (
-          <img
-            src={url}
-            alt={label}
-            className="rounded-xl shadow-2xl transition-transform duration-200 max-w-[95vw] max-h-[90vh] object-contain"
-            style={{ transform: `scale(${zoom})` }}
-            draggable={false}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
 
 /* ========================= */
 /* Main Component            */
@@ -291,51 +235,71 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
                 <InfoRow icon={<MapPin className="w-4 h-4" />} label="Alamat" value={selectedCard.address || "Tidak diisi"} />
               </div>
 
-              {/* Documents - click to zoom, not open new tab */}
+              {/* Documents */}
               <div className="pt-3 border-t border-gray-100">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Dokumen</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-3">
                   {/* KTP */}
                   {selectedCard.ktpUrl ? (
                     <button
                       onClick={() => setDocViewer({ url: selectedCard.ktpUrl!, label: `KTP — ${selectedCard.name}` })}
-                      className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition group text-left"
+                      className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition group text-left w-full"
                     >
-                      <Eye className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-bold text-blue-700">Lihat KTP</span>
-                      <ZoomIn className="w-3 h-3 text-blue-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
+                      <Eye className="w-4 h-4 text-blue-600 animate-pulse" />
+                      <span className="text-sm font-bold text-blue-700">Lihat KTP (Zoom)</span>
+                      <ZoomIn className="w-3.5 h-3.5 text-blue-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 w-full">
                       <FileText className="w-4 h-4 text-gray-400" />
                       <span className="text-sm font-medium text-gray-400">KTP: N/A</span>
                     </div>
                   )}
 
-                  {/* Contract */}
-                  {selectedCard.hasContract && selectedCard.contractUrl ? (
-                    <button
-                      onClick={() => setDocViewer({ url: selectedCard.contractUrl!, label: `Kontrak — ${selectedCard.name}` })}
-                      className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100 hover:bg-green-100 transition group text-left"
-                    >
-                      <Shield className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-bold text-green-700">Kontrak</span>
-                      <ZoomIn className="w-3 h-3 text-green-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
-                    </button>
+                  {/* Contract Text */}
+                  {selectedCard.hasContract ? (
+                    <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-2xl space-y-2.5 w-full">
+                      <div className="flex items-center gap-2 text-purple-700 font-bold text-sm">
+                        <Shield className="w-4 h-4 text-purple-600" />
+                        <span>Isi Kontrak Perjanjian (Teks)</span>
+                      </div>
+                      
+                      <div className="text-xs text-gray-700 bg-white p-3.5 rounded-xl border border-gray-100 max-h-56 overflow-y-auto space-y-3 leading-relaxed font-sans shadow-inner">
+                        <p className="font-bold text-center uppercase border-b pb-1 text-gray-800">PERJANJIAN DISTRIBUSI DIGITAL</p>
+                        <p className="text-[11px] text-justify text-gray-600">
+                          Dibuat dan disepakati Perjanjian Distribusi Digital oleh dan antara:
+                        </p>
+                        <div className="pl-2 border-l-2 border-purple-200 space-y-1 text-[11px] text-gray-800 font-medium">
+                          <p><strong>PIHAK PERTAMA:</strong> BREAK OUT MUSIC RECORD (Founder & CEO: Muhammad Belva Citta Apprillio)</p>
+                          <p><strong>PIHAK KEDUA:</strong> {selectedCard.name} (NIK: {selectedCard.nik || "-"}, Alamat: {selectedCard.address || "-"})</p>
+                        </div>
+                        
+                        <div className="space-y-2 pt-2 border-t text-[11px]">
+                          <p><strong>1. PEMBERIAN HAK:</strong> PIHAK KEDUA melisensikan eksklusif Master Audio & Video kepada PIHAK PERTAMA untuk dieksploitasi dalam format digital di seluruh dunia (World Wide) selama 2 tahun.</p>
+                          <p><strong>2. BAGI HASIL:</strong> Komposisi bagi hasil disepakati sebesar 72,5% untuk PIHAK KEDUA dan 27,5% untuk PIHAK PERTAMA.</p>
+                          <p><strong>3. JAMINAN KARYA:</strong> PIHAK KEDUA menjamin karya original (bukan plagiarisme, cover tanpa izin, atau vokal AI tanpa izin). PIHAK PERTAMA berhak melakukan take down sepihak jika terbukti melanggar.</p>
+                          <p><strong>4. PEMBAYARAN:</strong> Laporan dikirimkan tanggal 5 setiap bulan setelah masa tunggu 90 hari. Minimal pengajuan invoice sebesar Rp10.000.</p>
+                        </div>
+
+                        <p className="text-center text-[10px] font-bold text-green-600 bg-green-50 py-1.5 rounded-lg border border-green-200 mt-2">
+                          ✓ Ditandatangani secara digital oleh {selectedCard.name}
+                        </p>
+                      </div>
+                      
+                      {selectedCard.contractSignedAt && (
+                        <p className="text-[10px] text-gray-400 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" />
+                          Disetujui tanggal: {formatDate(selectedCard.contractSignedAt)}
+                        </p>
+                      )}
+                    </div>
                   ) : (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100 w-full">
                       <FileText className="w-4 h-4 text-red-400" />
-                      <span className="text-sm font-medium text-red-400">No Contract</span>
+                      <span className="text-sm font-medium text-red-400">Belum Ada Kontrak yang Disetujui</span>
                     </div>
                   )}
                 </div>
-
-                {selectedCard.contractSignedAt && (
-                  <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Kontrak ditandatangani: {formatDate(selectedCard.contractSignedAt)}
-                  </p>
-                )}
               </div>
 
               {/* Reject Form */}
@@ -406,9 +370,29 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
         </div>
       )}
 
-      {/* Document Zoom Viewer */}
+      {/* Document Zoom Viewer (Only for KTP images) */}
       {docViewer && (
-        <DocViewer url={docViewer.url} label={docViewer.label} onClose={() => setDocViewer(null)} />
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-[99999] flex flex-col items-center justify-center p-4"
+          onClick={() => setDocViewer(null)}
+        >
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+            <button
+              onClick={() => setDocViewer(null)}
+              className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white font-bold"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="max-w-[90vw] max-h-[85vh] flex items-center justify-center relative bg-black/40 p-2 rounded-2xl">
+            <img
+              src={docViewer.url}
+              alt={docViewer.label}
+              className="rounded-xl max-w-full max-h-[80vh] object-contain shadow-2xl"
+            />
+          </div>
+          <p className="text-white/60 text-xs font-mono mt-3">{docViewer.label}</p>
+        </div>
       )}
     </>
   );
