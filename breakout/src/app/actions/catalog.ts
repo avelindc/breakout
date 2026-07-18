@@ -2,10 +2,14 @@
 
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
-import * as XLSX from 'xlsx';
 import { revalidatePath } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // Helper to assert admin
 async function requireAdmin() {
@@ -16,149 +20,199 @@ async function requireAdmin() {
   }
 }
 
-export async function uploadCatalogExcelAction(formData: FormData) {
+export async function createCatalogSongAction(formData: FormData) {
   try {
     await requireAdmin();
 
-    const file = formData.get("file") as File | null;
-    if (!file) {
-      return { error: "No file provided" };
+    const title = formData.get("title") as string;
+    const artist = formData.get("artist") as string;
+    const publisher = formData.get("publisher") as string;
+    const genre = formData.get("genre") as string;
+    const isDownloadable = formData.get("isDownloadable") === "true";
+    const isActive = formData.get("isActive") !== "false"; // default true
+    
+    const coverFile = formData.get("cover") as File | null;
+    const audioFile = formData.get("audio") as File | null;
+
+    if (!title || !artist) {
+      return { error: "Title and artist are required" };
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    
-    if (workbook.SheetNames.length === 0) {
-      return { error: "Excel file is empty" };
+    if (!supabase) {
+      return { error: "Supabase credentials missing" };
     }
 
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    
-    // Parse to JSON. Assuming first row is header.
-    const rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-    
-    if (rawData.length === 0) {
-      return { error: "No data found in the Excel file" };
-    }
+    let coverUrl = null;
+    let audioUrl = null;
 
-    let successCount = 0;
-    
-    // We will use a transaction to insert/update in bulk.
-    // However, Prisma doesn't have a simple upsertMany.
-    // We will do a batch of individual upserts since data could be tens of thousands.
-    // Wait, for tens of thousands, looping 1000 at a time with Promise.all is better.
-    
-    const BATCH_SIZE = 500;
-    
-    // First, map and clean the data
-    const validRows = [];
-    for (const row of rawData as any[]) {
-      const getVal = (keys: string[]) => {
-        for (const key of Object.keys(row)) {
-          if (keys.includes(key.toLowerCase().trim())) {
-            return row[key] ? String(row[key]).trim() : null;
-          }
-        }
-        return null;
-      };
+    const timestamp = Date.now();
 
-      const title = getVal(['judul lagu', 'judul', 'title', 'song title', 'track']);
-      const artist = getVal(['nama artis', 'artis', 'artist', 'primary artist']);
-      const publisher = getVal(['publisher', 'label']);
-      const genre = getVal(['genre']);
-      const isrc = getVal(['isrc']);
-      const duration = getVal(['durasi', 'duration', 'time']);
-      const year = getVal(['tahun', 'year']);
-
-      if (!title || !artist) continue;
-      validRows.push({ title, artist, publisher, genre, isrc, duration, year });
-    }
-    
-    if (validRows.length === 0) {
-      return { error: "No valid data found in the Excel file" };
-    }
-
-    for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
-      const batch = validRows.slice(i, i + BATCH_SIZE);
-      
-      const isrcs = batch.map(r => r.isrc).filter(Boolean) as string[];
-      const titleArtistPairs = batch.map(r => ({ title: r.title, artist: r.artist }));
-
-      // Fetch existing records for this batch
-      const existingRecords = await prisma.catalogSong.findMany({
-        where: {
-          OR: [
-            ...(isrcs.length > 0 ? [{ isrc: { in: isrcs } }] : []),
-            ...titleArtistPairs.map(p => ({
-              title: { equals: p.title, mode: 'insensitive' as const },
-              artist: { equals: p.artist, mode: 'insensitive' as const }
-            }))
-          ]
-        },
-        select: { id: true, isrc: true, title: true, artist: true }
-      });
-
-      const isrcMap = new Map();
-      const titleArtistMap = new Map();
-      
-      for (const record of existingRecords) {
-        if (record.isrc) isrcMap.set(record.isrc, record);
-        titleArtistMap.set(`${record.title.toLowerCase()}||${record.artist.toLowerCase()}`, record);
-      }
-
-      const toCreate = [];
-      const toUpdate = [];
-
-      for (const row of batch) {
-        let existing = null;
-        if (row.isrc && isrcMap.has(row.isrc)) {
-          existing = isrcMap.get(row.isrc);
-        } else {
-          const key = `${row.title.toLowerCase()}||${row.artist.toLowerCase()}`;
-          if (titleArtistMap.has(key)) {
-            existing = titleArtistMap.get(key);
-          }
-        }
-
-        if (existing) {
-          toUpdate.push({ id: existing.id, data: row });
-        } else {
-          toCreate.push(row);
-          // To prevent duplicates within the same batch
-          if (row.isrc) isrcMap.set(row.isrc, { id: 'temp' });
-          titleArtistMap.set(`${row.title.toLowerCase()}||${row.artist.toLowerCase()}`, { id: 'temp' });
-        }
-      }
-
-      // Execute creations
-      if (toCreate.length > 0) {
-        await prisma.catalogSong.createMany({
-          data: toCreate,
+    // Upload Cover
+    if (coverFile && coverFile.size > 0) {
+      const coverPath = `catalog/covers/${timestamp}_${coverFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { data: coverData, error: coverError } = await supabase.storage
+        .from("releases")
+        .upload(coverPath, coverFile, {
+          cacheControl: "3600",
+          upsert: false,
         });
-        successCount += toCreate.length;
-      }
 
-      // Execute updates
-      if (toUpdate.length > 0) {
-        await Promise.all(toUpdate.map(item => 
-          prisma.catalogSong.update({
-            where: { id: item.id },
-            data: item.data
-          }).catch(e => console.error("Error updating", e))
-        ));
-        successCount += toUpdate.length;
-      }
+      if (coverError) return { error: `Failed to upload cover: ${coverError.message}` };
+      coverUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
     }
+
+    // Upload Audio
+    if (audioFile && audioFile.size > 0) {
+      const audioPath = `catalog/audio/${timestamp}_${audioFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { data: audioData, error: audioError } = await supabase.storage
+        .from("releases")
+        .upload(audioPath, audioFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (audioError) return { error: `Failed to upload audio: ${audioError.message}` };
+      audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+    }
+
+    await prisma.catalogSong.create({
+      data: {
+        title,
+        artist,
+        publisher,
+        genre,
+        coverUrl,
+        audioUrl,
+        isDownloadable,
+        isActive,
+      }
+    });
 
     revalidatePath("/admin/catalog");
     revalidatePath("/dashboard/catalog");
     
-    return { success: true, count: successCount };
+    return { success: true };
 
   } catch (error: any) {
-    console.error("Excel upload error:", error);
-    return { error: error.message || "Failed to process Excel file" };
+    console.error("Create catalog song error:", error);
+    return { error: error.message || "Failed to create catalog song" };
+  }
+}
+
+export async function updateCatalogSongAction(id: string, formData: FormData) {
+  try {
+    await requireAdmin();
+
+    const song = await prisma.catalogSong.findUnique({ where: { id } });
+    if (!song) return { error: "Song not found" };
+
+    const title = formData.get("title") as string;
+    const artist = formData.get("artist") as string;
+    const publisher = formData.get("publisher") as string;
+    const genre = formData.get("genre") as string;
+    const isDownloadable = formData.get("isDownloadable") === "true";
+    const isActive = formData.get("isActive") !== "false";
+    
+    const coverFile = formData.get("cover") as File | null;
+    const audioFile = formData.get("audio") as File | null;
+
+    if (!supabase) return { error: "Supabase credentials missing" };
+
+    let coverUrl = song.coverUrl;
+    let audioUrl = song.audioUrl;
+    const timestamp = Date.now();
+
+    // Upload Cover if new one provided
+    if (coverFile && coverFile.size > 0) {
+      const coverPath = `catalog/covers/${timestamp}_${coverFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { error: coverError } = await supabase.storage
+        .from("releases")
+        .upload(coverPath, coverFile, { cacheControl: "3600", upsert: false });
+
+      if (coverError) return { error: `Failed to upload cover: ${coverError.message}` };
+      coverUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    }
+
+    // Upload Audio if new one provided
+    if (audioFile && audioFile.size > 0) {
+      const audioPath = `catalog/audio/${timestamp}_${audioFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { error: audioError } = await supabase.storage
+        .from("releases")
+        .upload(audioPath, audioFile, { cacheControl: "3600", upsert: false });
+
+      if (audioError) return { error: `Failed to upload audio: ${audioError.message}` };
+      audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+    }
+
+    await prisma.catalogSong.update({
+      where: { id },
+      data: {
+        title: title || song.title,
+        artist: artist || song.artist,
+        publisher,
+        genre,
+        coverUrl,
+        audioUrl,
+        isDownloadable,
+        isActive,
+      }
+    });
+
+    revalidatePath("/admin/catalog");
+    revalidatePath("/dashboard/catalog");
+    
+    return { success: true };
+
+  } catch (error: any) {
+    console.error("Update catalog song error:", error);
+    return { error: error.message || "Failed to update catalog song" };
+  }
+}
+
+export async function deleteCatalogSongAction(id: string) {
+  try {
+    await requireAdmin();
+    const song = await prisma.catalogSong.findUnique({ where: { id } });
+    if (!song) return { error: "Song not found" };
+
+    // Optional: Delete from Supabase storage if needed to save space
+    // If coverUrl exists, extract path and delete
+    if (supabase && song.coverUrl && song.coverUrl.includes('/storage/v1/object/public/releases/')) {
+      const path = song.coverUrl.split('/storage/v1/object/public/releases/')[1];
+      if (path) await supabase.storage.from('releases').remove([path]);
+    }
+    if (supabase && song.audioUrl && song.audioUrl.includes('/storage/v1/object/public/releases/')) {
+      const path = song.audioUrl.split('/storage/v1/object/public/releases/')[1];
+      if (path) await supabase.storage.from('releases').remove([path]);
+    }
+
+    await prisma.catalogSong.delete({ where: { id } });
+    revalidatePath("/admin/catalog");
+    revalidatePath("/dashboard/catalog");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to delete song" };
+  }
+}
+
+export async function toggleCatalogSongStatusAction(id: string, field: 'isActive' | 'isDownloadable') {
+  try {
+    await requireAdmin();
+    const song = await prisma.catalogSong.findUnique({ where: { id } });
+    if (!song) return { error: "Song not found" };
+
+    await prisma.catalogSong.update({
+      where: { id },
+      data: {
+        [field]: !song[field]
+      }
+    });
+
+    revalidatePath("/admin/catalog");
+    revalidatePath("/dashboard/catalog");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to toggle status" };
   }
 }
 
@@ -168,19 +222,24 @@ export async function getCatalogSongsAction({
   search = "",
   publisher = "",
   genre = "",
-  artist = ""
+  isAdmin = false
 }: {
   page?: number;
   limit?: number;
   search?: string;
   publisher?: string;
   genre?: string;
-  artist?: string;
+  isAdmin?: boolean;
 }) {
   try {
     const skip = (page - 1) * limit;
 
     const where: any = {};
+    
+    // Only users should see active songs, admins can see all
+    if (!isAdmin) {
+      where.isActive = true;
+    }
     
     if (search) {
       where.OR = [
@@ -191,7 +250,6 @@ export async function getCatalogSongsAction({
     }
     if (publisher) where.publisher = publisher;
     if (genre) where.genre = genre;
-    if (artist) where.artist = artist;
 
     const [songs, total] = await Promise.all([
       prisma.catalogSong.findMany({
@@ -211,8 +269,6 @@ export async function getCatalogSongsAction({
 
 export async function getCatalogFiltersAction() {
   try {
-    // Get unique publishers, genres, artists for dropdowns
-    // Since prisma distinct is slow on large tables, we might just fetch the most common ones or use distinct.
     const publishers = await prisma.catalogSong.findMany({
       distinct: ['publisher'],
       select: { publisher: true },
@@ -232,27 +288,5 @@ export async function getCatalogFiltersAction() {
     };
   } catch (error: any) {
     return { error: error.message };
-  }
-}
-
-export async function deleteCatalogSongAction(id: string) {
-  try {
-    await requireAdmin();
-    await prisma.catalogSong.delete({ where: { id } });
-    revalidatePath("/admin/catalog");
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to delete song" };
-  }
-}
-
-export async function deleteAllCatalogAction() {
-  try {
-    await requireAdmin();
-    await prisma.catalogSong.deleteMany({});
-    revalidatePath("/admin/catalog");
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to clear catalog" };
   }
 }

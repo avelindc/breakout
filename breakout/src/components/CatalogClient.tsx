@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getCatalogSongsAction, getCatalogFiltersAction } from "@/app/actions/catalog";
-import { Search, Loader2, Music, User, Building, Clock, FileDigit, Calendar, Mic2, X } from "lucide-react";
+import { Search, Loader2, Music, User, Building, X, Play, Download, Pause } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function CatalogClient() {
@@ -71,16 +71,6 @@ export function CatalogClient() {
     }
   };
 
-  const handleAjukanCover = (song: any) => {
-    // Redirect to upload form with pre-filled cover details via query string
-    const params = new URLSearchParams();
-    params.set("cover", "true");
-    params.set("title", song.title);
-    params.set("originalArtist", song.artist);
-    
-    router.push(`/dashboard/upload?${params.toString()}`);
-  };
-
   return (
     <div className="space-y-6">
       <div className="bg-blue-600 rounded-2xl p-6 flex flex-col md:flex-row gap-4 items-center shadow-lg">
@@ -88,7 +78,7 @@ export function CatalogClient() {
           <Search className="w-5 h-5 text-blue-200 absolute left-4 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
-            placeholder="Cari berdasarkan judul, artis, atau publisher..."
+            placeholder="Cari berdasarkan judul lagu, artis, atau publisher..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-blue-700/50 border border-blue-400/30 rounded-xl outline-none focus:border-white text-white transition placeholder-blue-200"
@@ -121,7 +111,7 @@ export function CatalogClient() {
       </div>
 
       <div className="mb-4 text-gray-400 font-medium">
-        Menampilkan {songs.length} dari {total} lagu
+        Menampilkan {songs.length} dari {total} lagu MP3
       </div>
 
       {songs.length === 0 && !loading ? (
@@ -136,20 +126,35 @@ export function CatalogClient() {
             <div 
               key={`${song.id}-${i}`}
               onClick={() => setSelectedSong(song)}
-              className="bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-600/10 transition group"
+              className="bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-600/10 transition group flex flex-col"
             >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-600/30 text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Music className="w-6 h-6" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-lg font-bold text-white truncate">{song.title}</h4>
-                  <p className="text-sm text-gray-400 truncate flex items-center gap-1 mt-1">
-                    <User className="w-3 h-3" /> {song.artist}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-1">
-                    <Building className="w-3 h-3" /> {song.publisher || 'Indie'}
-                  </p>
+              <div className="w-full aspect-square bg-blue-900 rounded-xl mb-4 overflow-hidden relative flex items-center justify-center">
+                {song.coverUrl ? (
+                  <img src={song.coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                ) : (
+                  <Music className="w-12 h-12 text-blue-400/50" />
+                )}
+                {/* Play Overlay */}
+                {song.audioUrl && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 pl-1 shadow-xl">
+                      <Play className="w-5 h-5" />
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="min-w-0 flex-1">
+                <h4 className="text-lg font-bold text-white truncate">{song.title}</h4>
+                <p className="text-sm text-blue-300 truncate font-medium mt-0.5">{song.artist}</p>
+                
+                <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
+                  {song.publisher && (
+                    <span className="flex items-center gap-1 truncate"><Building className="w-3 h-3"/> {song.publisher}</span>
+                  )}
+                  {song.genre && (
+                    <span className="px-2 py-1 bg-white/10 rounded-full">{song.genre}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -174,56 +179,84 @@ export function CatalogClient() {
         </div>
       )}
 
-      {/* Song Detail Modal */}
+      {/* Song Detail & Player Modal */}
       {selectedSong && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#12121A] rounded-3xl max-w-lg w-full border border-white/10 shadow-2xl overflow-hidden animate-scale-in">
-            <div className="p-6 border-b border-white/5 flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-bold text-white">{selectedSong.title}</h2>
-                <p className="text-blue-400 font-medium mt-1">{selectedSong.artist}</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#12121A] rounded-3xl max-w-md w-full border border-white/10 shadow-2xl overflow-hidden animate-scale-in flex flex-col">
+            <div className="relative aspect-square w-full bg-blue-900">
+              {selectedSong.coverUrl ? (
+                <img src={selectedSong.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Music className="w-24 h-24 text-blue-400/50" />
+                </div>
+              )}
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-[#12121A] via-transparent to-transparent opacity-90" />
+              
               <button 
                 onClick={() => setSelectedSong(null)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition"
+                className="absolute top-4 right-4 p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full transition z-10"
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
 
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1"><Building className="w-3 h-3"/> Publisher</p>
-                  <p className="text-sm text-gray-200 font-medium">{selectedSong.publisher || '-'}</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1"><Music className="w-3 h-3"/> Genre</p>
-                  <p className="text-sm text-gray-200 font-medium">{selectedSong.genre || '-'}</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1"><FileDigit className="w-3 h-3"/> ISRC</p>
-                  <p className="text-sm text-gray-200 font-medium">{selectedSong.isrc || '-'}</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1"><Clock className="w-3 h-3"/> Durasi</p>
-                  <p className="text-sm text-gray-200 font-medium">{selectedSong.duration || '-'}</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl col-span-2">
-                  <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1"><Calendar className="w-3 h-3"/> Tahun</p>
-                  <p className="text-sm text-gray-200 font-medium">{selectedSong.year || '-'}</p>
-                </div>
+              <div className="absolute bottom-6 left-6 right-6 z-10">
+                <h2 className="text-2xl font-bold text-white drop-shadow-md truncate">{selectedSong.title}</h2>
+                <p className="text-blue-400 font-medium mt-1 text-lg drop-shadow-md truncate">{selectedSong.artist}</p>
               </div>
             </div>
 
-            <div className="p-6 border-t border-white/5 bg-black/20">
-              <button 
-                onClick={() => handleAjukanCover(selectedSong)}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold text-lg hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
-              >
-                <Mic2 className="w-5 h-5" />
-                Ajukan Cover Lagu Ini
-              </button>
+            <div className="p-6 space-y-6">
+              <div className="flex flex-wrap gap-2">
+                {selectedSong.publisher && (
+                  <div className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-gray-400"/>
+                    <span className="text-sm text-gray-300">{selectedSong.publisher}</span>
+                  </div>
+                )}
+                {selectedSong.genre && (
+                  <div className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                    <span className="text-sm text-gray-300">{selectedSong.genre}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Audio Player */}
+              {selectedSong.audioUrl ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-400 ml-1">Preview MP3</p>
+                  <audio 
+                    controls 
+                    className="w-full h-12"
+                    controlsList="nodownload"
+                    autoPlay
+                    src={selectedSong.audioUrl}
+                  />
+                </div>
+              ) : (
+                 <div className="p-4 bg-white/5 rounded-xl text-center text-gray-400 text-sm">
+                   Preview Audio tidak tersedia untuk lagu ini.
+                 </div>
+              )}
+              
+              {/* Download Action */}
+              {selectedSong.isDownloadable ? (
+                <a 
+                  href={selectedSong.audioUrl}
+                  download
+                  target="_blank"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] mt-2"
+                >
+                  <Download className="w-5 h-5" />
+                  Download MP3
+                </a>
+              ) : (
+                <div className="w-full py-4 rounded-xl bg-white/5 text-gray-400 font-bold flex justify-center items-center gap-2 border border-white/10 mt-2 cursor-not-allowed">
+                  <Download className="w-5 h-5 opacity-50" />
+                  Download Tidak Tersedia
+                </div>
+              )}
             </div>
           </div>
         </div>
