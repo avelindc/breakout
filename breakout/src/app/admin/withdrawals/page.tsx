@@ -90,42 +90,81 @@ export default async function AdminWithdrawalsPage() {
             <span className="w-2 h-2 rounded-full bg-gray-400" />
             History (Latest 50)
           </h2>
-          
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-500">
-                  <th className="p-4 font-medium">Artist</th>
-                  <th className="p-4 font-medium">Amount</th>
-                  <th className="p-4 font-medium">Bank Details</th>
-                  <th className="p-4 font-medium">Date</th>
-                  <th className="p-4 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyRequests.map(req => (
-                  <tr key={req.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                    <td className="p-4 font-semibold text-gray-900">{req.user.artists?.[0]?.stageName || req.user.name}</td>
-                    <td className="p-4 font-bold text-gray-900">Rp {req.amount.toLocaleString('id-ID')}</td>
-                    <td className="p-4 text-sm">
-                      <p className="text-gray-900">{req.bankName}</p>
-                      <p className="text-gray-500 text-xs">{req.accountNumber}</p>
-                    </td>
-                    <td className="p-4 text-gray-500 text-sm">{new Date(req.updatedAt).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold
-                        ${req.status === 'PAID' ? 'bg-green-100 text-green-700' : 
-                          req.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' :
-                          'bg-red-100 text-red-700'}`}
-                      >
-                        {req.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+
+          {historyRequests.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500 shadow-sm">
+              No withdrawal history yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {historyRequests.map(req => {
+                const isPaid = req.status === 'PAID';
+                const isRejected = req.status === 'REJECTED';
+                const dateStr = new Date(req.updatedAt).toLocaleDateString('id-ID', {
+                  day: 'numeric', month: 'short', year: 'numeric'
+                });
+                const timeStr = new Date(req.updatedAt).toLocaleTimeString('id-ID', {
+                  hour: '2-digit', minute: '2-digit'
+                });
+
+                return (
+                  <div
+                    key={req.id}
+                    className={`bg-white rounded-xl border shadow-sm overflow-hidden transition hover:shadow-md ${
+                      isPaid ? 'border-l-4 border-l-green-500 border-gray-200' :
+                      isRejected ? 'border-l-4 border-l-red-500 border-gray-200' :
+                      'border-l-4 border-l-blue-500 border-gray-200'
+                    }`}
+                  >
+                    <div className="p-4 sm:p-5">
+                      {/* Top row: Amount + Status badge */}
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                          Rp {req.amount.toLocaleString('id-ID')}
+                        </h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                          isPaid ? 'bg-green-100 text-green-700' :
+                          isRejected ? 'bg-red-100 text-red-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {isPaid && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                          {isRejected && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                          {!isPaid && !isRejected && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                          {isPaid ? '✅ PAID' : isRejected ? '❌ REJECTED' : req.status}
+                        </span>
+                      </div>
+
+                      {/* Artist name */}
+                      <p className="text-blue-600 font-medium text-sm mb-3">
+                        {req.user.artists?.[0]?.stageName || req.user.name}
+                      </p>
+
+                      {/* Details grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm bg-gray-50 rounded-lg p-3">
+                        <div>
+                          <p className="text-gray-400 text-xs mb-0.5">Bank</p>
+                          <p className="font-semibold text-gray-900">{req.bankName}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs mb-0.5">Rekening</p>
+                          <p className="font-semibold text-gray-900 font-mono text-xs">{req.accountNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs mb-0.5">Nama</p>
+                          <p className="font-semibold text-gray-900">{req.accountName}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400 text-xs mb-0.5">Tanggal</p>
+                          <p className="font-semibold text-gray-900">{dateStr}</p>
+                          <p className="text-gray-400 text-[11px]">{timeStr}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </div>
