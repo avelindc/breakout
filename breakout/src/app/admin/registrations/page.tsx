@@ -110,7 +110,7 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
               <div className="w-24">KTP</div>
               <div className="w-40">Contract</div>
               <div className="w-24">Status</div>
-              {activeTab === 'pending' && <div className="flex-1 flex justify-end">Action</div>}
+              <div className="flex-1 flex justify-end">Action</div>
             </div>
 
             {/* Rows */}
@@ -182,15 +182,13 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
                     )}
                   </div>
                   
-                  {activeTab === 'pending' && (
-                    <div className="flex-1 flex justify-end gap-2">
-                      <RegistrationActionButtons 
-                        userId={user.id} 
-                        userName={user.name || "Artist"} 
-                        userEmail={user.email} 
-                      />
-                    </div>
-                  )}
+                  <div className="flex-1 flex justify-end gap-2">
+                    <RegistrationActionButtons 
+                      userId={user.id} 
+                      userName={user.name || "Artist"} 
+                      userEmail={user.email} 
+                    />
+                  </div>
                 </div>
               );
             })}
