@@ -66,7 +66,43 @@ export function WithdrawForm({ availableBalance }: { availableBalance: number })
 
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-300">Bank Name</label>
-        <input required name="bankName" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition" placeholder="e.g. BCA, Mandiri, BRI" />
+        <div className="relative">
+          <select 
+            required 
+            name="bankName" 
+            defaultValue=""
+            className="w-full bg-[#1A1A1A] border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition appearance-none cursor-pointer text-white"
+          >
+            <option value="" disabled>Pilih Bank / E-Wallet</option>
+            <optgroup label="Bank Utama">
+              <option value="BCA">BCA (Bank Central Asia)</option>
+              <option value="Mandiri">Bank Mandiri</option>
+              <option value="BNI">BNI (Bank Negara Indonesia)</option>
+              <option value="BRI">BRI (Bank Rakyat Indonesia)</option>
+              <option value="BSI">BSI (Bank Syariah Indonesia)</option>
+              <option value="BTN">BTN (Bank Tabungan Negara)</option>
+            </optgroup>
+            <optgroup label="Bank Digital & Swasta">
+              <option value="Jago">Bank Jago</option>
+              <option value="Seabank">SeaBank</option>
+              <option value="Blu">Blu by BCA Digital</option>
+              <option value="Neo">Bank Neo Commerce</option>
+              <option value="CIMB Niaga">CIMB Niaga</option>
+              <option value="Permata">Permata Bank</option>
+              <option value="Danamon">Bank Danamon</option>
+            </optgroup>
+            <optgroup label="E-Wallet">
+              <option value="DANA">DANA</option>
+              <option value="GOPAY">GoPay</option>
+              <option value="OVO">OVO</option>
+              <option value="ShopeePay">ShopeePay</option>
+              <option value="LinkAja">LinkAja</option>
+            </optgroup>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-1">
