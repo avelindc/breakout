@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCatalogSongsAction, deleteCatalogSongAction, createCatalogSongAction, updateCatalogSongAction, toggleCatalogSongStatusAction } from "@/app/actions/catalog";
+import { getCatalogSongsAction, deleteCatalogSongAction, createCatalogSongAction, updateCatalogSongAction, toggleCatalogSongStatusAction, deleteAllCatalogAction } from "@/app/actions/catalog";
 import { Loader2, RefreshCw, Trash2, Search, Plus, Edit, Music, X, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -18,6 +18,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isClearing, setIsClearing] = useState(false);
 
   const fetchSongs = async (pageNum = 1, searchQuery = search) => {
     setLoading(true);
@@ -36,6 +37,19 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
     }, 500);
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
+
+  const handleClearAll = async () => {
+    if (!confirm("Yakin ingin hapus SEMUA lagu dari katalog? Tindakan ini tidak dapat dibatalkan.")) return;
+    setIsClearing(true);
+    const res = await deleteAllCatalogAction();
+    setIsClearing(false);
+    if (res.success) {
+      setSongs([]);
+      router.refresh();
+    } else {
+      alert(res.error);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus lagu ini? File MP3 dan Cover juga akan terhapus jika ada.")) return;
@@ -128,6 +142,15 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         >
           <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           Refresh
+        </button>
+
+        <button 
+          onClick={handleClearAll}
+          disabled={isClearing}
+          className="flex items-center gap-2 px-6 py-3 bg-red-500/20 text-red-300 rounded-xl font-bold hover:bg-red-500/30 transition border border-red-400/20 ml-auto disabled:opacity-50"
+        >
+          {isClearing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+          Hapus Semua Katalog
         </button>
       </div>
 

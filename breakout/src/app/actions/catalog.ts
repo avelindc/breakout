@@ -267,6 +267,18 @@ export async function getCatalogSongsAction({
   }
 }
 
+export async function deleteAllCatalogAction() {
+  try {
+    await requireAdmin();
+    await prisma.catalogSong.deleteMany({});
+    revalidatePath("/admin/catalog");
+    revalidatePath("/dashboard/catalog");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to delete all catalog songs" };
+  }
+}
+
 export async function getCatalogFiltersAction() {
   try {
     const publishers = await prisma.catalogSong.findMany({
