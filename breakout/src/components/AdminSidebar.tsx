@@ -82,7 +82,7 @@ export function AdminSidebar({ artists = [], brandLogo = "/logo.png" }: { artist
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 pl-4 flex flex-col gap-1 mt-4">
+        <div className="flex-1 overflow-y-auto py-6 pb-24 pl-4 flex flex-col gap-1 mt-4">
           {links.map((link, index) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
