@@ -52,55 +52,55 @@ export default async function MyReleasesPage() {
           {releases.map((release) => (
             <div 
               key={release.id} 
-              className="flex flex-col md:flex-row md:items-center p-5 md:px-6 md:py-4 bg-white rounded-2xl border border-gray-100 shadow-sm transition hover:bg-blue-600 hover:border-blue-600 hover:shadow-blue-500/20 group cursor-pointer gap-5 md:gap-0 h-auto"
+              className="flex flex-col md:flex-row md:items-center p-5 md:px-6 md:py-4 bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm transition md:hover:bg-blue-600 md:hover:border-blue-600 md:hover:shadow-blue-500/20 group cursor-pointer gap-5 md:gap-0 h-auto"
             >
               {/* Mobile View: Artwork + Title + Artist */}
               <div className="flex items-start gap-4 md:hidden w-full">
-                <img src={release.coverArtworkUrl} alt={release.title} className="w-16 h-16 rounded-xl bg-gray-100 object-cover shadow-sm shrink-0" />
+                <img src={release.coverArtworkUrl} alt={release.title} className="w-16 h-16 rounded-xl bg-white/10 object-cover shadow-sm shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-900 group-hover:text-white transition text-lg leading-tight line-clamp-2">{release.title}</div>
-                  <div className="text-sm text-gray-500 group-hover:text-blue-200 mt-1 truncate">
+                  <div className="font-bold text-white md:text-gray-900 transition text-lg leading-tight line-clamp-2">{release.title}</div>
+                  <div className="text-sm text-white/80 md:text-gray-500 mt-1 truncate">
                     {release.primaryArtist} {release.featuredArtist ? `ft. ${release.featuredArtist}` : ''}
                   </div>
                 </div>
               </div>
 
               {/* Mobile View: Metadata (Type, Genre, Date, Status, ID) */}
-              <div className="flex flex-col gap-2.5 md:hidden w-full bg-gray-50/50 group-hover:bg-black/10 rounded-xl p-4">
+              <div className="flex flex-col gap-2.5 md:hidden w-full bg-white/10 rounded-xl p-4">
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-gray-400 group-hover:text-blue-200/70 shrink-0">Type</span>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-white text-right break-words">{release.type}</span>
+                  <span className="text-sm font-semibold text-white/60 shrink-0">Type</span>
+                  <span className="text-sm font-bold text-white text-right break-words">{release.type}</span>
                 </div>
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-gray-400 group-hover:text-blue-200/70 shrink-0">Genre</span>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-white text-right break-words">{release.genre}</span>
+                  <span className="text-sm font-semibold text-white/60 shrink-0">Genre</span>
+                  <span className="text-sm font-bold text-white text-right break-words">{release.genre}</span>
                 </div>
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-gray-400 group-hover:text-blue-200/70 shrink-0">Release Date</span>
-                  <span className="text-sm font-bold text-gray-700 group-hover:text-white text-right shrink-0">
+                  <span className="text-sm font-semibold text-white/60 shrink-0">Release Date</span>
+                  <span className="text-sm font-bold text-white text-right shrink-0">
                     {new Date(release.releaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
                 <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-gray-400 group-hover:text-blue-200/70 shrink-0">Status</span>
+                  <span className="text-sm font-semibold text-white/60 shrink-0">Status</span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className={`w-2 h-2 rounded-full ${
-                      release.status === 'APPROVED' ? 'bg-green-400 group-hover:bg-green-300' : 
-                      release.status === 'PENDING' ? 'bg-yellow-400 group-hover:bg-yellow-300' : 
-                      'bg-red-400 group-hover:bg-red-300'
+                      release.status === 'APPROVED' ? 'bg-green-400' : 
+                      release.status === 'PENDING' ? 'bg-yellow-400' : 
+                      'bg-red-400'
                     }`}></span>
                     <span className={`font-bold text-sm ${
-                      release.status === 'APPROVED' ? 'text-green-500 group-hover:text-green-300' : 
-                      release.status === 'PENDING' ? 'text-yellow-500 group-hover:text-yellow-300' : 
-                      'text-red-500 group-hover:text-red-300'
+                      release.status === 'APPROVED' ? 'text-green-300' : 
+                      release.status === 'PENDING' ? 'text-yellow-300' : 
+                      'text-red-300'
                     }`}>
                       {release.status === 'APPROVED' ? 'Released' : release.status === 'PENDING' ? 'Pending' : 'Rejected'}
                     </span>
                   </div>
                 </div>
-                <div className="flex justify-between items-start gap-2 pt-2.5 mt-0.5 border-t border-gray-200 group-hover:border-white/10">
-                  <span className="text-sm font-semibold text-gray-400 group-hover:text-blue-200/70 shrink-0">ID Release</span>
-                  <span className="text-sm font-mono font-bold text-gray-700 group-hover:text-white shrink-0">#{release.id.slice(-6).toUpperCase()}</span>
+                <div className="flex justify-between items-start gap-2 pt-2.5 mt-0.5 border-t border-white/10">
+                  <span className="text-sm font-semibold text-white/60 shrink-0">ID Release</span>
+                  <span className="text-sm font-mono font-bold text-white shrink-0">#{release.id.slice(-6).toUpperCase()}</span>
                 </div>
               </div>
 
@@ -148,7 +148,7 @@ export default async function MyReleasesPage() {
               
               {/* Action Buttons (Mobile & Desktop) */}
               <div className="flex md:w-20 justify-end gap-2 w-full shrink-0">
-                <button className="w-full md:w-10 h-11 md:h-10 flex items-center justify-center gap-2 rounded-xl bg-gray-50 md:bg-transparent text-gray-600 md:text-gray-400 hover:bg-gray-200 group-hover:bg-white/10 group-hover:text-white group-hover:hover:bg-white/20 transition font-bold text-sm">
+                <button className="w-full md:w-10 h-11 md:h-10 flex items-center justify-center gap-2 rounded-xl bg-white/10 text-white hover:bg-white hover:text-[#8a2be2] md:bg-transparent md:text-gray-400 md:hover:bg-gray-200 md:hover:text-gray-900 transition font-bold text-sm">
                   <Settings className="w-4 h-4 shrink-0" /> <span className="md:hidden">Settings</span>
                 </button>
               </div>

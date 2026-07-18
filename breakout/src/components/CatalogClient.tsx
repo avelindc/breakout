@@ -122,36 +122,36 @@ export function CatalogClient() {
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-10">
       {/* Light Theme Search & Filter Bar */}
-      <div className="bg-white rounded-3xl p-5 md:p-6 border border-gray-100 shadow-sm">
+      <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 group">
-            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-blue-600" />
+            <Search className="w-5 h-5 text-white/70 md:text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-white md:group-focus-within:text-blue-600" />
             <input 
               type="text" 
               placeholder="Cari lagu idamanmu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 text-gray-900 transition-all placeholder-gray-400 font-medium"
+              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all placeholder-white/50 md:placeholder-gray-400 font-medium"
             />
           </div>
           
           <select 
             value={selectedPublisher}
             onChange={(e) => setSelectedPublisher(e.target.value)}
-            className="sm:w-64 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 text-gray-900 transition-all font-medium cursor-pointer"
+            className="sm:w-64 bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:px-5 md:py-3.5 md:py-4 md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all font-medium cursor-pointer"
           >
-            <option value="">Semua Publisher</option>
+            <option value="" className="text-gray-900">Semua Publisher</option>
             {publishers.map(p => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p} className="text-gray-900">{p}</option>
             ))}
           </select>
         </div>
         <div className="mt-4 flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
-            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-gray-400' : 'bg-blue-500'}`}></span>
+            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/50 md:bg-blue-400 opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-white/30 md:bg-gray-400' : 'bg-green-400 md:bg-blue-500'}`}></span>
           </span>
-          <p className="text-gray-500 font-medium text-sm tracking-wide">
+          <p className="text-white/80 md:text-gray-500 font-medium text-sm tracking-wide">
             {loading ? "Mencari..." : `${total.toLocaleString("id-ID")} Lagu Ditemukan`}
           </p>
         </div>
