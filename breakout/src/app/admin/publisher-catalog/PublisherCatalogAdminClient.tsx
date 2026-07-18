@@ -79,10 +79,16 @@ export function PublisherCatalogAdminClient() {
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    const defaultPub = prompt("Masukkan Nama Publisher untuk file ini (Kosongkan jika di dalam file Excel sudah ada kolom khusus Publisher):");
+    
     setIsImporting(true);
     setImportResult(null);
     const formData = new FormData();
     formData.append("file", file);
+    if (defaultPub) {
+      formData.append("defaultPublisher", defaultPub);
+    }
     const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
     const res = isExcel
       ? await importPublisherCatalogExcelAction(formData)

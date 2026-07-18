@@ -23,6 +23,8 @@ export async function importPublisherCatalogExcelAction(formData: FormData) {
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Tidak ada file yang diupload" };
 
+    const defaultPublisher = (formData.get("defaultPublisher") as string) || null;
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = XLSX.read(buffer, { type: "buffer" });
 
@@ -46,16 +48,16 @@ export async function importPublisherCatalogExcelAction(formData: FormData) {
     for (const row of rawData) {
       if (Object.keys(row).length === 0) continue; // Skip completely empty rows
 
-      const title = getVal(row, ["judul", "title", "song", "lagu", "track", "nama"]);
-      const artist = getVal(row, ["artis", "artist", "pengarang", "pencipta", "creator", "vokal"]);
-      const publisher = getVal(row, ["publisher", "label", "penerbit", "publishing"]);
-      const composer = getVal(row, ["composer", "komposer", "arranger", "arr", "ciptaan"]);
+      const title = getVal(row, ["judul", "title", "song", "lagu", "track", "nama", "karya"]);
+      const artist = getVal(row, ["artis", "artist", "pengarang", "pencipta", "creator", "vokal", "singer", "performer", "penyanyi", "band"]);
+      const publisher = getVal(row, ["publisher", "label", "penerbit", "publishing", "company", "perusahaan", "hak cipta", "owner"]) || defaultPublisher;
+      const composer = getVal(row, ["composer", "komposer", "arranger", "arr", "ciptaan", "writer", "pencipta lagu"]);
       const isrc = getVal(row, ["isrc"]);
       const upc = getVal(row, ["upc", "barcode", "ean"]);
       const album = getVal(row, ["album", "ep"]);
-      const year = getVal(row, ["year", "tahun", "rilis", "date"]);
+      const year = getVal(row, ["year", "tahun", "rilis", "date", "tanggal"]);
 
-      const knownKeys = ["judul", "title", "song", "lagu", "track", "nama", "artis", "artist", "pengarang", "pencipta", "creator", "vokal", "publisher", "label", "penerbit", "publishing", "composer", "komposer", "arranger", "arr", "ciptaan", "isrc", "upc", "barcode", "ean", "album", "ep", "year", "tahun", "rilis", "date"];
+      const knownKeys = ["judul", "title", "song", "lagu", "track", "nama", "karya", "artis", "artist", "pengarang", "pencipta", "creator", "vokal", "singer", "performer", "penyanyi", "band", "publisher", "label", "penerbit", "publishing", "company", "perusahaan", "hak cipta", "owner", "composer", "komposer", "arranger", "arr", "ciptaan", "writer", "pencipta lagu", "isrc", "upc", "barcode", "ean", "album", "ep", "year", "tahun", "rilis", "date", "tanggal"];
       
       const others: Record<string, string> = {};
       for (const key of Object.keys(row)) {
@@ -108,6 +110,8 @@ export async function importPublisherCatalogPdfAction(formData: FormData) {
     const file = formData.get("file") as File | null;
     if (!file) return { error: "Tidak ada file yang diupload" };
 
+    const defaultPublisher = (formData.get("defaultPublisher") as string) || null;
+
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Dynamic import to avoid build issues
@@ -139,7 +143,7 @@ export async function importPublisherCatalogPdfAction(formData: FormData) {
         rows.push({
           title: parts[0] || null,
           artist: parts[1] || null,
-          publisher: parts[2] || null,
+          publisher: parts[2] || defaultPublisher,
           composer: parts[3] || null,
           isrc: parts[4] || null,
           upc: parts[5] || null,
