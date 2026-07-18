@@ -36,6 +36,17 @@ function getIndonesianType(type: string) {
   }
 }
 
+const toLocalDatetimeString = (isoString: string) => {
+  if (!isoString) return "";
+  try {
+    const date = new Date(isoString);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  } catch {
+    return "";
+  }
+};
+
 export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceSettingsFormProps) {
   const [active, setActive] = useState(initialData.maintenance_active === "true");
   const [title, setTitle] = useState(initialData.maintenance_title || "Mohon Maaf");
@@ -43,8 +54,8 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     initialData.maintenance_message || 
     "Maaf, hari ini operasional BREAKOUT.ID sedang libur. Silakan kembali lagi sesuai jadwal yang telah ditentukan."
   );
-  const [start, setStart] = useState(initialData.maintenance_start || "");
-  const [end, setEnd] = useState(initialData.maintenance_end || "");
+  const [start, setStart] = useState(toLocalDatetimeString(initialData.maintenance_start) || "");
+  const [end, setEnd] = useState(toLocalDatetimeString(initialData.maintenance_end) || "");
   const [type, setType] = useState(initialData.maintenance_type || "system");
 
   const [loading, setLoading] = useState(false);
@@ -80,8 +91,13 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     formData.append("active", active ? "true" : "false");
     formData.append("title", title);
     formData.append("message", message);
-    formData.append("start", start);
-    formData.append("end", end);
+    
+    // Convert local inputs to ISO UTC strings
+    const startIso = start ? new Date(start).toISOString() : "";
+    const endIso = end ? new Date(end).toISOString() : "";
+    
+    formData.append("start", startIso);
+    formData.append("end", endIso);
     formData.append("type", type);
 
     const res = await saveMaintenanceSettingsAction(formData);
