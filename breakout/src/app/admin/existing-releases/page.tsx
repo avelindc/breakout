@@ -27,13 +27,14 @@ function StatusBadge({ status }: { status: string }) {
 export default async function ExistingReleasesPage({
   searchParams,
 }: {
-  searchParams: { action?: string };
+  searchParams: Promise<{ action?: string }>;
 }) {
-  const showForm = searchParams?.action === "import";
+  const params = await searchParams;
+  const showForm = params?.action === "import";
 
   const releases = await prisma.release.findMany({
     where: { isImported: true },
-    include: { artist: { include: { user: true } } },
+    include: { artist: { include: { user: true } }, tracks: true },
     orderBy: { createdAt: "desc" },
   });
 
