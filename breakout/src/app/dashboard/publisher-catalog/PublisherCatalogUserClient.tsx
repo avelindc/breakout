@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { getPublisherCatalogAction, getPublisherCatalogFiltersAction } from "@/app/actions/publisherCatalog";
-import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings, Youtube } from "lucide-react";
+import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings, PlayCircle } from "lucide-react";
 import { Virtuoso } from "react-virtuoso";
 
 const SkeletonMobileCard = React.memo(() => (
@@ -65,7 +65,7 @@ const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index:
     <div className="mt-5 pt-4 border-t border-gray-100 flex gap-2">
       {ytLink && (
         <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="w-11 h-11 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center shrink-0 transition" title="Buka di YouTube">
-          <Youtube className="w-5 h-5" />
+          <PlayCircle className="w-5 h-5" />
         </a>
       )}
       <button className="flex-1 h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
@@ -204,7 +204,7 @@ export function PublisherCatalogUserClient() {
                         <span className="truncate">{song.title || "Unknown"}</span>
                         {ytLink && (
                           <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-red-500 hover:text-red-600 shrink-0" title="Buka di YouTube">
-                            <Youtube className="w-4 h-4" />
+                            <PlayCircle className="w-4 h-4" />
                           </a>
                         )}
                       </div>
@@ -333,7 +333,7 @@ export function PublisherCatalogUserClient() {
                     })}
                     {getYoutubeLink(selectedSong) && (
                       <a href={getYoutubeLink(selectedSong)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg border border-red-100 transition">
-                        <Youtube className="w-4 h-4" /> Tonton di YouTube
+                        <PlayCircle className="w-4 h-4" /> Tonton di YouTube
                       </a>
                     )}
                   </div>

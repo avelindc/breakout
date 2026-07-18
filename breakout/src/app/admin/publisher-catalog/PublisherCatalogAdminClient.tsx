@@ -12,7 +12,7 @@ import {
 } from "@/app/actions/publisherCatalog";
 import {
   Loader2, RefreshCw, Trash2, Search, Plus, Edit, X,
-  Upload, Database, LayoutList, CheckCircle2, AlertCircle, Youtube
+  Upload, Database, LayoutList, CheckCircle2, AlertCircle, PlayCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TableVirtuoso } from "react-virtuoso";
@@ -275,7 +275,7 @@ export function PublisherCatalogAdminClient() {
                       <span className="truncate">{song.title || "-"}</span>
                       {ytLink && (
                         <a href={ytLink} target="_blank" rel="noreferrer" className="text-red-500 hover:text-red-400 shrink-0" title="Buka di YouTube">
-                          <Youtube className="w-4 h-4" />
+                          <PlayCircle className="w-4 h-4" />
                         </a>
                       )}
                     </div>
@@ -301,7 +301,8 @@ export function PublisherCatalogAdminClient() {
                     </div>
                   </td>
                 </>
-              )}
+                );
+              }}
               components={{
                 TableRow: ({ item, children, ...props }) => (
                   <tr {...props} className="group hover:bg-white/[0.08] transition-all bg-transparent border-b border-white/5 cursor-default">
