@@ -206,67 +206,67 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
               listClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
               itemClassName="w-full"
               itemContent={(i, song) => (
-                  <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all p-5 sm:p-6 group flex flex-col h-full">
+                  <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm hover:shadow-md transition-all p-5 sm:p-6 group flex flex-col h-full">
                     <div className="flex gap-4 items-start mb-5">
-                      <div className="w-16 h-16 rounded-2xl bg-gray-900 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-inner">
+                      <div className="w-16 h-16 rounded-2xl bg-white/10 md:bg-gray-900 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-inner">
                         <img src="/images/music-default.jpg" alt="Cover" className="w-full h-full object-cover opacity-80" />
                         <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                       <div className="min-w-0 flex-1 pt-0.5">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-white md:text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
                           {song.title || "-"}
                         </h3>
-                        <p className="text-sm font-medium text-gray-500 truncate mt-1 uppercase tracking-wider">{song.artist}</p>
+                        <p className="text-sm font-medium text-white/80 md:text-gray-500 truncate mt-1 uppercase tracking-wider">{song.artist}</p>
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-3 flex-1 mb-5">
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-400">Vokal</span>
-                        <span className="text-sm font-bold text-gray-700 truncate max-w-[60%] text-right">{song.vokal || "-"}</span>
+                        <span className="text-sm font-semibold text-white/60 md:text-gray-400">Vokal</span>
+                        <span className="text-sm font-bold text-white md:text-gray-700 truncate max-w-[60%] text-right">{song.vokal || "-"}</span>
                       </div>
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-400">Publisher</span>
-                        <span className="text-sm font-black text-gray-900 truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
+                        <span className="text-sm font-semibold text-white/60 md:text-gray-400">Publisher</span>
+                        <span className="text-sm font-black text-white md:text-gray-900 truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
                       </div>
                       <div className="flex justify-between items-center gap-2 mt-2">
-                         <span className="text-sm font-semibold text-gray-400">Status</span>
+                         <span className="text-sm font-semibold text-white/60 md:text-gray-400">Status</span>
                          <button 
                           onClick={() => handleToggle(song.id)}
-                          className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${song.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
+                          className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${song.isActive ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 md:bg-emerald-50 md:text-emerald-600 md:border-emerald-200 md:hover:bg-emerald-100' : 'bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20 md:bg-red-50 md:text-red-600 md:border-red-200 md:hover:bg-red-100'}`}
                         >
                           {song.isActive ? '✅ Aktif' : '❌ Nonaktif'}
                         </button>
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-gray-100 flex items-center gap-3">
+                    <div className="mt-auto pt-4 border-t border-white/15 md:border-gray-100 flex items-center gap-3">
                       {song.driveLink ? (
                         <a 
                           href={song.driveLink} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-blue-100 hover:border-blue-600"
+                          className="w-12 h-12 rounded-xl bg-white/10 text-white hover:bg-white hover:text-[#8a2be2] md:bg-blue-50 md:text-blue-500 md:hover:bg-blue-600 md:hover:text-white flex items-center justify-center transition-colors shrink-0 border border-white/10 md:border-blue-100 hover:border-white/20 md:hover:border-blue-600"
                           title="Buka Link Drive"
                         >
                           <Link className="w-5 h-5" />
                         </a>
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center shrink-0 border border-gray-100 cursor-not-allowed">
+                        <div className="w-12 h-12 rounded-xl bg-white/10 md:bg-gray-50 text-white/30 md:text-gray-300 flex items-center justify-center shrink-0 border border-white/10 md:border-gray-100 cursor-not-allowed">
                           <Link className="w-5 h-5" />
                         </div>
                       )}
                       
                       <button 
                         onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }}
-                        className="flex-1 h-12 rounded-xl bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-blue-600 font-bold flex items-center justify-center gap-2 transition-colors border border-gray-100 hover:border-blue-200"
+                        className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white md:bg-gray-50 md:text-gray-600 md:hover:bg-blue-55 md:hover:text-blue-600 font-bold flex items-center justify-center gap-2 transition-colors border border-white/10 md:border-gray-100 md:hover:border-blue-200"
                       >
                         <Settings className="w-4 h-4" /> Edit Data
                       </button>
                       
                       <button 
                         onClick={() => handleDelete(song.id)}
-                        className="w-12 h-12 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors shrink-0 border border-gray-100 hover:border-red-200"
+                        className="w-12 h-12 rounded-xl bg-white/10 text-white hover:bg-white hover:text-red-500 md:bg-gray-50 md:text-gray-400 md:hover:bg-red-50 md:hover:text-red-500 flex items-center justify-center transition-colors shrink-0 border border-white/10 md:border-gray-100 md:hover:border-red-200"
                         title="Hapus"
                       >
                         <Trash2 className="w-5 h-5" />
