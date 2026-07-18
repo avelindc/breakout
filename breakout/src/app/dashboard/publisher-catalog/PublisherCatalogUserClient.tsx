@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { getPublisherCatalogAction, getPublisherCatalogFiltersAction } from "@/app/actions/publisherCatalog";
-import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X } from "lucide-react";
+import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings } from "lucide-react";
 import { Virtuoso } from "react-virtuoso";
 
 const SkeletonMobileCard = React.memo(() => (
@@ -20,12 +20,31 @@ SkeletonMobileCard.displayName = "SkeletonMobileCard";
 const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index: number; onClick: (song: any) => void }) => (
   <div onClick={() => onClick(song)}
     className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group mb-4 mx-4 sm:mx-0">
-    <h4 className="font-bold text-gray-900 text-lg truncate mb-1 group-hover:text-blue-600 transition">{song.title || "Unknown"}</h4>
-    <p className="text-sm font-medium text-gray-500 truncate">{song.artist || "Unknown"}</p>
-    <div className="flex flex-wrap gap-2 mt-3">
-      {song.publisher && <span className="text-xs px-2.5 py-1 bg-gray-50 rounded-lg text-gray-600 border border-gray-200 font-medium">{song.publisher}</span>}
-      {song.year && <span className="text-xs px-2.5 py-1 bg-gray-50 rounded-lg text-gray-600 border border-gray-200 font-medium">{song.year}</span>}
-      {song.isrc && <span className="text-xs px-2.5 py-1 bg-gray-100 font-mono rounded-lg text-gray-500 border border-gray-200 font-medium">{song.isrc}</span>}
+    <div className="flex items-start gap-4 mb-4">
+      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition">
+        <BookOpen className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title || "Unknown"}</div>
+        <div className="text-sm font-medium text-gray-500 mt-1 truncate">{song.artist || "Unknown"}</div>
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-2.5">
+      <div className="flex justify-between items-start gap-2">
+        <span className="text-sm font-semibold text-gray-400 shrink-0">Composer</span>
+        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.composer || "-"}</span>
+      </div>
+      <div className="flex justify-between items-start gap-2">
+        <span className="text-sm font-semibold text-gray-400 shrink-0">Publisher</span>
+        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.publisher || "-"}</span>
+      </div>
+    </div>
+
+    <div className="mt-5 pt-4 border-t border-gray-100">
+      <button className="w-full h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
+        <Settings className="w-4 h-4 shrink-0" /> Buka Detail
+      </button>
     </div>
   </div>
 ));
