@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { Check, X } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import { WithdrawalActionButtons } from "./WithdrawalActionButtons";
 
 const prisma = new PrismaClient();
 
@@ -78,26 +78,7 @@ export default async function AdminWithdrawalsPage() {
                     <p><span className="text-gray-500 block text-xs">Account Number</span><span className="font-semibold text-gray-900 font-mono tracking-wider">{req.accountNumber}</span></p>
                   </div>
 
-                  <div className="mt-auto flex gap-3 border-t border-gray-100 pt-4">
-                    <form action={updateWithdrawalStatus} className="flex-1">
-                      <input type="hidden" name="requestId" value={req.id} />
-                      <input type="hidden" name="userId" value={req.userId} />
-                      <input type="hidden" name="amount" value={req.amount} />
-                      <input type="hidden" name="status" value="REJECTED" />
-                      <button type="submit" className="w-full py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 font-medium transition flex items-center justify-center gap-2">
-                        <X className="w-4 h-4" /> Reject
-                      </button>
-                    </form>
-                    <form action={updateWithdrawalStatus} className="flex-1">
-                      <input type="hidden" name="requestId" value={req.id} />
-                      <input type="hidden" name="userId" value={req.userId} />
-                      <input type="hidden" name="amount" value={req.amount} />
-                      <input type="hidden" name="status" value="PAID" />
-                      <button type="submit" className="w-full py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-medium transition flex items-center justify-center gap-2 shadow-sm">
-                        <Check className="w-4 h-4" /> Mark Paid
-                      </button>
-                    </form>
-                  </div>
+                  <WithdrawalActionButtons req={req} updateAction={updateWithdrawalStatus} />
                 </div>
               ))}
             </div>
