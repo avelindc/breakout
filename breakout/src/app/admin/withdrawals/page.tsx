@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { WithdrawalActionButtons } from "./WithdrawalActionButtons";
+import { sendWithdrawalPaidEmail } from "@/lib/email";
 
 const prisma = new PrismaClient();
 
@@ -37,6 +38,17 @@ export default async function AdminWithdrawalsPage() {
         message: `Your withdrawal request of Rp ${amount} has been ${status.toLowerCase()}.`
       }
     });
+
+    if (status === 'PAID') {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { artists: true }
+      });
+      if (user?.email) {
+        const artistName = user.artists?.[0]?.stageName || user.name || "Artist";
+        await sendWithdrawalPaidEmail(user.email, artistName);
+      }
+    }
 
     revalidatePath("/admin/withdrawals");
     revalidatePath("/dashboard/withdraw");

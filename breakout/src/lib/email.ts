@@ -274,3 +274,30 @@ export async function sendOtpEmail(to: string, otp: string) {
     return { error };
   }
 }
+
+export async function sendWithdrawalPaidEmail(to: string, name: string) {
+  const subject = 'Pembayaran Royalti Berhasil';
+  const html = generateEmailHtml(
+    'Pembayaran Telah Dikirim',
+    `
+      <p>Halo ${name},</p>
+      <p>Kabar gembira! Permintaan penarikan royalti (withdrawal) Anda <strong>telah berhasil kami bayarkan</strong>.</p>
+      <p>Silakan periksa saldo di rekening bank atau e-wallet yang Anda daftarkan.</p>
+      <p>Terima kasih telah mempercayakan distribusi musik Anda kepada BREAKOUT.</p>
+      <a href="https://breakoutmusic.online/dashboard/withdraw" style="${BUTTON_STYLES}">Lihat Riwayat Penarikan</a>
+    `
+  );
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('Simulated Email Send Withdrawal:', subject, to);
+    return { success: true };
+  }
+
+  try {
+    await resend.emails.send({ from: fromEmail, to, subject, html });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send withdrawal email:', error);
+    return { error };
+  }
+}
