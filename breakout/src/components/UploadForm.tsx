@@ -176,7 +176,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="glass-card p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] rounded-[2rem] md:glass-card p-6 md:p-8 space-y-8">
           {error && (
             <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
               {error}
@@ -188,26 +188,26 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Song Title *</label>
-                <input defaultValue={defaultTitle} required name="title" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="e.g. Midnight City" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Song Title *</label>
+                <input defaultValue={defaultTitle} required name="title" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="e.g. Midnight City" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Primary Artist *</label>
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Primary Artist *</label>
                 <div className="flex gap-2">
                   <select 
                     required 
                     name="primaryArtistId" 
                     className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white"
                   >
-                    {artists.length === 0 && <option value="">No artists created yet</option>}
+                    {artists.length === 0 && <option value="" className="text-gray-900">No artists created yet</option>}
                     {artists.map(artist => (
-                      <option key={artist.id} value={artist.id} className="bg-[#09090B]">{artist.stageName}</option>
+                      <option key={artist.id} value={artist.id} className="bg-[#09090B] text-white">{artist.stageName}</option>
                     ))}
                   </select>
                   <button 
                     type="button" 
                     onClick={() => setShowNewArtistModal(true)}
-                    className="px-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-[#00F0FF] transition flex items-center justify-center"
+                    className="px-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-[#00F0FF] transition flex items-center justify-center text-white"
                     title="Create New Artist"
                   >
                     <Plus className="w-5 h-5" />
@@ -218,31 +218,31 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Featured Artist</label>
-                <input name="featuredArtist" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Optional" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Featured Artist</label>
+                <input name="featuredArtist" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="Optional" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Release Date *</label>
-                <input required name="releaseDate" type="date" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-gray-300" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Release Date *</label>
+                <input required name="releaseDate" type="date" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Genre *</label>
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Genre *</label>
                 <select required name="genre" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white">
-                  <option value="" className="bg-[#09090B]">Select Genre</option>
-                  <option value="Pop" className="bg-[#09090B]">Pop</option>
-                  <option value="Hip Hop" className="bg-[#09090B]">Hip Hop</option>
-                  <option value="Electronic" className="bg-[#09090B]">Electronic</option>
-                  <option value="R&B" className="bg-[#09090B]">R&B</option>
-                  <option value="Rock" className="bg-[#09090B]">Rock</option>
-                  <option value="Other" className="bg-[#09090B]">Other</option>
+                  <option value="" className="bg-[#09090B] text-white">Select Genre</option>
+                  <option value="Pop" className="bg-[#09090B] text-white">Pop</option>
+                  <option value="Hip Hop" className="bg-[#09090B] text-white">Hip Hop</option>
+                  <option value="Electronic" className="bg-[#09090B] text-white">Electronic</option>
+                  <option value="R&B" className="bg-[#09090B] text-white">R&B</option>
+                  <option value="Rock" className="bg-[#09090B] text-white">Rock</option>
+                  <option value="Other" className="bg-[#09090B] text-white">Other</option>
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Language *</label>
-                <input required name="language" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="e.g. English" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Language *</label>
+                <input required name="language" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="e.g. English" />
               </div>
             </div>
           </div>
@@ -252,29 +252,29 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Composer / Original Artist {isCover && "(Cover)"}</label>
-                <input defaultValue={defaultArtist} name="composer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Writer name or Original Artist" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Composer / Original Artist {isCover && "(Cover)"}</label>
+                <input defaultValue={defaultArtist} name="composer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="Writer name or Original Artist" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">Producer</label>
-                <input name="producer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Producer name" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">Producer</label>
+                <input name="producer" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="Producer name" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">ISRC Code (Optional)</label>
-                <input name="isrc" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Leave blank to auto-generate" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">ISRC Code (Optional)</label>
+                <input name="isrc" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="Leave blank to auto-generate" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-300">UPC Code (Optional)</label>
-                <input name="upc" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition" placeholder="Leave blank to auto-generate" />
+                <label className="text-sm font-medium text-white/80 md:text-gray-300">UPC Code (Optional)</label>
+                <input name="upc" type="text" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition text-white" placeholder="Leave blank to auto-generate" />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-300">Lyrics</label>
-              <textarea name="lyrics" rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition resize-none" placeholder="Enter lyrics here..." />
+              <label className="text-sm font-medium text-white/80 md:text-gray-300">Lyrics</label>
+              <textarea name="lyrics" rows={3} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 outline-none focus:border-[#00F0FF] transition resize-none text-white" placeholder="Enter lyrics here..." />
             </div>
           </div>
 
