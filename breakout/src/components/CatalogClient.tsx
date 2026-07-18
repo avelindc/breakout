@@ -177,9 +177,9 @@ export function CatalogClient() {
             onClick={() => setSelectedSong(null)}
           ></div>
           
-          <div className="relative z-10 bg-gradient-to-b from-[#1c2331] to-[#121620] rounded-[2rem] max-w-lg w-full border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden transform animate-scale-up">
+          <div className="relative z-10 bg-gradient-to-b from-[#1c2331] to-[#121620] rounded-[2rem] max-w-lg w-full border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transform animate-scale-up flex flex-col max-h-[90vh] overflow-hidden">
             {/* Header Area with Graphic */}
-            <div className="relative h-48 bg-gradient-to-br from-blue-600/30 via-purple-600/20 to-black/40 overflow-hidden flex items-end p-8 border-b border-white/5">
+            <div className="relative shrink-0 h-48 bg-gradient-to-br from-blue-600/30 via-purple-600/20 to-black/40 flex items-end p-8 border-b border-white/5">
               <div className="absolute top-4 right-4 z-20">
                 <button 
                   onClick={() => setSelectedSong(null)}
@@ -204,7 +204,7 @@ export function CatalogClient() {
               </div>
             </div>
 
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 overflow-y-auto overscroll-contain">
               {/* Info Cards */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/5 hover:bg-white/10 p-5 rounded-2xl border border-white/5 transition-colors">

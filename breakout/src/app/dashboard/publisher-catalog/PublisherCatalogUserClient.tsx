@@ -87,9 +87,9 @@ export function PublisherCatalogUserClient() {
           <p className="text-blue-200/70 max-w-sm">Data publisher catalog tidak ditemukan atau belum diimport oleh Admin.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl backdrop-blur-md">
+        <div className="rounded-[2rem] border border-white/10 bg-white/5 shadow-2xl backdrop-blur-md overflow-clip">
           {/* Desktop Table - Premium Look */}
-          <div className="hidden sm:block overflow-x-auto">
+          <div className="hidden sm:block overflow-x-auto touch-pan-y">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-black/20 border-b border-white/10">
@@ -175,7 +175,7 @@ export function PublisherCatalogUserClient() {
           
           <div className="relative z-10 bg-gradient-to-b from-[#1c2331] to-[#121620] rounded-[2rem] max-w-lg w-full border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden transform animate-scale-up flex flex-col max-h-[90vh]">
             
-            <div className="relative shrink-0 h-32 bg-gradient-to-br from-blue-900/60 via-purple-900/40 to-black overflow-hidden flex items-end p-6 border-b border-white/5">
+            <div className="relative shrink-0 h-32 bg-gradient-to-br from-blue-900/60 via-purple-900/40 to-black flex items-end p-6 border-b border-white/5">
               <div className="absolute top-4 right-4 z-20">
                 <button 
                   onClick={() => setSelectedSong(null)}
@@ -190,7 +190,7 @@ export function PublisherCatalogUserClient() {
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4">
+            <div className="p-6 overflow-y-auto overscroll-contain space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: "Publisher", value: selectedSong.publisher, icon: Building },

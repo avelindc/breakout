@@ -180,8 +180,8 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
       </div>
 
       {/* Premium Table */}
-      <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
+      <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10 overflow-clip shadow-2xl">
+        <div className="overflow-x-auto touch-pan-y">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr className="bg-black/20 border-b border-white/10">
@@ -296,7 +296,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto overscroll-contain space-y-4">
               {errorMsg && (
                 <div className="p-4 bg-red-500/20 border border-red-500/30 text-red-200 text-sm font-medium rounded-xl flex items-center gap-3">
                   <AlertCircle className="w-5 h-5 shrink-0" /> {errorMsg}
