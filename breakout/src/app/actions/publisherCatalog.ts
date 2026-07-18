@@ -44,23 +44,46 @@ export async function importPublisherCatalogExcelAction(formData: FormData) {
 
     const validRows: any[] = [];
     for (const row of rawData) {
-      const title = getVal(row, ["judul", "title", "song", "lagu", "track"]);
-      const artist = getVal(row, ["artis", "artist", "pengarang", "pencipta", "creator"]);
-      if (!title || !artist) continue;
+      if (Object.keys(row).length === 0) continue; // Skip completely empty rows
+
+      const title = getVal(row, ["judul", "title", "song", "lagu", "track", "nama"]);
+      const artist = getVal(row, ["artis", "artist", "pengarang", "pencipta", "creator", "vokal"]);
+      const publisher = getVal(row, ["publisher", "label", "penerbit", "publishing"]);
+      const composer = getVal(row, ["composer", "komposer", "arranger", "arr", "ciptaan"]);
+      const isrc = getVal(row, ["isrc"]);
+      const upc = getVal(row, ["upc", "barcode", "ean"]);
+      const album = getVal(row, ["album", "ep"]);
+      const year = getVal(row, ["year", "tahun", "rilis", "date"]);
+
+      const knownKeys = ["judul", "title", "song", "lagu", "track", "nama", "artis", "artist", "pengarang", "pencipta", "creator", "vokal", "publisher", "label", "penerbit", "publishing", "composer", "komposer", "arranger", "arr", "ciptaan", "isrc", "upc", "barcode", "ean", "album", "ep", "year", "tahun", "rilis", "date"];
+      
+      const others: Record<string, string> = {};
+      for (const key of Object.keys(row)) {
+         if (!knownKeys.some(k => key.toLowerCase().trim().includes(k.toLowerCase()))) {
+            if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== "") {
+              others[key.trim()] = String(row[key]).trim();
+            }
+         }
+      }
+
+      let keterangan = Object.keys(others).length > 0 
+        ? Object.entries(others).map(([k, v]) => `${k}: ${v}`).join(" | ")
+        : null;
 
       validRows.push({
         title,
         artist,
-        publisher: getVal(row, ["publisher", "label", "penerbit"]),
-        composer: getVal(row, ["composer", "komposer", "arranger", "arr"]),
-        isrc: getVal(row, ["isrc"]),
-        upc: getVal(row, ["upc"]),
-        album: getVal(row, ["album"]),
-        year: getVal(row, ["year", "tahun", "rilis"]),
+        publisher,
+        composer,
+        isrc,
+        upc,
+        album,
+        year,
+        keterangan
       });
     }
 
-    if (validRows.length === 0) return { error: "Tidak ada baris data yang valid (Judul & Artis wajib ada)" };
+    if (validRows.length === 0) return { error: "Tidak ada baris data yang bisa dibaca dari Excel" };
 
     const BATCH = 500;
     let count = 0;
@@ -103,16 +126,16 @@ export async function importPublisherCatalogPdfAction(formData: FormData) {
       // Try tab-separated or pipe-separated or dash-separated
       let parts: string[] = [];
       if (line.includes("\t")) {
-        parts = line.split("\t").map((p: string) => p.trim());
+        parts = line.split("\t").map((p: string) => p.trim()).filter(Boolean);
       } else if (line.includes("|")) {
-        parts = line.split("|").map((p: string) => p.trim());
+        parts = line.split("|").map((p: string) => p.trim()).filter(Boolean);
       } else if (line.includes(" - ")) {
-        parts = line.split(" - ").map((p: string) => p.trim());
+        parts = line.split(" - ").map((p: string) => p.trim()).filter(Boolean);
       } else {
-        continue; // skip non-structured lines
+        parts = [line];
       }
 
-      if (parts.length >= 2 && parts[0] && parts[1]) {
+      if (parts.length > 0) {
         rows.push({
           title: parts[0] || null,
           artist: parts[1] || null,
@@ -122,12 +145,13 @@ export async function importPublisherCatalogPdfAction(formData: FormData) {
           upc: parts[5] || null,
           album: parts[6] || null,
           year: parts[7] || null,
+          keterangan: parts.slice(8).join(" | ") || null,
         });
       }
     }
 
     if (rows.length === 0) {
-      return { error: "Tidak dapat mengenali format data dalam PDF. Gunakan format: Judul - Artis - Publisher (dipisah tanda -)" };
+      return { error: "Tidak ada data yang bisa dibaca dari PDF" };
     }
 
     const BATCH = 500;
@@ -151,18 +175,20 @@ export async function createPublisherCatalogSongAction(formData: FormData) {
     await requireAdmin();
     const title = formData.get("title") as string;
     const artist = formData.get("artist") as string;
-    if (!title || !artist) return { error: "Judul dan Artis wajib diisi" };
+    // Don't require title or artist
+    // if (!title || !artist) return { error: "Judul dan Artis wajib diisi" };
 
     await prisma.publisherCatalogSong.create({
       data: {
-        title,
-        artist,
+        title: title || null,
+        artist: artist || null,
         publisher: (formData.get("publisher") as string) || null,
         composer: (formData.get("composer") as string) || null,
         isrc: (formData.get("isrc") as string) || null,
         upc: (formData.get("upc") as string) || null,
         album: (formData.get("album") as string) || null,
         year: (formData.get("year") as string) || null,
+        keterangan: (formData.get("keterangan") as string) || null,
       },
     });
 
@@ -188,6 +214,7 @@ export async function updatePublisherCatalogSongAction(id: string, formData: For
         upc: (formData.get("upc") as string) || null,
         album: (formData.get("album") as string) || null,
         year: (formData.get("year") as string) || null,
+        keterangan: (formData.get("keterangan") as string) || null,
       },
     });
 

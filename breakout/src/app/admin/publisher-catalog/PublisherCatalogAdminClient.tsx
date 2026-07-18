@@ -191,8 +191,8 @@ export function PublisherCatalogAdminClient() {
                 <tr><td colSpan={8} className="p-8 text-center text-blue-300">Belum ada data. Import Excel atau tambah manual.</td></tr>
               ) : songs.map(song => (
                 <tr key={song.id} className="hover:bg-blue-600/20 transition">
-                  <td className="p-3 font-medium text-white max-w-[180px] truncate">{song.title}</td>
-                  <td className="p-3 text-blue-200 text-sm max-w-[140px] truncate">{song.artist}</td>
+                  <td className="p-3 font-medium text-white max-w-[180px] truncate">{song.title || "-"}</td>
+                  <td className="p-3 text-blue-200 text-sm max-w-[140px] truncate">{song.artist || "-"}</td>
                   <td className="p-3 text-blue-300 text-sm max-w-[120px] truncate">{song.publisher || "-"}</td>
                   <td className="p-3 text-blue-300 text-sm max-w-[120px] truncate">{song.composer || "-"}</td>
                   <td className="p-3 text-blue-300 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
@@ -242,14 +242,15 @@ export function PublisherCatalogAdminClient() {
               {errorMsg && <div className="p-3 bg-red-100 text-red-600 text-sm rounded-lg">{errorMsg}</div>}
 
               {[
-                { name: "title", label: "Judul *", required: true },
-                { name: "artist", label: "Artis *", required: true },
+                { name: "title", label: "Judul", required: false },
+                { name: "artist", label: "Artis", required: false },
                 { name: "publisher", label: "Publisher", required: false },
                 { name: "composer", label: "Composer", required: false },
                 { name: "album", label: "Album", required: false },
                 { name: "isrc", label: "ISRC", required: false },
                 { name: "upc", label: "UPC", required: false },
                 { name: "year", label: "Tahun", required: false },
+                { name: "keterangan", label: "Keterangan / Lainnya", required: false },
               ].map(field => (
                 <div key={field.name} className="space-y-1">
                   <label className="text-sm font-semibold text-gray-700">{field.label}</label>

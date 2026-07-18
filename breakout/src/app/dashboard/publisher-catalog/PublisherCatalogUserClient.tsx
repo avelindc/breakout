@@ -93,8 +93,8 @@ export function PublisherCatalogUserClient() {
                     onClick={() => setSelectedSong(song)}
                     className="hover:bg-white/5 transition cursor-pointer group"
                   >
-                    <td className="px-4 py-3 font-semibold text-white group-hover:text-blue-300 transition max-w-[200px] truncate">{song.title}</td>
-                    <td className="px-4 py-3 text-gray-300 text-sm max-w-[140px] truncate">{song.artist}</td>
+                    <td className="px-4 py-3 font-semibold text-white group-hover:text-blue-300 transition max-w-[200px] truncate">{song.title || "Unknown"}</td>
+                    <td className="px-4 py-3 text-gray-300 text-sm max-w-[140px] truncate">{song.artist || "Unknown"}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm max-w-[130px] truncate">{song.publisher || "-"}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm max-w-[120px] truncate">{song.composer || "-"}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
@@ -112,8 +112,8 @@ export function PublisherCatalogUserClient() {
             {songs.map(song => (
               <div key={song.id} onClick={() => setSelectedSong(song)}
                 className="p-4 hover:bg-white/5 transition cursor-pointer">
-                <h4 className="font-bold text-white truncate">{song.title}</h4>
-                <p className="text-sm text-blue-300 mt-0.5 truncate">{song.artist}</p>
+                <h4 className="font-bold text-white truncate">{song.title || "Unknown"}</h4>
+                <p className="text-sm text-blue-300 mt-0.5 truncate">{song.artist || "Unknown"}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {song.publisher && <span className="text-xs px-2 py-0.5 bg-white/10 rounded-full text-gray-300">{song.publisher}</span>}
                   {song.year && <span className="text-xs px-2 py-0.5 bg-white/10 rounded-full text-gray-300">{song.year}</span>}
@@ -156,8 +156,8 @@ export function PublisherCatalogUserClient() {
           <div className="bg-[#12121A] rounded-3xl max-w-md w-full border border-white/10 shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-start justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">{selectedSong.title}</h2>
-                <p className="text-blue-400 font-medium mt-1">{selectedSong.artist}</p>
+                <h2 className="text-xl font-bold text-white">{selectedSong.title || "Unknown"}</h2>
+                <p className="text-blue-400 font-medium mt-1">{selectedSong.artist || "Unknown"}</p>
               </div>
               <button onClick={() => setSelectedSong(null)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition">
                 <X className="w-5 h-5" />
@@ -180,6 +180,20 @@ export function PublisherCatalogUserClient() {
                 </div>
               ))}
             </div>
+            
+            {/* Show keterangan full width if it exists */}
+            {selectedSong.keterangan && (
+              <div className="p-6 border-t border-white/5">
+                <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                  <p className="text-xs text-gray-500 font-medium mb-2 flex items-center gap-1">
+                    <Hash className="w-3 h-3" /> Keterangan / Lainnya
+                  </p>
+                  <p className="text-sm text-gray-300 font-medium leading-relaxed break-words">
+                    {selectedSong.keterangan}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

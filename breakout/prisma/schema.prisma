@@ -311,14 +311,15 @@ model Contract {
 
 model PublisherCatalogSong {
   id        String   @id @default(cuid())
-  title     String
-  artist    String
+  title     String?
+  artist    String?
   publisher String?
   composer  String?
   isrc      String?
   upc       String?
   album     String?
   year      String?
+  keterangan String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
