@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { DollarSign, DownloadCloud, Activity, Music, Smartphone, MonitorPlay, Headset } from "lucide-react";
+import { RoyaltyBarChart, RoyaltyDonutChart } from "@/components/RoyaltyCharts";
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,30 @@ export default async function UserRoyaltiesPage() {
     if (totalStreams === 0) return 0;
     return Math.round((value / totalStreams) * 100);
   };
+
+  const revenueByPeriod = royalties.reduce((acc, curr) => {
+    const period = `${curr.month}/${curr.year.toString().slice(2)}`;
+    acc[period] = (acc[period] || 0) + curr.totalRevenue;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const chartData = Object.keys(revenueByPeriod)
+    .sort((a, b) => {
+       const [mA, yA] = a.split('/');
+       const [mB, yB] = b.split('/');
+       return (parseInt(yA) - parseInt(yB)) || (parseInt(mA) - parseInt(mB));
+    })
+    .map(key => ({
+      name: key,
+      revenue: revenueByPeriod[key]
+    }));
+
+  const donutData = [
+    { name: 'Spotify', value: totalSpotify, color: '#22c55e' },
+    { name: 'Apple', value: totalApple, color: '#ef4444' },
+    { name: 'YouTube', value: totalYoutube, color: '#dc2626' },
+    { name: 'TikTok', value: totalTiktok, color: '#3b82f6' },
+  ];
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10">
@@ -71,69 +96,46 @@ export default async function UserRoyaltiesPage() {
               </p>
             </div>
             
-            {/* Minimalist Graphic representation */}
-            <div className="hidden sm:flex items-end gap-2 h-40 opacity-70">
-               {[40, 70, 45, 90, 60, 100, 50, 85].map((h, i) => (
-                 <div key={i} className="w-4 rounded-t-sm bg-gradient-to-t from-[#f000ff] to-[#00f0ff] relative group-hover:shadow-[0_0_10px_#f000ff] transition-all duration-300" style={{ height: `${h}%` }}>
-                   <div className="absolute inset-0 bg-white/20 rounded-t-sm animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
-                 </div>
-               ))}
+            {/* Chart representation */}
+            <div className="hidden sm:block w-1/2">
+               <RoyaltyBarChart data={chartData} />
             </div>
           </div>
         </div>
 
         {/* Platforms Breakdown Card */}
-        <div className="glass-card p-6 sm:p-8 relative overflow-hidden">
+        <div className="glass-card p-6 sm:p-8 relative overflow-hidden flex flex-col">
            <div className="absolute inset-0 bg-gradient-to-br from-[#0047FF]/10 to-transparent opacity-50" />
-           <div className="relative">
-             <h3 className="font-bold text-white mb-6 flex items-center gap-2">
-               <Music className="w-4 h-4 text-[#00f0ff]" /> Platforms Breakdown
+           <div className="relative flex flex-col h-full">
+             <h3 className="font-bold text-white mb-4 flex items-center gap-2 shrink-0">
+               <Music className="w-4 h-4 text-[#00f0ff]" /> Sentiments
              </h3>
              
-             <div className="space-y-5">
-               {/* Platform 1 */}
-               <div>
-                 <div className="flex justify-between text-xs font-medium mb-1">
-                   <span className="text-gray-300 flex items-center gap-1.5"><Headset className="w-3.5 h-3.5" /> Spotify</span>
-                   <span className="text-white">{getPercent(totalSpotify)}%</span>
+             <div className="flex-1 flex flex-col justify-between">
+               <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-2">
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]" />
+                   <span className="text-xs text-gray-300">Spotify</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalSpotify)}%</span>
                  </div>
-                 <div className="w-full bg-white/5 rounded-full h-2">
-                   <div className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]" style={{ width: `${getPercent(totalSpotify)}%` }}></div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-red-400 shadow-[0_0_5px_#ef4444]" />
+                   <span className="text-xs text-gray-300">Apple</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalApple)}%</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-red-600 shadow-[0_0_5px_#dc2626]" />
+                   <span className="text-xs text-gray-300">YouTube</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalYoutube)}%</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6]" />
+                   <span className="text-xs text-gray-300">TikTok</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalTiktok)}%</span>
                  </div>
                </div>
                
-               {/* Platform 2 */}
-               <div>
-                 <div className="flex justify-between text-xs font-medium mb-1">
-                   <span className="text-gray-300 flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5" /> Apple Music</span>
-                   <span className="text-white">{getPercent(totalApple)}%</span>
-                 </div>
-                 <div className="w-full bg-white/5 rounded-full h-2">
-                   <div className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full shadow-[0_0_10px_rgba(248,113,113,0.5)]" style={{ width: `${getPercent(totalApple)}%` }}></div>
-                 </div>
-               </div>
-               
-               {/* Platform 3 */}
-               <div>
-                 <div className="flex justify-between text-xs font-medium mb-1">
-                   <span className="text-gray-300 flex items-center gap-1.5"><MonitorPlay className="w-3.5 h-3.5" /> YouTube</span>
-                   <span className="text-white">{getPercent(totalYoutube)}%</span>
-                 </div>
-                 <div className="w-full bg-white/5 rounded-full h-2">
-                   <div className="bg-gradient-to-r from-red-500 to-red-700 h-2 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]" style={{ width: `${getPercent(totalYoutube)}%` }}></div>
-                 </div>
-               </div>
-
-               {/* Platform 4 */}
-               <div>
-                 <div className="flex justify-between text-xs font-medium mb-1">
-                   <span className="text-gray-300 flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5" /> TikTok</span>
-                   <span className="text-white">{getPercent(totalTiktok)}%</span>
-                 </div>
-                 <div className="w-full bg-white/5 rounded-full h-2">
-                   <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.5)]" style={{ width: `${getPercent(totalTiktok)}%` }}></div>
-                 </div>
-               </div>
+               <RoyaltyDonutChart data={donutData} />
              </div>
            </div>
         </div>
