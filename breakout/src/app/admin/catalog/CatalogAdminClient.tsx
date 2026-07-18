@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getCatalogSongsAction, deleteCatalogSongAction, createCatalogSongAction, updateCatalogSongAction, toggleCatalogSongStatusAction, deleteAllCatalogAction } from "@/app/actions/catalog";
-import { Loader2, RefreshCw, Trash2, Search, Plus, Edit, Music, X, Upload } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, Search, Plus, Edit, Music, X, Link, Mic2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
@@ -22,7 +22,6 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
 
   const fetchSongs = async (pageNum = 1, searchQuery = search) => {
     setLoading(true);
-    // Admins can see all, including inactive
     const res = await getCatalogSongsAction({ page: pageNum, limit: 10, search: searchQuery, isAdmin: true });
     if (res.success && res.songs) {
       setSongs(res.songs);
@@ -52,7 +51,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Hapus lagu ini? File MP3 dan Cover juga akan terhapus jika ada.")) return;
+    if (!confirm("Hapus lagu ini dari katalog?")) return;
     const res = await deleteCatalogSongAction(id);
     if (res.success) {
       fetchSongs(page, search);
@@ -62,11 +61,10 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
     }
   };
 
-  const handleToggle = async (id: string, field: 'isActive' | 'isDownloadable') => {
-    const res = await toggleCatalogSongStatusAction(id, field);
+  const handleToggle = async (id: string) => {
+    const res = await toggleCatalogSongStatusAction(id, 'isActive');
     if (res.success) {
       fetchSongs(page, search);
-      router.refresh();
     } else {
       alert(res.error);
     }
@@ -78,16 +76,6 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
     setErrorMsg("");
 
     const formData = new FormData(e.currentTarget);
-    
-    // Check if creating and file sizes
-    const cover = formData.get("cover") as File;
-    const audio = formData.get("audio") as File;
-
-    if (!editingSong && audio && audio.size === 0) {
-      setErrorMsg("File MP3 wajib diupload untuk lagu baru.");
-      setIsSubmitting(false);
-      return;
-    }
 
     try {
       let res;
@@ -106,7 +94,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         router.refresh();
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "An error occurred");
+      setErrorMsg(err.message || "Terjadi kesalahan");
     } finally {
       setIsSubmitting(false);
     }
@@ -156,80 +144,69 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
 
       {/* Songs Table */}
       <div className="bg-blue-700/60 backdrop-blur-sm rounded-3xl border border-blue-500/30 overflow-hidden shadow-lg">
-        <div className="p-6 border-b border-blue-500/30 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Daftar Katalog MP3</h2>
-          <div className="relative">
+        <div className="p-6 border-b border-blue-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-white">Daftar Katalog</h2>
+          <div className="relative w-full sm:w-auto">
             <Search className="w-5 h-5 text-blue-300 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
-              placeholder="Cari lagu, artis..."
+              placeholder="Cari judul, artis, vokal..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-blue-600/50 border border-blue-400/30 text-white placeholder-blue-300 rounded-lg outline-none focus:border-white/50 w-64"
+              className="pl-10 pr-4 py-2 bg-blue-600/50 border border-blue-400/30 text-white placeholder-blue-300 rounded-lg outline-none focus:border-white/50 w-full sm:w-64"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-blue-800/50">
-                <th className="p-4 text-sm font-semibold text-blue-200">Lagu</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Judul</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Artist</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Vokal</th>
                 <th className="p-4 text-sm font-semibold text-blue-200">Publisher</th>
-                <th className="p-4 text-sm font-semibold text-blue-200">Genre</th>
+                <th className="p-4 text-sm font-semibold text-blue-200">Link Drive</th>
                 <th className="p-4 text-sm font-semibold text-blue-200 text-center">Status</th>
-                <th className="p-4 text-sm font-semibold text-blue-200 text-center">Download</th>
                 <th className="p-4 text-sm font-semibold text-blue-200 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-blue-600/30">
               {loading && songs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-blue-300">
+                  <td colSpan={7} className="p-8 text-center text-blue-300">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                     Memuat katalog...
                   </td>
                 </tr>
               ) : songs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-blue-300">
+                  <td colSpan={7} className="p-8 text-center text-blue-300">
                     Katalog kosong atau lagu tidak ditemukan.
                   </td>
                 </tr>
               ) : (
                 songs.map(song => (
                   <tr key={song.id} className="hover:bg-blue-600/30 transition">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-blue-800 flex-shrink-0 flex items-center justify-center">
-                          {song.coverUrl ? (
-                            <img src={song.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-                          ) : (
-                            <Music className="w-5 h-5 text-blue-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">{song.title}</p>
-                          <p className="text-xs text-blue-200">{song.artist}</p>
-                        </div>
-                      </div>
+                    <td className="p-4 font-medium text-white">{song.title}</td>
+                    <td className="p-4 text-blue-200 text-sm">{song.artist}</td>
+                    <td className="p-4 text-blue-200 text-sm">{song.vokal || '-'}</td>
+                    <td className="p-4 text-blue-300 text-sm">{song.publisher || '-'}</td>
+                    <td className="p-4 text-sm">
+                      {song.driveLink ? (
+                        <a href={song.driveLink} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-white underline flex items-center gap-1">
+                          <Link className="w-3 h-3" /> Buka
+                        </a>
+                      ) : (
+                        <span className="text-blue-500">-</span>
+                      )}
                     </td>
-                    <td className="p-4 text-blue-200 text-sm">{song.publisher || '-'}</td>
-                    <td className="p-4 text-blue-300 text-sm">{song.genre || '-'}</td>
                     <td className="p-4 text-center">
                       <button 
-                        onClick={() => handleToggle(song.id, 'isActive')}
+                        onClick={() => handleToggle(song.id)}
                         className={`px-3 py-1 rounded-full text-xs font-bold ${song.isActive ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
                       >
                         {song.isActive ? 'Aktif' : 'Nonaktif'}
-                      </button>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button 
-                        onClick={() => handleToggle(song.id, 'isDownloadable')}
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${song.isDownloadable ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}
-                      >
-                        {song.isDownloadable ? 'Boleh' : 'Tidak'}
                       </button>
                     </td>
                     <td className="p-4 text-right">
@@ -278,80 +255,72 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
       {/* Modal Add/Edit */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
             <div className="p-6 border-b flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
-                {editingSong ? 'Edit Lagu' : 'Tambah Lagu MP3 Baru'}
+                {editingSong ? 'Edit Lagu' : 'Tambah Lagu Baru'}
               </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {errorMsg && (
                 <div className="p-3 bg-red-100 text-red-600 text-sm rounded-lg border border-red-200">
                   {errorMsg}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Judul Lagu *</label>
-                  <input required name="title" defaultValue={editingSong?.title} type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Nama Artis *</label>
-                  <input required name="artist" defaultValue={editingSong?.artist} type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Publisher</label>
-                  <input name="publisher" defaultValue={editingSong?.publisher} type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" placeholder="Optional" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Genre</label>
-                  <input name="genre" defaultValue={editingSong?.genre} type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-500" placeholder="Optional" />
-                </div>
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Judul *</label>
+                <input required name="title" defaultValue={editingSong?.title} type="text" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  placeholder="Masukkan judul lagu" />
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Cover Image {editingSong ? '(Biarkan kosong jika tidak diubah)' : ''}</label>
-                <div className="border border-gray-300 rounded-lg px-3 py-2 flex items-center gap-2 bg-gray-50">
-                  <Upload className="w-4 h-4 text-gray-400" />
-                  <input name="cover" type="file" accept="image/*" className="w-full text-sm text-gray-600" />
-                </div>
-                {editingSong?.coverUrl && <p className="text-xs text-blue-600 mt-1">Cover saat ini sudah ada.</p>}
+                <label className="text-sm font-semibold text-gray-700">Artist *</label>
+                <input required name="artist" defaultValue={editingSong?.artist} type="text" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  placeholder="Nama artis / pengarang" />
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">File MP3 {editingSong ? '(Biarkan kosong jika tidak diubah)' : '*'}</label>
-                <div className="border border-gray-300 rounded-lg px-3 py-2 flex items-center gap-2 bg-gray-50">
-                  <Upload className="w-4 h-4 text-gray-400" />
-                  <input name="audio" type="file" accept="audio/mpeg,audio/mp3" className="w-full text-sm text-gray-600" />
-                </div>
-                {editingSong?.audioUrl && <p className="text-xs text-blue-600 mt-1">Audio saat ini sudah ada.</p>}
+                <label className="text-sm font-semibold text-gray-700">Vokal</label>
+                <input name="vokal" defaultValue={editingSong?.vokal} type="text" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  placeholder="Nama penyanyi / vokal" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-4">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700">Publisher</label>
+                <input name="publisher" defaultValue={editingSong?.publisher} type="text" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  placeholder="Nama publisher / label" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-1.5"><Link className="w-4 h-4 text-blue-500" /> Link Drive</label>
+                <input name="driveLink" defaultValue={editingSong?.driveLink} type="url" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                  placeholder="https://drive.google.com/..." />
+              </div>
+
+              <div className="pt-2 border-t">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="hidden" name="isActive" value="false" />
-                  <input type="checkbox" name="isActive" value="true" defaultChecked={editingSong ? editingSong.isActive : true} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
-                  <span className="text-sm font-medium text-gray-700">Status Aktif (Ditampilkan)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="hidden" name="isDownloadable" value="false" />
-                  <input type="checkbox" name="isDownloadable" value="true" defaultChecked={editingSong ? editingSong.isDownloadable : false} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
-                  <span className="text-sm font-medium text-gray-700">Boleh di Download</span>
+                  <input type="checkbox" name="isActive" value="true" 
+                    defaultChecked={editingSong ? editingSong.isActive : true} 
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                  <span className="text-sm font-medium text-gray-700">Status Aktif (Ditampilkan ke pengguna)</span>
                 </label>
               </div>
 
               <button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold mt-6 hover:bg-blue-700 transition disabled:opacity-50 flex justify-center items-center gap-2"
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold mt-2 hover:bg-blue-700 transition disabled:opacity-50 flex justify-center items-center gap-2"
               >
                 {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
                 {isSubmitting ? "Menyimpan..." : "Simpan Lagu"}

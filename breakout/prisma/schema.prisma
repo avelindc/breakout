@@ -267,14 +267,12 @@ model CatalogSong {
   id        String   @id @default(cuid())
   title     String
   artist    String
+  vokal     String?
   publisher String?
   genre     String?
+  driveLink String?
   
-  coverUrl  String?
-  audioUrl  String?
-  
-  isActive      Boolean @default(true)
-  isDownloadable Boolean @default(false)
+  isActive  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

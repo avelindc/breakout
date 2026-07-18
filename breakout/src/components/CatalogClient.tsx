@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { getCatalogSongsAction, getCatalogFiltersAction } from "@/app/actions/catalog";
-import { Search, Loader2, Music, User, Building, X, Play, Download, Pause } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Search, Loader2, Music, Building, X, ExternalLink, Mic2 } from "lucide-react";
 
 export function CatalogClient() {
-  const router = useRouter();
-  
   const [songs, setSongs] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -16,19 +13,14 @@ export function CatalogClient() {
   const [hasMore, setHasMore] = useState(true);
   
   const [publishers, setPublishers] = useState<string[]>([]);
-  const [genres, setGenres] = useState<string[]>([]);
-  
   const [selectedPublisher, setSelectedPublisher] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("");
-  
+
   const [selectedSong, setSelectedSong] = useState<any | null>(null);
 
   useEffect(() => {
-    // Load filters on mount
     getCatalogFiltersAction().then(res => {
       if (res.success) {
         setPublishers((res.publishers || []) as string[]);
-        setGenres((res.genres || []) as string[]);
       }
     });
   }, []);
@@ -40,7 +32,6 @@ export function CatalogClient() {
       limit: 20,
       search,
       publisher: selectedPublisher,
-      genre: selectedGenre
     });
     
     if (res.success && res.songs) {
@@ -61,7 +52,7 @@ export function CatalogClient() {
       fetchSongs(1, true);
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-  }, [search, selectedPublisher, selectedGenre]);
+  }, [search, selectedPublisher]);
 
   const loadMore = () => {
     if (!loading && hasMore) {
@@ -73,45 +64,33 @@ export function CatalogClient() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-600 rounded-2xl p-6 flex flex-col md:flex-row gap-4 items-center shadow-lg">
-        <div className="relative flex-1 w-full">
+      {/* Search & Filter Bar */}
+      <div className="bg-blue-600 rounded-2xl p-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center shadow-lg">
+        <div className="relative flex-1">
           <Search className="w-5 h-5 text-blue-200 absolute left-4 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
-            placeholder="Cari berdasarkan judul lagu, artis, atau publisher..."
+            placeholder="Cari judul, artis, vokal, publisher..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-blue-700/50 border border-blue-400/30 rounded-xl outline-none focus:border-white text-white transition placeholder-blue-200"
           />
         </div>
         
-        <div className="flex gap-4 w-full md:w-auto">
-          <select 
-            value={selectedPublisher}
-            onChange={(e) => setSelectedPublisher(e.target.value)}
-            className="flex-1 md:w-48 bg-blue-700/50 border border-blue-400/30 rounded-xl px-4 py-3 outline-none focus:border-white text-white transition appearance-none"
-          >
-            <option value="" className="bg-blue-800 text-white">Semua Publisher</option>
-            {publishers.map(p => (
-              <option key={p} value={p} className="bg-blue-800 text-white">{p}</option>
-            ))}
-          </select>
-          
-          <select 
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-            className="flex-1 md:w-48 bg-blue-700/50 border border-blue-400/30 rounded-xl px-4 py-3 outline-none focus:border-white text-white transition appearance-none"
-          >
-            <option value="" className="bg-blue-800 text-white">Semua Genre</option>
-            {genres.map(g => (
-              <option key={g} value={g} className="bg-blue-800 text-white">{g}</option>
-            ))}
-          </select>
-        </div>
+        <select 
+          value={selectedPublisher}
+          onChange={(e) => setSelectedPublisher(e.target.value)}
+          className="sm:w-48 bg-blue-700/50 border border-blue-400/30 rounded-xl px-4 py-3 outline-none focus:border-white text-white transition appearance-none"
+        >
+          <option value="" className="bg-blue-800">Semua Publisher</option>
+          {publishers.map(p => (
+            <option key={p} value={p} className="bg-blue-800">{p}</option>
+          ))}
+        </select>
       </div>
 
-      <div className="mb-4 text-gray-400 font-medium">
-        Menampilkan {songs.length} dari {total} lagu MP3
+      <div className="text-gray-400 font-medium text-sm">
+        Menampilkan {songs.length} dari {total} lagu
       </div>
 
       {songs.length === 0 && !loading ? (
@@ -121,39 +100,29 @@ export function CatalogClient() {
           <p className="text-gray-400">Katalog kosong atau lagu tidak ditemukan.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {songs.map((song, i) => (
             <div 
               key={`${song.id}-${i}`}
               onClick={() => setSelectedSong(song)}
-              className="bg-white/5 border border-white/10 rounded-2xl p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-600/10 transition group flex flex-col"
+              className="bg-white/5 border border-white/10 rounded-2xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-600/10 transition group"
             >
-              <div className="w-full aspect-square bg-blue-900 rounded-xl mb-4 overflow-hidden relative flex items-center justify-center">
-                {song.coverUrl ? (
-                  <img src={song.coverUrl} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                ) : (
-                  <Music className="w-12 h-12 text-blue-400/50" />
-                )}
-                {/* Play Overlay */}
-                {song.audioUrl && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-blue-600 pl-1 shadow-xl">
-                      <Play className="w-5 h-5" />
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="min-w-0 flex-1">
-                <h4 className="text-lg font-bold text-white truncate">{song.title}</h4>
-                <p className="text-sm text-blue-300 truncate font-medium mt-0.5">{song.artist}</p>
-                
-                <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
-                  {song.publisher && (
-                    <span className="flex items-center gap-1 truncate"><Building className="w-3 h-3"/> {song.publisher}</span>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-600/30 text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <Music className="w-6 h-6" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-base font-bold text-white truncate">{song.title}</h4>
+                  <p className="text-sm text-blue-300 truncate mt-0.5 font-medium">{song.artist}</p>
+                  {song.vokal && (
+                    <p className="text-xs text-gray-400 truncate mt-0.5 flex items-center gap-1">
+                      <Mic2 className="w-3 h-3" /> {song.vokal}
+                    </p>
                   )}
-                  {song.genre && (
-                    <span className="px-2 py-1 bg-white/10 rounded-full">{song.genre}</span>
+                  {song.publisher && (
+                    <p className="text-xs text-gray-500 truncate mt-1 flex items-center gap-1">
+                      <Building className="w-3 h-3" /> {song.publisher}
+                    </p>
                   )}
                 </div>
               </div>
@@ -179,82 +148,65 @@ export function CatalogClient() {
         </div>
       )}
 
-      {/* Song Detail & Player Modal */}
+      {/* Song Detail Modal */}
       {selectedSong && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#12121A] rounded-3xl max-w-md w-full border border-white/10 shadow-2xl overflow-hidden animate-scale-in flex flex-col">
-            <div className="relative aspect-square w-full bg-blue-900">
-              {selectedSong.coverUrl ? (
-                <img src={selectedSong.coverUrl} alt="Cover" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Music className="w-24 h-24 text-blue-400/50" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#12121A] rounded-3xl max-w-md w-full border border-white/10 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-white/5 flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-blue-600/30 flex items-center justify-center flex-shrink-0">
+                  <Music className="w-7 h-7 text-blue-400" />
                 </div>
-              )}
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-[#12121A] via-transparent to-transparent opacity-90" />
-              
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedSong.title}</h2>
+                  <p className="text-blue-400 font-medium mt-0.5">{selectedSong.artist}</p>
+                </div>
+              </div>
               <button 
                 onClick={() => setSelectedSong(null)}
-                className="absolute top-4 right-4 p-2 text-white bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full transition z-10"
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition"
               >
                 <X className="w-5 h-5" />
               </button>
-
-              <div className="absolute bottom-6 left-6 right-6 z-10">
-                <h2 className="text-2xl font-bold text-white drop-shadow-md truncate">{selectedSong.title}</h2>
-                <p className="text-blue-400 font-medium mt-1 text-lg drop-shadow-md truncate">{selectedSong.artist}</p>
-              </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              <div className="flex flex-wrap gap-2">
-                {selectedSong.publisher && (
-                  <div className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-gray-400"/>
-                    <span className="text-sm text-gray-300">{selectedSong.publisher}</span>
+            <div className="p-6 space-y-3">
+              {/* Info Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {selectedSong.vokal && (
+                  <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                    <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
+                      <Mic2 className="w-3 h-3"/> Vokal
+                    </p>
+                    <p className="text-sm text-gray-200 font-semibold">{selectedSong.vokal}</p>
                   </div>
                 )}
-                {selectedSong.genre && (
-                  <div className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                    <span className="text-sm text-gray-300">{selectedSong.genre}</span>
+                {selectedSong.publisher && (
+                  <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                    <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
+                      <Building className="w-3 h-3"/> Publisher
+                    </p>
+                    <p className="text-sm text-gray-200 font-semibold">{selectedSong.publisher}</p>
                   </div>
                 )}
               </div>
 
-              {/* Audio Player */}
-              {selectedSong.audioUrl ? (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400 ml-1">Preview MP3</p>
-                  <audio 
-                    controls 
-                    className="w-full h-12"
-                    controlsList="nodownload"
-                    autoPlay
-                    src={selectedSong.audioUrl}
-                  />
-                </div>
-              ) : (
-                 <div className="p-4 bg-white/5 rounded-xl text-center text-gray-400 text-sm">
-                   Preview Audio tidak tersedia untuk lagu ini.
-                 </div>
-              )}
-              
-              {/* Download Action */}
-              {selectedSong.isDownloadable ? (
+              {/* Drive Link Button */}
+              {selectedSong.driveLink ? (
                 <a 
-                  href={selectedSong.audioUrl}
-                  download
+                  href={selectedSong.driveLink}
                   target="_blank"
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] mt-2"
+                  rel="noopener noreferrer"
+                  className="w-full mt-4 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold hover:opacity-90 transition flex justify-center items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
                 >
-                  <Download className="w-5 h-5" />
-                  Download MP3
+                  <ExternalLink className="w-5 h-5" />
+                  Buka di Google Drive
                 </a>
               ) : (
-                <div className="w-full py-4 rounded-xl bg-white/5 text-gray-400 font-bold flex justify-center items-center gap-2 border border-white/10 mt-2 cursor-not-allowed">
-                  <Download className="w-5 h-5 opacity-50" />
-                  Download Tidak Tersedia
+                <div className="w-full mt-4 py-4 rounded-xl bg-white/5 text-gray-400 font-bold flex justify-center items-center gap-2 border border-white/10 cursor-not-allowed">
+                  <ExternalLink className="w-5 h-5 opacity-50" />
+                  Link Drive Tidak Tersedia
                 </div>
               )}
             </div>
