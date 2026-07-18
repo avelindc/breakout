@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
-import SignatureCanvas from "react-signature-canvas";
 import { toJpeg } from "html-to-image";
 import { getContractUploadUrlsAction, finalizeContractAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
@@ -21,25 +20,14 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
-  
-  const signatureRef = useRef<any>(null);
   const contractRef = useRef<HTMLDivElement>(null);
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-  const handleClearSignature = () => {
-    signatureRef.current?.clear();
-  };
-
   const handleSignContract = async () => {
     if (!agreed) {
       setError("Anda harus menyetujui isi perjanjian.");
-      return;
-    }
-    
-    if (signatureRef.current?.isEmpty()) {
-      setError("Tanda tangan tidak boleh kosong.");
       return;
     }
 
@@ -47,10 +35,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
     setError(null);
 
     try {
-      // 1. Get Signature as Base64 PNG
-      const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
-
-      // 2. Generate full-height image using html-to-image
+      // 1. Generate full-height image using html-to-image
       if (!contractRef.current) throw new Error("Contract element not found");
       
       const contractEl = contractRef.current!;
@@ -80,28 +65,13 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       if (!dataUrl) throw new Error("Failed to create contract image");
       const contractBlob = await (await fetch(dataUrl)).blob();
 
-      // 3. Get signed upload URLs from server
+      // 2. Get signed upload URLs from server
       const urlsRes = await getContractUploadUrlsAction(userId);
-      if (urlsRes?.error || !urlsRes.signature || !urlsRes.pdf) {
+      if (urlsRes?.error || !urlsRes.pdf) {
         throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan.");
       }
 
-      // 4. Upload Signature Blob
-      const signatureBlob = await new Promise<Blob>((resolve, reject) => {
-        signatureRef.current.getTrimmedCanvas().toBlob((blob: Blob | null) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Failed to create signature blob"));
-        }, "image/png");
-      });
-      
-      const sigUpload = await fetch(urlsRes.signature.url, {
-        method: "PUT",
-        body: signatureBlob,
-        headers: { "Content-Type": "image/png" }
-      });
-      if (!sigUpload.ok) throw new Error("Gagal mengunggah tanda tangan");
-
-      // 5. Upload Contract JPEG Blob (contractBlob is already created above)
+      // 3. Upload Contract JPEG Blob (contractBlob is already created above)
       
       const pdfUpload = await fetch(urlsRes.pdf.url, {
         method: "PUT",
@@ -110,8 +80,9 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       });
       if (!pdfUpload.ok) throw new Error("Gagal mengunggah gambar kontrak");
 
-      // 6. Finalize in database
-      const finalizeRes = await finalizeContractAction(userId, urlsRes.signature.path, urlsRes.pdf.path);
+      // 4. Finalize in database
+      const signaturePath = "agreed-digitally";
+      const finalizeRes = await finalizeContractAction(userId, signaturePath, urlsRes.pdf.path);
       
       if (finalizeRes?.error) {
         setError(finalizeRes.error);
@@ -258,14 +229,10 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
           
           <div className="text-center relative min-w-[250px]">
             <p className="mb-12">PIHAK KEDUA</p>
-            
-            {/* The signature will be placed here in the PDF, but drawn below */}
-            {!loading && agreed && signatureRef.current && !signatureRef.current.isEmpty() && (
-              <img 
-                src={signatureRef.current.getTrimmedCanvas().toDataURL("image/png")} 
-                alt="Signature" 
-                className="mx-auto h-24 object-contain -mt-8 mb-4 pointer-events-none" 
-              />
+            {agreed && (
+              <div className="mx-auto h-20 w-48 flex items-center justify-center -mt-8 mb-4 pointer-events-none text-blue-600 font-bold italic border-2 border-blue-200 bg-blue-50/50 rounded-lg transform -rotate-2">
+                Disetujui secara digital
+              </div>
             )}
             
             <p className="font-bold underline pt-4 border-t border-gray-300 w-full inline-block mt-4">{name}</p>
@@ -273,26 +240,9 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
         </div>
       </div>
       
-      {/* Interactive Section - Not printed to PDF directly */}
       <div className="mt-8 border-t border-gray-200 pt-8 bg-gray-50 -mx-8 md:-mx-12 px-8 md:px-12 pb-8 rounded-b-2xl">
-        <h3 className="font-bold text-lg mb-4 text-center">Tanda Tangan Digital</h3>
-        <p className="text-gray-500 text-sm text-center mb-6">Silakan gunakan jari Anda pada HP atau mouse pada desktop untuk menandatangani kotak di bawah ini.</p>
-        
-        <div className="max-w-md mx-auto bg-white rounded-xl border-2 border-dashed border-gray-300 overflow-hidden relative shadow-sm">
-          <SignatureCanvas 
-            ref={signatureRef}
-            penColor="black"
-            canvasProps={{ className: "w-full h-48 cursor-crosshair" }} 
-            onEnd={() => { /* Force re-render for PDF check if needed, but ref holds data */ }}
-          />
-          <button 
-            type="button" 
-            onClick={handleClearSignature}
-            className="absolute top-2 right-2 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-gray-600 transition"
-          >
-            Bersihkan
-          </button>
-        </div>
+        <h3 className="font-bold text-lg mb-4 text-center">Persetujuan Kontrak</h3>
+        <p className="text-gray-500 text-sm text-center mb-6">Silakan centang kotak di bawah ini sebagai tanda persetujuan Anda terhadap seluruh isi perjanjian di atas.</p>
 
         <div className="max-w-md mx-auto mt-8 flex items-start gap-3">
           <div className="flex items-center h-5 mt-0.5">
@@ -316,7 +266,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
             disabled={loading || !agreed}
             className="w-full bg-[#0047FF] hover:bg-blue-700 transition text-white font-bold py-4 rounded-xl flex justify-center items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Saya Setuju & Tandatangani"}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Saya Setuju"}
           </button>
         </div>
       </div>
