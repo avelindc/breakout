@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
+import { isMaintenanceActive } from "@/lib/maintenance";
 
 const prisma = new PrismaClient();
 
@@ -11,6 +12,11 @@ export async function createArtistAction(stageName: string, userId: string) {
 
     if (!session?.user?.id || session.user.id !== userId) {
       return { error: "Unauthorized" };
+    }
+
+    const active = await isMaintenanceActive();
+    if (active && session?.user?.role !== "ADMIN") {
+      return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
     if (!stageName || stageName.trim() === "") {

@@ -2,6 +2,7 @@ import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { PrismaClient } from "@prisma/client";
+import { isMaintenanceActive } from "@/lib/maintenance";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,12 @@ export default async function DashboardLayout({
   // @ts-ignore
   if (session.user.role === 'ADMIN') {
     redirect("/admin");
+  }
+
+  // Check Maintenance Mode
+  const active = await isMaintenanceActive();
+  if (active) {
+    redirect("/maintenance");
   }
 
   const brandSetting = await prisma.settings.findUnique({

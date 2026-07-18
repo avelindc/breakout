@@ -1,8 +1,19 @@
 import { auth } from "@/auth";
 import { BrandSettingsForm } from "@/components/BrandSettingsForm";
+import { MaintenanceSettingsForm } from "@/components/MaintenanceSettingsForm";
+import { getMaintenanceData } from "@/lib/maintenance";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export default async function AdminSettingsPage() {
   const session = await auth();
+
+  const maintenanceData = await getMaintenanceData();
+  const brandSetting = await prisma.settings.findUnique({
+    where: { key: 'brand_logo' }
+  });
+  const brandLogo = brandSetting?.value || "/logo.png";
 
   return (
     <div className="animate-fade-in max-w-4xl mx-auto">
@@ -10,6 +21,8 @@ export default async function AdminSettingsPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Platform Settings</h1>
         <p className="text-gray-500">Configure global platform rules and your admin profile.</p>
       </div>
+
+      <MaintenanceSettingsForm initialData={maintenanceData as any} brandLogo={brandLogo} />
 
       <BrandSettingsForm />
 

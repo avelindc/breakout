@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { isMaintenanceActive } from "@/lib/maintenance";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -16,6 +17,11 @@ export async function updateProfileAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
+  }
+
+  const active = await isMaintenanceActive();
+  if (active && session.user.role !== "ADMIN") {
+    return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
   }
 
   const user = await prisma.user.findUnique({

@@ -4,11 +4,18 @@ import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { isMaintenanceActive } from "@/lib/maintenance";
 
 const prisma = new PrismaClient();
 
 export async function getMusicUploadUrlsAction(artistId: string, coverExt: string, audioExt: string) {
   try {
+    const active = await isMaintenanceActive();
+    const session = await auth();
+    if (active && session?.user?.role !== "ADMIN") {
+      return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
+    }
+
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
     
@@ -50,6 +57,11 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
+  }
+
+  const active = await isMaintenanceActive();
+  if (active && session?.user?.role !== "ADMIN") {
+    return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
   }
 
   const user = await prisma.user.findUnique({

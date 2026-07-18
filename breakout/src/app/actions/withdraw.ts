@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { isMaintenanceActive } from "@/lib/maintenance";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,11 @@ export async function withdrawAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
+  }
+
+  const active = await isMaintenanceActive();
+  if (active && session.user.role !== "ADMIN") {
+    return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
   }
 
   const amount = parseFloat(formData.get("amount") as string);
