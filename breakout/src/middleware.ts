@@ -2,13 +2,32 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth?.user
   // @ts-ignore
   const role = req.auth?.user?.role || req.auth?.role || (req.auth?.user?.email === 'admin@breakoutmusic.online' ? 'ADMIN' : 'USER')
   // @ts-ignore
   const status = req.auth?.user?.status || req.auth?.status || 'APPROVED'
+
+  // Maintenance Check
+  const isMaintenanceRoute = nextUrl.pathname === '/maintenance'
+  const isProtectedPath = nextUrl.pathname.startsWith('/dashboard') || nextUrl.pathname === '/register'
+
+  if (isProtectedPath && !isMaintenanceRoute && role !== 'ADMIN') {
+    try {
+      const res = await fetch(new URL('/api/maintenance', nextUrl.origin), {
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
+      const data = await res.json();
+      if (data?.active) {
+        return NextResponse.redirect(new URL('/maintenance', nextUrl));
+      }
+    } catch (error) {
+      console.error("Middleware maintenance check failed:", error);
+    }
+  }
 
   const isAuthRoute = nextUrl.pathname.startsWith('/login') || nextUrl.pathname.startsWith('/register')
   const isAdminRoute = nextUrl.pathname.startsWith('/admin')
