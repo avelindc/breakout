@@ -21,8 +21,8 @@ const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index:
   <div onClick={() => onClick(song)}
     className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group mb-4 mx-4 sm:mx-0">
     <div className="flex items-start gap-4 mb-4">
-      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition">
-        <BookOpen className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition" />
+      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
+        <img src="/images/publisher-default.jpg" alt="Publisher Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title || "Unknown"}</div>
@@ -235,7 +235,7 @@ export function PublisherCatalogUserClient() {
           
           <div className="relative z-10 bg-white rounded-3xl max-w-lg w-full shadow-2xl transform animate-scale-up flex flex-col max-h-[90vh] overflow-hidden">
             
-            <div className="relative shrink-0 h-32 bg-gray-50 flex items-end p-6 border-b border-gray-100">
+            <div className="relative shrink-0 h-40 md:h-48 bg-gray-50 flex items-end p-6 md:p-8 border-b border-gray-100">
               <div className="absolute top-4 right-4 z-20">
                 <button 
                   onClick={() => setSelectedSong(null)}
@@ -244,9 +244,14 @@ export function PublisherCatalogUserClient() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="relative z-10 w-full">
-                <h2 className="text-xl md:text-2xl font-black text-gray-900 truncate pr-8">{selectedSong.title || "Unknown"}</h2>
-                <p className="text-gray-500 font-medium text-sm md:text-base truncate mt-1">{selectedSong.artist || "Unknown"}</p>
+              <div className="relative z-10 flex items-center gap-4 md:gap-5 w-full">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-gray-200 shrink-0 overflow-hidden">
+                  <img src="/images/publisher-default.jpg" alt="Publisher Icon" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-gray-900 truncate pr-8">{selectedSong.title || "Unknown"}</h2>
+                  <p className="text-gray-500 font-medium text-base md:text-lg truncate mt-1">{selectedSong.artist || "Unknown"}</p>
+                </div>
               </div>
             </div>
 
