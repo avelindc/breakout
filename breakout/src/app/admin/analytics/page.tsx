@@ -9,9 +9,14 @@ import { TrendingUp, Users, Music, DollarSign } from "lucide-react";
 
 export default function AdminAnalyticsPage() {
   const [mounted, setMounted] = useState(false);
+  const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    const timer = setTimeout(() => {
+      setChartKey(prev => prev + 1);
+    }, 150);
+    return () => clearTimeout(timer);
   }, []);
 
   const revenueData = [
@@ -95,7 +100,7 @@ export default function AdminAnalyticsPage() {
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm lg:col-span-2">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Revenue Overview</h2>
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer key={chartKey} width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -119,7 +124,7 @@ export default function AdminAnalyticsPage() {
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Platform Share</h2>
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer key={chartKey} width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={platformData}

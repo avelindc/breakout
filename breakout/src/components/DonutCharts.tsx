@@ -20,7 +20,15 @@ const shareData = [
 
 export function TrafficSourcesChart({ hasData = true }: { hasData?: boolean }) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [chartKey, setChartKey] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => {
+      setChartKey(prev => prev + 1);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
   if (!mounted) return null;
 
   return (
@@ -45,7 +53,7 @@ export function TrafficSourcesChart({ hasData = true }: { hasData?: boolean }) {
             ))}
           </div>
           <div className="w-1/2 h-48 relative">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer key={chartKey} width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={trafficData}
@@ -77,7 +85,15 @@ export function TrafficSourcesChart({ hasData = true }: { hasData?: boolean }) {
 
 export function ShareOfVoiceChart({ hasData = true }: { hasData?: boolean }) {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [chartKey, setChartKey] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    const timer = setTimeout(() => {
+      setChartKey(prev => prev + 1);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
   if (!mounted) return null;
 
   return (
@@ -102,7 +118,7 @@ export function ShareOfVoiceChart({ hasData = true }: { hasData?: boolean }) {
             ))}
           </div>
           <div className="w-1/2 h-48 relative">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer key={chartKey} width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={shareData}

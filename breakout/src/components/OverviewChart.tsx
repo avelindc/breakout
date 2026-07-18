@@ -8,9 +8,14 @@ import { LineChart as LineChartIcon } from "lucide-react";
 
 export function OverviewChart({ hasData = true }: { hasData?: boolean }) {
   const [mounted, setMounted] = useState(false);
+  const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    const timer = setTimeout(() => {
+      setChartKey(prev => prev + 1);
+    }, 150);
+    return () => clearTimeout(timer);
   }, []);
 
   const data = [
@@ -55,7 +60,7 @@ export function OverviewChart({ hasData = true }: { hasData?: boolean }) {
             <p className="text-xs mt-1">Upload music and start earning streams to see your stats here.</p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer key={chartKey} width="100%" height="100%" minWidth={0} minHeight={0}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
