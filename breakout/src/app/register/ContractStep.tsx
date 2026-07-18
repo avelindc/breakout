@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
-import html2canvas from "html2canvas";
+import { toJpeg } from "html-to-image";
 import { getContractUploadUrlsAction, finalizeContractAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
@@ -50,7 +50,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       // 1. Get Signature as Base64 PNG
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL("image/png");
 
-      // 2. Generate full-height image using html2canvas
+      // 2. Generate full-height image using html-to-image
       if (!contractRef.current) throw new Error("Contract element not found");
       
       const contractEl = contractRef.current!;
@@ -69,14 +69,16 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       
       document.body.appendChild(clone);
       
-      const canvas = await html2canvas(clone, {
-        scale: 2, // High resolution
-        useCORS: true,
+      const dataUrl = await toJpeg(clone, {
+        quality: 0.9,
         backgroundColor: "#ffffff",
-        windowWidth: 800
+        pixelRatio: 2
       });
       
       document.body.removeChild(clone);
+
+      if (!dataUrl) throw new Error("Failed to create contract image");
+      const contractBlob = await (await fetch(dataUrl)).blob();
 
       // 3. Get signed upload URLs from server
       const urlsRes = await getContractUploadUrlsAction(userId);
@@ -99,13 +101,7 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
       });
       if (!sigUpload.ok) throw new Error("Gagal mengunggah tanda tangan");
 
-      // 5. Upload Contract JPEG Blob
-      const contractBlob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Failed to create contract blob"));
-        }, "image/jpeg", 0.9); // High quality JPEG
-      });
+      // 5. Upload Contract JPEG Blob (contractBlob is already created above)
       
       const pdfUpload = await fetch(urlsRes.pdf.url, {
         method: "PUT",
