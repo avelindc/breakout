@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
-import Link from "next/link";
 import { RegistrationCards } from "./RegistrationCards";
 
 const prisma = new PrismaClient();
@@ -31,35 +30,20 @@ async function getSignedContractUrl(path: string | null) {
   return data.signedUrl;
 }
 
-export default async function AdminRegistrationsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const params = await searchParams;
-  const activeTab = params.tab || "pending";
-
-  const pendingUsers = await prisma.user.findMany({
-    where: { role: 'USER', status: 'PENDING' },
+export default async function AdminRegistrationsPage() {
+  // Fetch all non-rejected users (pending + approved) in one list
+  const allUsers = await prisma.user.findMany({
+    where: { role: 'USER', status: { in: ['PENDING', 'APPROVED'] } },
     include: { contracts: true },
     orderBy: { createdAt: 'desc' }
   });
 
-  const rejectedUsers = await prisma.user.findMany({
-    where: { role: 'USER', status: 'REJECTED' },
-    include: { contracts: true },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  const approvedUsers = await prisma.user.findMany({
-    where: { role: 'USER', status: 'APPROVED' },
-    include: { contracts: true },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  let displayUsers = pendingUsers;
-  if (activeTab === "approved") displayUsers = approvedUsers;
-  if (activeTab === "rejected") displayUsers = rejectedUsers;
+  const pendingCount = allUsers.filter(u => u.status === 'PENDING').length;
+  const approvedCount = allUsers.filter(u => u.status === 'APPROVED').length;
 
   // Pre-sign all URLs server-side
   const cardsData = await Promise.all(
-    displayUsers.map(async (user) => {
+    allUsers.map(async (user) => {
       const ktpUrl = await getSignedKtpUrl(user.ktpUrl);
       const contractUrl = user.contracts?.[0]
         ? await getSignedContractUrl(user.contracts[0].pdfUrl)
@@ -88,37 +72,22 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
       {/* Header */}
       <div className="mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Identity Verification</h1>
-        <p className="text-gray-500 text-sm">{pendingUsers.length} pending registrations</p>
-
-        <div className="flex items-center gap-4 md:gap-6 mt-8 border-b border-gray-100 pb-4 overflow-x-auto scrollbar-hide">
-          <Link
-            href="?tab=pending"
-            className={`font-bold pb-4 -mb-[18px] transition whitespace-nowrap text-sm md:text-base ${activeTab === 'pending' ? 'text-gray-900 border-b-2 border-purple-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Pending ({pendingUsers.length})
-          </Link>
-          <Link
-            href="?tab=approved"
-            className={`font-bold pb-4 -mb-[18px] transition whitespace-nowrap text-sm md:text-base ${activeTab === 'approved' ? 'text-gray-900 border-b-2 border-purple-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Approved ({approvedUsers.length})
-          </Link>
-          <Link
-            href="?tab=rejected"
-            className={`font-bold pb-4 -mb-[18px] transition whitespace-nowrap text-sm md:text-base ${activeTab === 'rejected' ? 'text-gray-900 border-b-2 border-purple-600' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            Rejected ({rejectedUsers.length})
-          </Link>
-        </div>
+        <p className="text-gray-500 text-sm">
+          <span className="text-yellow-600 font-semibold">{pendingCount} pending</span>
+          {" · "}
+          <span className="text-green-600 font-semibold">{approvedCount} approved</span>
+          {" · "}
+          <span className="font-semibold">{allUsers.length} total</span>
+        </p>
       </div>
 
       {/* Cards */}
-      {displayUsers.length === 0 ? (
+      {allUsers.length === 0 ? (
         <div className="text-center py-16 text-gray-400 bg-white rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-lg font-semibold">No {activeTab} registrations found.</p>
+          <p className="text-lg font-semibold">Belum ada registrasi.</p>
         </div>
       ) : (
-        <RegistrationCards cards={cardsData} activeTab={activeTab} />
+        <RegistrationCards cards={cardsData} />
       )}
     </div>
   );

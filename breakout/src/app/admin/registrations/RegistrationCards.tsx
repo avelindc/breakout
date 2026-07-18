@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   X, Eye, FileText, Phone, Mail, MapPin, CreditCard,
-  Calendar, Check, Loader2, Trash2, Shield, ExternalLink
+  Calendar, Check, Loader2, Trash2, Shield, ZoomIn, ZoomOut
 } from "lucide-react";
 import { updateArtistStatusAction, deleteUserAction } from "@/app/actions/admin";
 
@@ -47,39 +47,114 @@ function StatusDot({ status }: { status: string }) {
   return <span className={`w-2 h-2 rounded-full ${colors[status] || "bg-gray-400"}`}></span>;
 }
 
-export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; activeTab: string }) {
+/* ========================= */
+/* Document Zoom Viewer      */
+/* ========================= */
+function DocViewer({ url, label, onClose }: { url: string; label: string; onClose: () => void }) {
+  const [zoom, setZoom] = useState(1);
+
+  const isPdf = url.toLowerCase().includes(".pdf");
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex flex-col items-center justify-center"
+      onClick={onClose}
+    >
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 h-14 bg-black/60 flex items-center justify-between px-4 z-10" onClick={e => e.stopPropagation()}>
+        <p className="text-white font-bold text-sm">{label}</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
+            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className="text-white text-xs font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+          <button
+            onClick={() => setZoom(z => Math.min(3, z + 0.25))}
+            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center justify-center text-white ml-2"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto flex items-center justify-center w-full pt-14 pb-4" onClick={e => e.stopPropagation()}>
+        {isPdf ? (
+          <iframe
+            src={url}
+            className="bg-white rounded-xl shadow-2xl"
+            style={{ width: `${Math.min(90, 60 * zoom)}vw`, height: `${Math.min(90, 70 * zoom)}vh` }}
+          />
+        ) : (
+          <img
+            src={url}
+            alt={label}
+            className="rounded-xl shadow-2xl transition-transform duration-200 max-w-[95vw] max-h-[90vh] object-contain"
+            style={{ transform: `scale(${zoom})` }}
+            draggable={false}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ========================= */
+/* Main Component            */
+/* ========================= */
+export function RegistrationCards({ cards }: { cards: CardData[] }) {
+  const [visibleCards, setVisibleCards] = useState<CardData[]>(cards);
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [loadingApprove, setLoadingApprove] = useState(false);
   const [loadingReject, setLoadingReject] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [rejectMode, setRejectMode] = useState(false);
   const [reason, setReason] = useState("");
+  const [docViewer, setDocViewer] = useState<{ url: string; label: string } | null>(null);
 
-  const handleApprove = async (userId: string, name: string, email: string) => {
+  const removeCard = useCallback((id: string) => {
+    setVisibleCards(prev => prev.filter(c => c.id !== id));
+  }, []);
+
+  const handleApprove = async (card: CardData) => {
     setLoadingApprove(true);
-    await updateArtistStatusAction(userId, "APPROVED", name, email, "");
+    await updateArtistStatusAction(card.id, "APPROVED", card.name, card.email, "");
+    // Update status in local state instead of removing
+    setVisibleCards(prev => prev.map(c => c.id === card.id ? { ...c, status: "APPROVED" } : c));
     setLoadingApprove(false);
     setSelectedCard(null);
   };
 
-  const handleReject = async (userId: string, name: string, email: string) => {
+  const handleReject = async (card: CardData) => {
     if (!reason.trim()) {
       alert("Alasan penolakan harus diisi!");
       return;
     }
     setLoadingReject(true);
-    await updateArtistStatusAction(userId, "REJECTED", name, email, reason);
+    await updateArtistStatusAction(card.id, "REJECTED", card.name, card.email, reason);
+    // Instantly remove from view (thrown to trash)
+    removeCard(card.id);
     setLoadingReject(false);
     setRejectMode(false);
     setReason("");
     setSelectedCard(null);
   };
 
-  const handleDelete = async (userId: string, name: string) => {
-    if (confirm(`Hapus pendaftaran ${name} secara permanen?`)) {
+  const handleDelete = async (card: CardData) => {
+    if (confirm(`Hapus pendaftaran ${card.name} secara permanen?`)) {
       setLoadingDelete(true);
-      const res = await deleteUserAction(userId);
-      if (res.error) alert(res.error);
+      const res = await deleteUserAction(card.id);
+      if (res.error) { alert(res.error); setLoadingDelete(false); return; }
+      removeCard(card.id);
       setLoadingDelete(false);
       setSelectedCard(null);
     }
@@ -89,7 +164,7 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
     <>
       {/* Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {cards.map((card) => (
+        {visibleCards.map((card) => (
           <div
             key={card.id}
             onClick={() => { setSelectedCard(card); setRejectMode(false); setReason(""); }}
@@ -97,34 +172,36 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
           >
             {/* Visa-style Card */}
             <div className="relative w-full aspect-[1.586/1] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1">
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#7c3aed] via-[#9333ea] to-[#a855f7]"></div>
+              {/* Background gradient - green for approved, purple for pending */}
+              <div className={`absolute inset-0 ${
+                card.status === "APPROVED"
+                  ? "bg-gradient-to-br from-[#059669] via-[#10b981] to-[#34d399]"
+                  : "bg-gradient-to-br from-[#7c3aed] via-[#9333ea] to-[#a855f7]"
+              }`}></div>
               {/* Pattern overlay */}
               <div className="absolute inset-0 opacity-[0.08]" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
               }}></div>
-              {/* Glow circles */}
+              {/* Glow */}
               <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-purple-300/20 rounded-full blur-2xl"></div>
+              <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
 
               {/* Content */}
               <div className="relative z-10 h-full p-5 flex flex-col justify-between">
-                {/* Top row: chip + status */}
+                {/* Top: chip + status */}
                 <div className="flex items-start justify-between">
-                  {/* Chip */}
                   <div className="w-10 h-7 rounded-md bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-inner flex items-center justify-center">
                     <div className="w-6 h-4 border border-yellow-600/30 rounded-sm bg-gradient-to-r from-yellow-400 to-yellow-300"></div>
                   </div>
-                  {/* Status badge */}
                   <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full">
                     <StatusDot status={card.status} />
                     <span className="text-[10px] font-bold text-white uppercase tracking-wider">
-                      {card.status}
+                      {card.status === "APPROVED" ? "Verified" : "Pending"}
                     </span>
                   </div>
                 </div>
 
-                {/* Middle: Name as card number */}
+                {/* Middle: Name */}
                 <div className="mt-auto">
                   <p className="text-white/50 text-[9px] font-bold uppercase tracking-[0.3em] mb-1">Member</p>
                   <p className="text-white font-bold text-base md:text-lg tracking-wide truncate">
@@ -132,7 +209,7 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
                   </p>
                 </div>
 
-                {/* Bottom row: email + date */}
+                {/* Bottom: email + date */}
                 <div className="flex items-end justify-between mt-2">
                   <div className="min-w-0 flex-1 pr-4">
                     <p className="text-white/40 text-[8px] font-bold uppercase tracking-widest mb-0.5">Email</p>
@@ -156,8 +233,14 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
         ))}
       </div>
 
+      {visibleCards.length === 0 && (
+        <div className="text-center py-16 text-gray-400 bg-white rounded-3xl border border-gray-100 shadow-sm mt-4">
+          <p className="text-lg font-semibold">Semua registrasi sudah diproses.</p>
+        </div>
+      )}
+
       {/* Detail Modal */}
-      {selectedCard && (
+      {selectedCard && !docViewer && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998] flex items-center justify-center p-4"
           onClick={() => { setSelectedCard(null); setRejectMode(false); }}
@@ -166,8 +249,12 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
             className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
-            {/* Modal Header with mini card */}
-            <div className="relative p-6 pb-4 bg-gradient-to-br from-[#7c3aed] via-[#9333ea] to-[#a855f7] rounded-t-3xl">
+            {/* Modal Header */}
+            <div className={`relative p-6 pb-4 rounded-t-3xl ${
+              selectedCard.status === "APPROVED"
+                ? "bg-gradient-to-br from-[#059669] via-[#10b981] to-[#34d399]"
+                : "bg-gradient-to-br from-[#7c3aed] via-[#9333ea] to-[#a855f7]"
+            }`}>
               <button
                 onClick={() => { setSelectedCard(null); setRejectMode(false); }}
                 className="absolute top-4 right-4 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
@@ -187,7 +274,9 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
 
               <div className="mt-4 flex items-center gap-2">
                 <StatusDot status={selectedCard.status} />
-                <span className="text-white/90 text-xs font-bold uppercase tracking-wider">{selectedCard.status}</span>
+                <span className="text-white/90 text-xs font-bold uppercase tracking-wider">
+                  {selectedCard.status === "APPROVED" ? "Verified" : selectedCard.status}
+                </span>
                 <span className="text-white/50 text-xs ml-auto">Daftar: {formatDate(selectedCard.createdAt)}</span>
               </div>
             </div>
@@ -202,22 +291,20 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
                 <InfoRow icon={<MapPin className="w-4 h-4" />} label="Alamat" value={selectedCard.address || "Tidak diisi"} />
               </div>
 
-              {/* Documents */}
+              {/* Documents - click to zoom, not open new tab */}
               <div className="pt-3 border-t border-gray-100">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Dokumen</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {/* KTP */}
                   {selectedCard.ktpUrl ? (
-                    <a
-                      href={selectedCard.ktpUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition group"
+                    <button
+                      onClick={() => setDocViewer({ url: selectedCard.ktpUrl!, label: `KTP — ${selectedCard.name}` })}
+                      className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition group text-left"
                     >
                       <Eye className="w-4 h-4 text-blue-600" />
                       <span className="text-sm font-bold text-blue-700">Lihat KTP</span>
-                      <ExternalLink className="w-3 h-3 text-blue-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
-                    </a>
+                      <ZoomIn className="w-3 h-3 text-blue-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
+                    </button>
                   ) : (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
                       <FileText className="w-4 h-4 text-gray-400" />
@@ -227,16 +314,14 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
 
                   {/* Contract */}
                   {selectedCard.hasContract && selectedCard.contractUrl ? (
-                    <a
-                      href={selectedCard.contractUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100 hover:bg-green-100 transition group"
+                    <button
+                      onClick={() => setDocViewer({ url: selectedCard.contractUrl!, label: `Kontrak — ${selectedCard.name}` })}
+                      className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100 hover:bg-green-100 transition group text-left"
                     >
                       <Shield className="w-4 h-4 text-green-600" />
                       <span className="text-sm font-bold text-green-700">Kontrak</span>
-                      <ExternalLink className="w-3 h-3 text-green-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
-                    </a>
+                      <ZoomIn className="w-3 h-3 text-green-400 ml-auto opacity-0 group-hover:opacity-100 transition" />
+                    </button>
                   ) : (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-100">
                       <FileText className="w-4 h-4 text-red-400" />
@@ -272,12 +357,12 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
                       Batal
                     </button>
                     <button
-                      onClick={() => handleReject(selectedCard.id, selectedCard.name, selectedCard.email)}
+                      onClick={() => handleReject(selectedCard)}
                       disabled={loadingReject}
                       className="px-4 py-2 text-xs font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 flex items-center gap-1.5 disabled:opacity-50 transition"
                     >
                       {loadingReject && <Loader2 className="w-3 h-3 animate-spin" />}
-                      Tolak Pendaftaran
+                      Tolak & Buang
                     </button>
                   </div>
                 </div>
@@ -286,24 +371,28 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
               {/* Action Buttons */}
               {!rejectMode && (
                 <div className="flex gap-2 pt-2">
+                  {selectedCard.status !== "APPROVED" && (
+                    <button
+                      onClick={() => handleApprove(selectedCard)}
+                      disabled={loadingApprove || loadingDelete}
+                      className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 transition text-white font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                    >
+                      {loadingApprove ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      Approve
+                    </button>
+                  )}
+                  {selectedCard.status !== "APPROVED" && (
+                    <button
+                      onClick={() => setRejectMode(true)}
+                      disabled={loadingApprove || loadingDelete}
+                      className="flex-1 h-12 bg-gray-100 hover:bg-red-50 hover:text-red-600 transition text-gray-600 font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <X className="w-4 h-4" />
+                      Reject
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleApprove(selectedCard.id, selectedCard.name, selectedCard.email)}
-                    disabled={loadingApprove || loadingDelete}
-                    className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 transition text-white font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
-                  >
-                    {loadingApprove ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => setRejectMode(true)}
-                    disabled={loadingApprove || loadingDelete}
-                    className="flex-1 h-12 bg-gray-100 hover:bg-red-50 hover:text-red-600 transition text-gray-600 font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <X className="w-4 h-4" />
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => handleDelete(selectedCard.id, selectedCard.name)}
+                    onClick={() => handleDelete(selectedCard)}
                     disabled={loadingApprove || loadingDelete}
                     className="w-12 h-12 bg-gray-100 hover:bg-red-50 hover:text-red-600 transition text-gray-400 rounded-2xl flex items-center justify-center disabled:opacity-50 shrink-0"
                     title="Hapus Permanen"
@@ -315,6 +404,11 @@ export function RegistrationCards({ cards, activeTab }: { cards: CardData[]; act
             </div>
           </div>
         </div>
+      )}
+
+      {/* Document Zoom Viewer */}
+      {docViewer && (
+        <DocViewer url={docViewer.url} label={docViewer.label} onClose={() => setDocViewer(null)} />
       )}
     </>
   );
