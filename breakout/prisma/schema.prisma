@@ -308,3 +308,23 @@ model Contract {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model PublisherCatalogSong {
+  id        String   @id @default(cuid())
+  title     String
+  artist    String
+  publisher String?
+  composer  String?
+  isrc      String?
+  upc       String?
+  album     String?
+  year      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([title])
+  @@index([artist])
+  @@index([publisher])
+}
+
