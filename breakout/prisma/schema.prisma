@@ -90,6 +90,15 @@ model Release {
   
   status         ReleaseStatus  @default(PENDING)
   
+  // Existing Release / Import fields (optional)
+  isImported      Boolean        @default(false)
+  upc             String?
+  distributor     String?
+  spotifyUrl      String?
+  appleMusicUrl   String?
+  youtubeMusicUrl String?
+  tiktokUrl       String?
+  
   tracks         Track[]
   
   createdAt      DateTime       @default(now())
@@ -104,8 +113,11 @@ enum ReleaseType {
 
 enum ReleaseStatus {
   PENDING
+  REVIEW
   APPROVED
   REJECTED
+  PROCESSING
+  RELEASED
 }
 
 model Track {

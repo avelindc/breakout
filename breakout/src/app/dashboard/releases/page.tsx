@@ -85,16 +85,23 @@ export default async function MyReleasesPage() {
                   <span className="text-sm font-semibold text-white/60 shrink-0">Status</span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className={`w-2 h-2 rounded-full ${
-                      release.status === 'APPROVED' ? 'bg-green-400' : 
+                      release.status === 'RELEASED' || release.status === 'APPROVED' ? 'bg-green-400' : 
                       release.status === 'PENDING' ? 'bg-yellow-400' : 
+                      release.status === 'REVIEW' ? 'bg-blue-400' : 
+                      release.status === 'PROCESSING' ? 'bg-orange-400' : 
                       'bg-red-400'
                     }`}></span>
                     <span className={`font-bold text-sm ${
-                      release.status === 'APPROVED' ? 'text-green-300' : 
+                      release.status === 'RELEASED' || release.status === 'APPROVED' ? 'text-green-300' : 
                       release.status === 'PENDING' ? 'text-yellow-300' : 
+                      release.status === 'REVIEW' ? 'text-blue-300' : 
+                      release.status === 'PROCESSING' ? 'text-orange-300' : 
                       'text-red-300'
                     }`}>
-                      {release.status === 'APPROVED' ? 'Released' : release.status === 'PENDING' ? 'Pending' : 'Rejected'}
+                      {release.status === 'RELEASED' || release.status === 'APPROVED' ? 'Released' : 
+                       release.status === 'PENDING' ? 'Pending' : 
+                       release.status === 'REVIEW' ? 'In Review' : 
+                       release.status === 'PROCESSING' ? 'Processing' : 'Rejected'}
                     </span>
                   </div>
                 </div>
@@ -133,16 +140,23 @@ export default async function MyReleasesPage() {
               {/* Desktop View: Status */}
               <div className="hidden md:flex w-28 lg:w-32 items-center gap-2 shrink-0">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${
-                  release.status === 'APPROVED' ? 'bg-green-400' : 
+                  release.status === 'RELEASED' || release.status === 'APPROVED' ? 'bg-green-400' : 
                   release.status === 'PENDING' ? 'bg-yellow-400' : 
+                  release.status === 'REVIEW' ? 'bg-blue-400' : 
+                  release.status === 'PROCESSING' ? 'bg-orange-400' : 
                   'bg-red-400'
                 }`}></span>
                 <span className={`font-bold text-sm truncate ${
-                  release.status === 'APPROVED' ? 'text-green-300' : 
+                  release.status === 'RELEASED' || release.status === 'APPROVED' ? 'text-green-300' : 
                   release.status === 'PENDING' ? 'text-yellow-300' : 
+                  release.status === 'REVIEW' ? 'text-blue-300' : 
+                  release.status === 'PROCESSING' ? 'text-orange-300' : 
                   'text-red-300'
                 }`}>
-                  {release.status === 'APPROVED' ? 'Released' : release.status === 'PENDING' ? 'Pending' : 'Rejected'}
+                  {release.status === 'RELEASED' || release.status === 'APPROVED' ? 'Released' : 
+                   release.status === 'PENDING' ? 'Pending' : 
+                   release.status === 'REVIEW' ? 'In Review' : 
+                   release.status === 'PROCESSING' ? 'Processing' : 'Rejected'}
                 </span>
               </div>
               

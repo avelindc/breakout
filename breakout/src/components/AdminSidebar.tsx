@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Users, Music, CheckCircle, BarChart, 
-  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen
+  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen, Disc
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -16,6 +16,7 @@ const links = [
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Identity Verif", href: "/admin/registrations", icon: CheckCircle },
   { name: "Music Review", href: "/admin/releases", icon: CheckCircle },
+  { name: "Existing Release", href: "/admin/existing-releases", icon: Disc },
   { name: "Artists", href: "/admin/all-artists", icon: Users },
   { name: "Royalties", href: "/admin/royalties", icon: DollarSign },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: DollarSign },
