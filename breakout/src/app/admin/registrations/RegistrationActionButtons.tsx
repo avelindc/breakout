@@ -14,7 +14,8 @@ export function RegistrationActionButtons({ userId, userName, userEmail }: { use
   const handleDelete = async () => {
     if (confirm(`Apakah Anda yakin ingin MENGHAPUS pendaftaran ${userName} secara permanen? Email ini akan bisa digunakan lagi untuk mendaftar.`)) {
       setLoadingDelete(true);
-      await deleteUserAction(userId);
+      const res = await deleteUserAction(userId);
+      if (res.error) alert(res.error);
       setLoadingDelete(false);
     }
   };
