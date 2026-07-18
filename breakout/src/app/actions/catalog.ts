@@ -25,7 +25,7 @@ export async function createCatalogSongAction(formData: FormData) {
     const publisher = formData.get("publisher") as string;
     const genre = formData.get("genre") as string;
     const driveLink = formData.get("driveLink") as string;
-    const isActive = formData.get("isActive") !== "false";
+    const isActive = (formData.getAll("isActive") as string[]).includes("true");
 
     if (!title || !artist) {
       return { error: "Judul dan Artis wajib diisi" };
@@ -67,7 +67,7 @@ export async function updateCatalogSongAction(id: string, formData: FormData) {
     const publisher = formData.get("publisher") as string;
     const genre = formData.get("genre") as string;
     const driveLink = formData.get("driveLink") as string;
-    const isActive = formData.get("isActive") !== "false";
+    const isActive = (formData.getAll("isActive") as string[]).includes("true");
 
     await prisma.catalogSong.update({
       where: { id },
