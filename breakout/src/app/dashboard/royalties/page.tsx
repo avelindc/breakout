@@ -12,7 +12,7 @@ export default async function UserRoyaltiesPage() {
     include: { artists: { include: { royalties: { orderBy: { createdAt: 'desc' } } } } }
   });
 
-  const royalties = user?.artists?.flatMap(a => a.royalties).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
+  const royalties = user?.artists?.flatMap(a => a.royalties.map(r => ({ ...r, artist: a }))).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
   const totalRevenue = royalties.reduce((acc, curr) => acc + curr.totalRevenue, 0);
 
   const totalSpotify = royalties.reduce((acc, curr) => acc + curr.spotifyStreams, 0);
