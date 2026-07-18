@@ -33,9 +33,14 @@ export default async function WithdrawPage() {
 
   return (
     <div className="animate-fade-in max-w-4xl mx-auto pb-10">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-1">Withdraw Earnings</h1>
-        <p className="text-gray-400 text-sm sm:text-base">Request a payout to your bank account.</p>
+      <div className="mb-10 relative">
+        <div className="absolute -top-8 -left-8 w-32 h-32 bg-[#7000FF]/10 rounded-full blur-3xl pointer-events-none" />
+        <h1 className="text-3xl sm:text-4xl font-black mb-2 tracking-tight text-gray-900 relative">
+          Withdraw <span className="bg-gradient-to-r from-[#7000FF] to-[#00F0FF] text-transparent bg-clip-text">Earnings</span>
+        </h1>
+        <p className="text-gray-500 text-sm sm:text-base font-medium max-w-md relative">
+          Transfer your available balance directly to your registered bank account.
+        </p>
       </div>
 
       {/* ═══ VISA-STYLE CARD ═══ */}
