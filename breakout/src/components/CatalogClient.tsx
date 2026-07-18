@@ -31,8 +31,8 @@ const SongCard = React.memo(({ song, onClick }: { song: any; onClick: (song: any
     className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group"
   >
     <div className="flex items-start gap-4 mb-4">
-      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition">
-        <Music className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition" />
+      <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
+        <img src="/images/music-default.jpg" alt="Music Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title}</div>
@@ -218,8 +218,8 @@ export function CatalogClient() {
               </div>
               
               <div className="relative z-10 flex items-center gap-4 md:gap-5 w-full">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-gray-200 shrink-0">
-                  <Music className="w-8 h-8 md:w-10 md:h-10 text-gray-300" />
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-gray-200 shrink-0 overflow-hidden">
+                  <img src="/images/music-default.jpg" alt="Music Icon" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-gray-900 truncate">{selectedSong.title}</h2>
