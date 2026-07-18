@@ -176,7 +176,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] rounded-[2rem] md:glass-card p-6 md:p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] rounded-[2rem] p-6 md:p-8 space-y-8">
           {error && (
             <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
               {error}

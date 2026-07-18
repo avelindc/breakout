@@ -28,31 +28,31 @@ SkeletonSongCard.displayName = "SkeletonSongCard";
 const SongCard = React.memo(({ song, onClick }: { song: any; onClick: (song: any) => void }) => (
   <div 
     onClick={() => onClick(song)}
-    className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-2xl border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group"
+    className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-2xl border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] p-5 cursor-pointer transition group"
   >
     <div className="flex items-start gap-4 mb-4">
-      <div className="w-14 h-14 rounded-xl bg-white/10 md:bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition overflow-hidden">
+      <div className="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 transition overflow-hidden">
         <img src="/images/music-default.jpg" alt="Music Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-bold text-white md:text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title}</div>
-        <div className="text-sm font-medium text-white/80 md:text-gray-500 mt-1 truncate">{song.artist}</div>
+        <div className="font-bold text-white text-lg leading-tight line-clamp-2 transition">{song.title}</div>
+        <div className="text-sm font-medium text-white/80 mt-1 truncate">{song.artist}</div>
       </div>
     </div>
 
     <div className="flex flex-col gap-2.5">
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-white/60 md:text-gray-400 shrink-0">Vokal</span>
-        <span className="text-sm font-bold text-white md:text-gray-700 text-right break-words">{song.vokal || "Instrumental"}</span>
+        <span className="text-sm font-semibold text-white/60 shrink-0">Vokal</span>
+        <span className="text-sm font-bold text-white text-right break-words">{song.vokal || "Instrumental"}</span>
       </div>
       <div className="flex justify-between items-start gap-2">
-        <span className="text-sm font-semibold text-white/60 md:text-gray-400 shrink-0">Publisher</span>
-        <span className="text-sm font-bold text-white md:text-gray-700 text-right break-words">{song.publisher || "Independent"}</span>
+        <span className="text-sm font-semibold text-white/60 shrink-0">Publisher</span>
+        <span className="text-sm font-bold text-white text-right break-words">{song.publisher || "Independent"}</span>
       </div>
     </div>
 
-    <div className="mt-5 pt-4 border-t border-white/15 md:border-gray-100">
-      <button className="w-full h-11 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white md:bg-gray-50 md:text-gray-600 md:group-hover:bg-blue-600 md:group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
+    <div className="mt-5 pt-4 border-t border-white/15">
+      <button className="w-full h-11 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white font-bold flex items-center justify-center gap-2 transition text-sm">
         <Settings className="w-4 h-4 shrink-0" /> Buka Detail
       </button>
     </div>
@@ -122,23 +122,23 @@ export function CatalogClient() {
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-10">
       {/* Light Theme Search & Filter Bar */}
-      <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm">
+      <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)]">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 group">
-            <Search className="w-5 h-5 text-white/70 md:text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-white md:group-focus-within:text-blue-600" />
+            <Search className="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-white" />
             <input 
               type="text" 
               placeholder="Cari lagu idamanmu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all placeholder-white/50 md:placeholder-gray-400 font-medium"
+              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 text-white transition-all placeholder-white/50 font-medium"
             />
           </div>
           
           <select 
             value={selectedPublisher}
             onChange={(e) => setSelectedPublisher(e.target.value)}
-            className="sm:w-64 bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:px-5 md:py-3.5 md:py-4 md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all font-medium cursor-pointer"
+            className="sm:w-64 bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 text-white transition-all font-medium cursor-pointer"
           >
             <option value="" className="text-gray-900">Semua Publisher</option>
             {publishers.map(p => (
@@ -148,10 +148,10 @@ export function CatalogClient() {
         </div>
         <div className="mt-4 flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
-            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/50 md:bg-blue-400 opacity-75"></span>}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-white/30 md:bg-gray-400' : 'bg-green-400 md:bg-blue-500'}`}></span>
+            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/50 opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-white/30' : 'bg-green-400'}`}></span>
           </span>
-          <p className="text-white/80 md:text-gray-500 font-medium text-sm tracking-wide">
+          <p className="text-white/80 font-medium text-sm tracking-wide">
             {loading ? "Mencari..." : `${total.toLocaleString("id-ID")} Lagu Ditemukan`}
           </p>
         </div>

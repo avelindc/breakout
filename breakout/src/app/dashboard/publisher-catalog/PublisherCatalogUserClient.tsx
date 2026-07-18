@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getPublisherCatalogAction, getPublisherCatalogFiltersAction } from "@/app/actions/publisherCatalog";
 import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings, PlayCircle } from "lucide-react";
-import { Virtuoso } from "react-virtuoso";
+import { VirtuosoGrid } from "react-virtuoso";
 
 const SkeletonMobileCard = React.memo(() => (
   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-pulse mb-4 mx-4 sm:mx-0">
@@ -131,22 +131,22 @@ export function PublisherCatalogUserClient() {
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-10">
       {/* Light Theme Search & Filter Bar */}
-      <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] md:bg-white md:bg-none md:text-gray-900 md:border-gray-100 md:shadow-sm mx-4 sm:mx-0">
+      <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] mx-4 sm:mx-0">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 group">
-            <Search className="w-5 h-5 text-white/70 md:text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-white md:group-focus-within:text-blue-600" />
+            <Search className="w-5 h-5 text-white/70 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-white" />
             <input
               type="text" 
               placeholder="Cari judul lagu, artis, ISRC..."
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all placeholder-white/50 md:placeholder-gray-400 font-medium"
+              className="w-full pl-12 pr-4 py-3.5 md:py-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 text-white transition-all placeholder-white/50 font-medium"
             />
           </div>
           <select
             value={filterPublisher} 
             onChange={(e) => setFilterPublisher(e.target.value)}
-            className="sm:w-64 bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 md:bg-gray-50 md:border-gray-200 md:rounded-2xl md:px-5 md:py-3.5 md:py-4 md:outline-none md:focus:border-blue-500 md:focus:bg-white md:focus:ring-4 md:focus:ring-blue-500/10 text-white md:text-gray-900 transition-all font-medium cursor-pointer"
+            className="sm:w-64 bg-white/10 border border-white/20 rounded-2xl px-5 py-3.5 md:py-4 outline-none focus:border-white/40 focus:bg-white/20 focus:ring-4 focus:ring-white/10 text-white transition-all font-medium cursor-pointer"
           >
             <option value="" className="text-gray-900">Semua Publisher</option>
             {publishers.map(p => <option key={p} value={p} className="text-gray-900">{p}</option>)}
@@ -154,10 +154,10 @@ export function PublisherCatalogUserClient() {
         </div>
         <div className="mt-4 flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
-            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/50 md:bg-blue-400 opacity-75"></span>}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-white/30 md:bg-gray-400' : 'bg-green-400 md:bg-blue-500'}`}></span>
+            {!loading && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/50 opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? 'bg-white/30' : 'bg-green-400'}`}></span>
           </span>
-          <p className="text-white/80 md:text-gray-500 font-medium text-sm tracking-wide">
+          <p className="text-white/80 font-medium text-sm tracking-wide">
             {loading ? "Mencari..." : `${total.toLocaleString("id-ID")} Data Terdaftar`}
           </p>
         </div>
@@ -179,86 +179,27 @@ export function PublisherCatalogUserClient() {
           <p className="text-gray-500 max-w-sm">Data publisher catalog tidak ditemukan atau belum diimport oleh Admin.</p>
         </div>
       ) : (
-        <div className="sm:bg-white sm:rounded-3xl sm:border sm:border-gray-100 sm:shadow-sm sm:overflow-clip pt-2 sm:pt-0">
-          {/* Desktop Table - Premium Look (Pagination applies to both desktop and mobile now via infinite scroll) */}
-          <div className="hidden sm:block overflow-x-auto touch-pan-y">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  {["Judul Lagu", "Artis", "Publisher", "Composer", "Album", "ISRC", "UPC", "Tahun"].map(h => (
-                    <th key={h} className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {songs.map((song) => {
-                  const ytLink = getYoutubeLink(song);
-                  return (
-                  <tr
-                    key={song.id}
-                    onClick={() => setSelectedSong(song)}
-                    className="group hover:bg-gray-50 transition-all cursor-pointer bg-white"
-                  >
-                    <td className="px-5 py-4 font-bold text-gray-900 group-hover:text-blue-600 transition-colors max-w-[200px] truncate">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate">{song.title || "Unknown"}</span>
-                        {ytLink && (
-                          <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-red-500 hover:text-red-600 shrink-0" title="Buka di YouTube">
-                            <PlayCircle className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-gray-600 text-sm font-medium max-w-[140px] truncate">{getCleanText(song.artist)}</td>
-                    <td className="px-5 py-4 text-gray-500 text-sm max-w-[130px] truncate">
-                      {song.publisher ? <span className="px-2 py-1 bg-gray-100 rounded-md border border-gray-200">{song.publisher}</span> : "-"}
-                    </td>
-                    <td className="px-5 py-4 text-gray-500 text-sm max-w-[120px] truncate">{getCleanText(song.composer)}</td>
-                    <td className="px-5 py-4 text-gray-500 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
-                    <td className="px-5 py-4 text-gray-500 text-xs font-mono">{song.isrc || "-"}</td>
-                    <td className="px-5 py-4 text-gray-500 text-xs font-mono">{song.upc || "-"}</td>
-                    <td className="px-5 py-4 text-gray-500 text-sm font-medium">{song.year || "-"}</td>
-                  </tr>
-                )})}
-              </tbody>
-            </table>
-            
-            {/* Desktop Load More Button since Desktop doesn't use Virtuoso here */}
-            {hasMore && (
-              <div className="p-6 flex justify-center border-t border-gray-100">
-                <button 
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="px-6 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-bold disabled:opacity-50 hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  {loadingMore ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  {loadingMore ? "Memuat..." : "Muat Lebih Banyak"}
-                </button>
-              </div>
+        <div className="bg-transparent border-none shadow-none pb-10">
+          <VirtuosoGrid
+            useWindowScroll
+            data={songs}
+            endReached={loadMore}
+            overscan={200}
+            listClassName="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mx-4 sm:mx-0"
+            itemClassName="w-full"
+            itemContent={(index, song) => (
+              <MobileSongCard song={song} index={index} onClick={setSelectedSong} />
             )}
-          </div>
-
-          {/* Mobile Cards - Virtualized Premium Look */}
-          <div className="sm:hidden">
-            <Virtuoso
-              useWindowScroll
-              data={songs}
-              endReached={loadMore}
-              overscan={400}
-              itemContent={(index, song) => (
-                <MobileSongCard song={song} index={index} onClick={setSelectedSong} />
-              )}
-              components={{
-                Footer: () => (
-                  loadingMore ? (
-                    <div className="py-6 flex justify-center">
-                      <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-                    </div>
-                  ) : null
-                )
-              }}
-            />
-          </div>
+            components={{
+              Footer: () => (
+                loadingMore ? (
+                  <div className="col-span-full py-8 flex justify-center">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  </div>
+                ) : null
+              )
+            }}
+          />
         </div>
       )}
 
