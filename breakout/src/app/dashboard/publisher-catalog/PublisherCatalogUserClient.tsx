@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { getPublisherCatalogAction, getPublisherCatalogFiltersAction } from "@/app/actions/publisherCatalog";
-import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings } from "lucide-react";
+import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, Settings, Youtube } from "lucide-react";
 import { Virtuoso } from "react-virtuoso";
 
 const SkeletonMobileCard = React.memo(() => (
@@ -17,7 +17,26 @@ const SkeletonMobileCard = React.memo(() => (
 ));
 SkeletonMobileCard.displayName = "SkeletonMobileCard";
 
-const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index: number; onClick: (song: any) => void }) => (
+const getYoutubeLink = (song: any) => {
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  let match = null;
+  if (song.keterangan) match = song.keterangan.match(ytRegex);
+  if (!match && song.composer) match = song.composer.match(ytRegex);
+  if (!match && song.artist) match = song.artist.match(ytRegex);
+  return match ? match[1] : null;
+};
+
+const getCleanText = (text: string | null) => {
+  if (!text) return "-";
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  const clean = text.replace(ytRegex, '').replace(/^URL:\s*/i, '').replace(/YOUTUBE LINK REFERENCE:\s*/i, '').replace(/Youtube link \(if Any\):\s*/i, '').replace(/\|\s*$/, '').trim();
+  return clean || "-";
+};
+
+const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index: number; onClick: (song: any) => void }) => {
+  const ytLink = getYoutubeLink(song);
+  
+  return (
   <div onClick={() => onClick(song)}
     className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-blue-600 hover:shadow-md hover:shadow-blue-500/10 transition group mb-4 mx-4 sm:mx-0">
     <div className="flex items-start gap-4 mb-4">
@@ -25,29 +44,36 @@ const MobileSongCard = React.memo(({ song, index, onClick }: { song: any; index:
         <img src="/images/publisher-default.jpg" alt="Publisher Icon" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition">{song.title || "Unknown"}</div>
-        <div className="text-sm font-medium text-gray-500 mt-1 truncate">{song.artist || "Unknown"}</div>
+        <div className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition flex items-center gap-2">
+          <span>{song.title || "Unknown"}</span>
+        </div>
+        <div className="text-sm font-medium text-gray-500 mt-1 truncate">{getCleanText(song.artist)}</div>
       </div>
     </div>
 
     <div className="flex flex-col gap-2.5">
       <div className="flex justify-between items-start gap-2">
         <span className="text-sm font-semibold text-gray-400 shrink-0">Composer</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.composer || "-"}</span>
+        <span className="text-sm font-bold text-gray-700 text-right break-words line-clamp-2">{getCleanText(song.composer)}</span>
       </div>
       <div className="flex justify-between items-start gap-2">
         <span className="text-sm font-semibold text-gray-400 shrink-0">Publisher</span>
-        <span className="text-sm font-bold text-gray-700 text-right break-words">{song.publisher || "-"}</span>
+        <span className="text-sm font-bold text-gray-700 text-right break-words line-clamp-1">{song.publisher || "-"}</span>
       </div>
     </div>
 
-    <div className="mt-5 pt-4 border-t border-gray-100">
-      <button className="w-full h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
+    <div className="mt-5 pt-4 border-t border-gray-100 flex gap-2">
+      {ytLink && (
+        <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="w-11 h-11 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center shrink-0 transition" title="Buka di YouTube">
+          <Youtube className="w-5 h-5" />
+        </a>
+      )}
+      <button className="flex-1 h-11 rounded-xl bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white font-bold flex items-center justify-center gap-2 transition text-sm">
         <Settings className="w-4 h-4 shrink-0" /> Buka Detail
       </button>
     </div>
   </div>
-));
+)});
 MobileSongCard.displayName = "MobileSongCard";
 
 export function PublisherCatalogUserClient() {
@@ -165,24 +191,35 @@ export function PublisherCatalogUserClient() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {songs.map((song) => (
+                {songs.map((song) => {
+                  const ytLink = getYoutubeLink(song);
+                  return (
                   <tr
                     key={song.id}
                     onClick={() => setSelectedSong(song)}
                     className="group hover:bg-gray-50 transition-all cursor-pointer bg-white"
                   >
-                    <td className="px-5 py-4 font-bold text-gray-900 group-hover:text-blue-600 transition-colors max-w-[200px] truncate">{song.title || "Unknown"}</td>
-                    <td className="px-5 py-4 text-gray-600 text-sm font-medium max-w-[140px] truncate">{song.artist || "Unknown"}</td>
+                    <td className="px-5 py-4 font-bold text-gray-900 group-hover:text-blue-600 transition-colors max-w-[200px] truncate">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">{song.title || "Unknown"}</span>
+                        {ytLink && (
+                          <a href={ytLink} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-red-500 hover:text-red-600 shrink-0" title="Buka di YouTube">
+                            <Youtube className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600 text-sm font-medium max-w-[140px] truncate">{getCleanText(song.artist)}</td>
                     <td className="px-5 py-4 text-gray-500 text-sm max-w-[130px] truncate">
                       {song.publisher ? <span className="px-2 py-1 bg-gray-100 rounded-md border border-gray-200">{song.publisher}</span> : "-"}
                     </td>
-                    <td className="px-5 py-4 text-gray-500 text-sm max-w-[120px] truncate">{song.composer || "-"}</td>
+                    <td className="px-5 py-4 text-gray-500 text-sm max-w-[120px] truncate">{getCleanText(song.composer)}</td>
                     <td className="px-5 py-4 text-gray-500 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
                     <td className="px-5 py-4 text-gray-500 text-xs font-mono">{song.isrc || "-"}</td>
                     <td className="px-5 py-4 text-gray-500 text-xs font-mono">{song.upc || "-"}</td>
                     <td className="px-5 py-4 text-gray-500 text-sm font-medium">{song.year || "-"}</td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
             
@@ -259,7 +296,7 @@ export function PublisherCatalogUserClient() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: "Publisher", value: selectedSong.publisher, icon: Building },
-                  { label: "Composer", value: selectedSong.composer, icon: User },
+                  { label: "Composer", value: getCleanText(selectedSong.composer), icon: User },
                   { label: "Album", value: selectedSong.album, icon: Disc },
                   { label: "Tahun Rilis", value: selectedSong.year, icon: Clock },
                   { label: "ISRC", value: selectedSong.isrc, icon: Hash },
@@ -281,13 +318,24 @@ export function PublisherCatalogUserClient() {
                   </p>
                   <div className="text-sm text-gray-700 font-medium leading-relaxed break-words whitespace-pre-wrap font-mono">
                     {selectedSong.keterangan.split(" | ").map((item: string, idx: number) => {
-                      const [key, ...val] = item.split(":");
+                      const ytLink = getYoutubeLink({ keterangan: item });
+                      if (ytLink || item.toLowerCase().includes("youtube link")) return null; // hide youtube links from extra data
+                      if (item.trim() === "-" || !item.includes(":")) return null;
+                      
+                      const parts = item.split(":");
+                      const key = parts[0];
+                      const val = parts.slice(1).join(":");
                       return (
                         <div key={idx} className="mb-1 last:mb-0">
-                          <span className="text-gray-900 font-bold">{key}:</span> {val.join(":")}
+                          <span className="text-gray-900 font-bold">{key}:</span> {val}
                         </div>
                       )
                     })}
+                    {getYoutubeLink(selectedSong) && (
+                      <a href={getYoutubeLink(selectedSong)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg border border-red-100 transition">
+                        <Youtube className="w-4 h-4" /> Tonton di YouTube
+                      </a>
+                    )}
                   </div>
                 </div>
               )}

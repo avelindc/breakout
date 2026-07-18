@@ -12,10 +12,26 @@ import {
 } from "@/app/actions/publisherCatalog";
 import {
   Loader2, RefreshCw, Trash2, Search, Plus, Edit, X,
-  Upload, Database, LayoutList, CheckCircle2, AlertCircle
+  Upload, Database, LayoutList, CheckCircle2, AlertCircle, Youtube
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TableVirtuoso } from "react-virtuoso";
+
+const getYoutubeLink = (song: any) => {
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  let match = null;
+  if (song.keterangan) match = song.keterangan.match(ytRegex);
+  if (!match && song.composer) match = song.composer.match(ytRegex);
+  if (!match && song.artist) match = song.artist.match(ytRegex);
+  return match ? match[1] : null;
+};
+
+const getCleanText = (text: string | null) => {
+  if (!text) return "-";
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  const clean = text.replace(ytRegex, '').replace(/^URL:\s*/i, '').replace(/YOUTUBE LINK REFERENCE:\s*/i, '').replace(/Youtube link \(if Any\):\s*/i, '').replace(/\|\s*$/, '').trim();
+  return clean || "-";
+};
 
 export function PublisherCatalogAdminClient() {
   const router = useRouter();
@@ -250,14 +266,25 @@ export function PublisherCatalogAdminClient() {
                   ))}
                 </tr>
               )}
-              itemContent={(i, song) => (
+              itemContent={(i, song) => {
+                const ytLink = getYoutubeLink(song);
+                return (
                 <>
-                  <td className="px-5 py-4 font-bold text-white max-w-[200px] truncate group-hover:text-blue-300 transition-colors">{song.title || "-"}</td>
-                  <td className="px-5 py-4 text-blue-100/90 text-sm font-medium max-w-[140px] truncate">{song.artist || "-"}</td>
+                  <td className="px-5 py-4 font-bold text-white max-w-[200px] truncate group-hover:text-blue-300 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate">{song.title || "-"}</span>
+                      {ytLink && (
+                        <a href={ytLink} target="_blank" rel="noreferrer" className="text-red-500 hover:text-red-400 shrink-0" title="Buka di YouTube">
+                          <Youtube className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-blue-100/90 text-sm font-medium max-w-[140px] truncate">{getCleanText(song.artist)}</td>
                   <td className="px-5 py-4 text-gray-400 text-sm max-w-[130px] truncate">
                     {song.publisher ? <span className="px-2.5 py-1 bg-white/5 rounded-md border border-white/5">{song.publisher}</span> : "-"}
                   </td>
-                  <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{song.composer || "-"}</td>
+                  <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{getCleanText(song.composer)}</td>
                   <td className="px-5 py-4 text-gray-400 text-sm max-w-[120px] truncate">{song.album || "-"}</td>
                   <td className="px-5 py-4 text-blue-300/80 text-xs font-mono">{song.isrc || "-"}</td>
                   <td className="px-5 py-4 text-gray-400 text-sm font-medium">{song.year || "-"}</td>
