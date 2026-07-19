@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, Music, Clock, DollarSign, Search, Plus, MoreHorizontal } from "lucide-react";
+import { ArrowUpRight, Music, Clock, DollarSign, Search, Plus, MoreHorizontal, Users, Settings } from "lucide-react";
 
 type OverviewData = {
   totalReleases: number;

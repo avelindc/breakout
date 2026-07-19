@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Search, Plus, MoreHorizontal } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Search, Plus, MoreHorizontal, Users, Music, Settings, DollarSign } from "lucide-react";
 
 type OverviewData = {
   totalArtists: number;
