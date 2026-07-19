@@ -4,7 +4,6 @@ import { AdminStreamingClient } from "./AdminStreamingClient";
 const prisma = new PrismaClient();
 
 export default async function AdminStreamingPage() {
-  // 1. ── Basic Admin KPIs ──────────────────────────────────────────────────────
   const [
     totalArtists, totalReleases, pendingReleases, approvedReleases, rejectedReleases,
     totalTracks, totalWithdrawals
@@ -27,7 +26,6 @@ export default async function AdminStreamingPage() {
     where: { status: "PAID" },
   });
 
-  // 2. ── Fetch All Artists with their Releases, Tracks, and Royalties ────────
   const dbArtists = await prisma.artist.findMany({
     include: {
       releases: {
@@ -41,7 +39,6 @@ export default async function AdminStreamingPage() {
     },
   });
 
-  // 3. ── Build Global Stats ───────────────────────────────────────────────────
   let realRevenue = 0;
   let realTotalStreams = 0;
   const globalPlatformMap: Record<string, number> = {};
@@ -58,8 +55,8 @@ export default async function AdminStreamingPage() {
         if (p.toLowerCase() === 'youtube') plat = 'YouTube Music';
         if (p.toLowerCase() === 'tiktok') plat = 'TikTok';
         if (p.toLowerCase() === 'amazon' || p.toLowerCase() === 'amazon music') plat = 'Amazon Music';
-        globalPlatformMap[plat] = (globalPlatformMap[plat] || 0) + s;
-        realTotalStreams += s;
+        globalPlatformMap[plat] = (globalPlatformMap[plat] || 0) + (s as number);
+        realTotalStreams += (s as number);
       }
     } else {
       globalPlatformMap['Spotify'] = (globalPlatformMap['Spotify'] || 0) + r.spotifyStreams;
@@ -73,7 +70,7 @@ export default async function AdminStreamingPage() {
   });
 
   const activeArtistsCount   = dbArtists.filter(a => a.user.status === "APPROVED").length;
-  const verifiedArtistsCount = dbArtists.length; // placeholder
+  const verifiedArtistsCount = dbArtists.length;
   const premiumArtistsCount  = Math.max(1, Math.round(dbArtists.length * 0.2));
 
   const overview = {
@@ -87,34 +84,58 @@ export default async function AdminStreamingPage() {
     totalRevenue: realRevenue,
   };
 
-  // 4. ── Build Artist and Track Data ──────────────────────────────────────────
   const now = new Date();
   const allTracks: TrackData[] = [];
   const artists: ArtistData[] = [];
 
   for (const artist of dbArtists) {
     const artistRoyalties = artist.royalties;
-    const royaltyBySong: Record<string, { spotify: number; apple: number; youtube: number; tiktok: number; amazon: number; other: number; revenue: number }> = {};
+    const royaltyBySong: Record<string, { platforms: Record<string, number>; revenue: number; totalStreams: number }> = {};
     
-    let aSpotify = 0, aApple = 0, aYoutube = 0, aTiktok = 0, aAmazon = 0, aOther = 0, aRevenue = 0;
+    let aRevenue = 0;
+    let aTotalStreams = 0;
+    const aPlatformMap: Record<string, number> = {};
 
     artistRoyalties.forEach(r => {
-      aSpotify += r.spotifyStreams; aApple += r.appleMusicStreams; aYoutube += r.youtubeStreams;
-      aTiktok += r.tiktokStreams; aAmazon += r.amazonStreams; aOther += r.otherStreams; aRevenue += r.totalRevenue;
+      aRevenue += r.totalRevenue;
       
       const key = r.songName.trim().toLowerCase();
-      if (!royaltyBySong[key]) royaltyBySong[key] = { spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, other: 0, revenue: 0 };
-      royaltyBySong[key].spotify += r.spotifyStreams;
-      royaltyBySong[key].apple   += r.appleMusicStreams;
-      royaltyBySong[key].youtube += r.youtubeStreams;
-      royaltyBySong[key].tiktok  += r.tiktokStreams;
-      royaltyBySong[key].amazon  += r.amazonStreams;
-      royaltyBySong[key].other   += r.otherStreams;
+      if (!royaltyBySong[key]) royaltyBySong[key] = { platforms: {}, revenue: 0, totalStreams: 0 };
       royaltyBySong[key].revenue += r.totalRevenue;
+      
+      let rowStr = 0;
+      if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+        for (const [p, s] of Object.entries(r.platformData)) {
+          let plat = p;
+          if (p.toLowerCase() === 'spotify') plat = 'Spotify';
+          if (p.toLowerCase() === 'apple music' || p.toLowerCase() === 'apple') plat = 'Apple Music';
+          
+          aPlatformMap[plat] = (aPlatformMap[plat] || 0) + (s as number);
+          royaltyBySong[key].platforms[plat] = (royaltyBySong[key].platforms[plat] || 0) + (s as number);
+          rowStr += (s as number);
+        }
+      } else {
+        aPlatformMap['Spotify'] = (aPlatformMap['Spotify'] || 0) + r.spotifyStreams;
+        aPlatformMap['Apple Music'] = (aPlatformMap['Apple Music'] || 0) + r.appleMusicStreams;
+        aPlatformMap['YouTube Music'] = (aPlatformMap['YouTube Music'] || 0) + r.youtubeStreams;
+        aPlatformMap['TikTok'] = (aPlatformMap['TikTok'] || 0) + r.tiktokStreams;
+        aPlatformMap['Amazon Music'] = (aPlatformMap['Amazon Music'] || 0) + r.amazonStreams;
+        aPlatformMap['Lainnya'] = (aPlatformMap['Lainnya'] || 0) + r.otherStreams;
+        
+        royaltyBySong[key].platforms['Spotify'] = (royaltyBySong[key].platforms['Spotify'] || 0) + r.spotifyStreams;
+        royaltyBySong[key].platforms['Apple Music'] = (royaltyBySong[key].platforms['Apple Music'] || 0) + r.appleMusicStreams;
+        royaltyBySong[key].platforms['YouTube Music'] = (royaltyBySong[key].platforms['YouTube Music'] || 0) + r.youtubeStreams;
+        royaltyBySong[key].platforms['TikTok'] = (royaltyBySong[key].platforms['TikTok'] || 0) + r.tiktokStreams;
+        royaltyBySong[key].platforms['Amazon Music'] = (royaltyBySong[key].platforms['Amazon Music'] || 0) + r.amazonStreams;
+        royaltyBySong[key].platforms['Lainnya'] = (royaltyBySong[key].platforms['Lainnya'] || 0) + r.otherStreams;
+        
+        rowStr += r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+      }
+      
+      aTotalStreams += rowStr;
+      royaltyBySong[key].totalStreams += rowStr;
     });
 
-    
-    
     const artistData: ArtistData = {
       id: artist.id,
       rank: 0,
@@ -181,7 +202,6 @@ export default async function AdminStreamingPage() {
     artists.push(artistData);
   }
 
-  // Sort and assign ranks
   artists.sort((a, b) => b.totalStreams - a.totalStreams);
   artists.forEach((a, i) => a.rank = i + 1);
 
@@ -190,28 +210,29 @@ export default async function AdminStreamingPage() {
     t.isTrending = i < 10 && t.totalStreams > 0;
   });
 
-  // Use dummy if no data at all
   const finalArtists = artists;
   const finalTracks = allTracks;
 
-  // 5. ── Build Global 17 Platforms ─────────────────────────────────────────────
-  const globalPlatforms17 = build17PlatformsSeeded("global", realTotalStreams, {
-    spotify: realSpotify, apple: realApple, youtube: realYoutube, tiktok: realTiktok, amazon: realAmazon, other: realOther
-  });
+  const globalPlatforms17 = Object.entries(globalPlatformMap).map(([n, v]) => ({name: n, value: v as number}));
 
-  // 6. ── Monthly Revenue / Streams ─────────────────────────────────────────────
+  let mRevenue = 0;
+  const m1 = await prisma.royalty.findMany({ where: { month: now.getMonth() + 1, year: now.getFullYear() } });
+  m1.forEach(r => mRevenue += r.totalRevenue);
+  
   const monthlyRevenue = [];
-  const monthlyStreams  = [];
+  const monthlyStreams = [];
+
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const m = d.getMonth() + 1;
     const y = d.getFullYear();
-    const label = d.toLocaleString("id-ID", { month: "short" });
+    const mName = d.toLocaleString('id-ID', { month: 'short' });
+
     const agg = await prisma.royalty.aggregate({
-      _sum: { totalRevenue: true, spotifyStreams: true, appleMusicStreams: true, youtubeStreams: true, tiktokStreams: true, amazonStreams: true, otherStreams: true },
+      _sum: { totalRevenue: true },
       where: { month: m, year: y },
     });
-    const rev = agg._sum.totalRevenue || 0;
+
     let str = 0;
     const mRoyalties = await prisma.royalty.findMany({ where: { month: m, year: y } });
     mRoyalties.forEach(r => {
@@ -221,28 +242,31 @@ export default async function AdminStreamingPage() {
         str += r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
       }
     });
-    monthlyRevenue.push({ month: label, revenue: rev });
-    monthlyStreams.push({ month: label, streams: str });
+
+    monthlyRevenue.push({ month: mName, revenue: agg._sum.totalRevenue || 0 });
+    monthlyStreams.push({ month: mName, streams: str });
   }
 
-  const globalDailyStreams = buildDailyFromTotal("global", overview.totalStreams, 30);
+  const globalDailyStreams = buildDailyFromTotal("global", realTotalStreams, 30);
 
-  const data = {
-    overview,
-    globalPlatforms: globalPlatforms17,
-    monthlyRevenue: monthlyRevenue,
-    monthlyStreams: monthlyStreams,
-    globalDailyStreams,
-    artists: finalArtists,
-    allTracks: finalTracks,
-  };
-
-  return <AdminStreamingClient data={data} />;
+  return (
+    <AdminStreamingClient
+      data={{
+        overview,
+        globalPlatforms: globalPlatforms17,
+        monthlyRevenue,
+        monthlyStreams,
+        globalDailyStreams,
+        artists: finalArtists,
+        allTracks: finalTracks,
+      }}
+    />
+  );
 }
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-
+// ============================================================================
+// Types
+// ============================================================================
 export type ArtistData = {
   id: string; rank: number; name: string; avatar: string | null;
   trackCount: number; totalStreams: number; revenue: number;
@@ -266,12 +290,9 @@ export type TrackData = {
   cities: { name: string; country: string; streams: number }[];
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-
-// Distributes the DB 'other' value + fake values into the 17 platforms user requested
-
-
+// ============================================================================
+// Helpers
+// ============================================================================
 function buildDailyFromTotal(id: string, total: number, days: number) {
   if (total === 0) return Array.from({ length: days }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (days - 1 - i));
@@ -280,44 +301,56 @@ function buildDailyFromTotal(id: string, total: number, days: number) {
   const avg = Math.round(total / days);
   const result = [];
   const today = new Date();
+  
+  let numId = 0;
+  for (let i = 0; i < id.length; i++) numId += id.charCodeAt(i);
+
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today); d.setDate(today.getDate() - i);
-    const noise = Math.sin((seedNum(id, i, 100) / 100) * 10) * 0.3 + 1;
+    const noise = Math.sin((numId + i * 17) % 10) * 0.3 + 1;
     result.push({ date: `${d.getDate()}/${d.getMonth() + 1}`, streams: Math.max(0, Math.round(avg * noise)) });
   }
   return result;
 }
 
 const COUNTRY_WEIGHTS = [
-  { name: "Indonesia",     flag: "🇮🇩", w: 0.248 }, { name: "United States", flag: "🇺🇸", w: 0.187 },
-  { name: "Brazil",        flag: "🇧🇷", w: 0.094 }, { name: "India",         flag: "🇮🇳", w: 0.068 },
-  { name: "United Kingdom",flag: "🇬🇧", w: 0.042 }, { name: "Philippines",   flag: "🇵🇭", w: 0.037 },
-  { name: "Malaysia",      flag: "🇲🇾", w: 0.029 }, { name: "Thailand",      flag: "🇹🇭", w: 0.032 },
-  { name: "Mexico",        flag: "🇲🇽", w: 0.040 }, { name: "Vietnam",       flag: "🇻🇳", w: 0.025 },
-  { name: "Germany",       flag: "🇩🇪", w: 0.021 }, { name: "Japan",         flag: "🇯🇵", w: 0.019 },
+  { name: "Indonesia",     flag: "🇮🇩", w: 0.248 },
+  { name: "United States", flag: "🇺🇸", w: 0.187 },
+  { name: "Brazil",        flag: "🇧🇷", w: 0.094 },
+  { name: "India",         flag: "🇮🇳", w: 0.068 },
+  { name: "United Kingdom",flag: "🇬🇧", w: 0.042 },
+  { name: "Philippines",   flag: "🇵🇭", w: 0.037 },
+  { name: "Malaysia",      flag: "🇲🇾", w: 0.029 },
+  { name: "Thailand",      flag: "🇹🇭", w: 0.032 },
+  { name: "Mexico",        flag: "🇲🇽", w: 0.040 },
+  { name: "Vietnam",       flag: "🇻🇳", w: 0.025 },
+  { name: "Germany",       flag: "🇩🇪", w: 0.021 },
+  { name: "Japan",         flag: "🇯🇵", w: 0.019 },
   { name: "France",        flag: "🇫🇷", w: 0.016 },
 ];
 
 function buildCountries(total: number) {
   return COUNTRY_WEIGHTS.map(c => ({
-    name: c.name, flag: c.flag, pct: +(c.w * 100).toFixed(1), streams: Math.round(total * c.w),
+    name: c.name, flag: c.flag,
+    pct:  +(c.w * 100).toFixed(1),
+    streams: Math.round(total * c.w),
   }));
 }
 
 const CITY_WEIGHTS = [
-  { name: "Jakarta", country: "Indonesia", w: 0.104 }, { name: "Surabaya", country: "Indonesia", w: 0.049 },
-  { name: "Los Angeles", country: "USA", w: 0.045 }, { name: "São Paulo", country: "Brazil", w: 0.036 },
-  { name: "New York", country: "USA", w: 0.034 }, { name: "Bandung", country: "Indonesia", w: 0.031 },
-  { name: "Manila", country: "Philippines", w: 0.026 }, { name: "Mumbai", country: "India", w: 0.023 },
+  { name: "Jakarta",     country: "Indonesia",   w: 0.104 },
+  { name: "Surabaya",    country: "Indonesia",   w: 0.049 },
+  { name: "Los Angeles", country: "USA",         w: 0.045 },
+  { name: "São Paulo",   country: "Brazil",      w: 0.036 },
+  { name: "New York",    country: "USA",         w: 0.034 },
+  { name: "Bandung",     country: "Indonesia",   w: 0.031 },
+  { name: "Manila",      country: "Philippines", w: 0.026 },
+  { name: "Mumbai",      country: "India",       w: 0.023 },
 ];
 
 function buildCities(total: number) {
   return CITY_WEIGHTS.map(c => ({
-    name: c.name, country: c.country, streams: Math.round(total * c.w),
+    name: c.name, country: c.country,
+    streams: Math.round(total * c.w),
   }));
 }
-
-// ── Dummy Data ───────────────────────────────────────────────────────────────
-const DUMMY_ARTISTS: ArtistData[] = [];
-
-const DUMMY_TRACKS: TrackData[] = [];
