@@ -66,6 +66,24 @@ export function ReviewList({ releases }: { releases: Release[] }) {
     }
   };
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Failed to download file:", err);
+      alert("Gagal mendownload file. Pastikan URL valid dan CORS diizinkan.");
+    }
+  };
+
   const handleApprove = async (rel: Release) => {
     setLoadingApprove(true);
     await updateReleaseStatusAction(rel.id, rel.artistUserId, "APPROVED", rel.artistName, rel.artistEmail, rel.title, "");
@@ -169,8 +187,17 @@ export function ReviewList({ releases }: { releases: Release[] }) {
               </button>
 
               <div className="flex gap-5 items-center">
-                <div className="w-20 h-20 rounded-2xl bg-white/10 overflow-hidden shadow-lg border border-white/15">
+                <div className="relative w-20 h-20 rounded-2xl bg-white/10 overflow-hidden shadow-lg border border-white/15 group/cover">
                   <img src={selected.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`); }} 
+                      className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition text-white"
+                      title="Download Cover"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="text-[10px] font-extrabold tracking-widest bg-yellow-400 text-yellow-950 px-2.5 py-0.5 rounded-full uppercase">
@@ -211,14 +238,12 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                     </div>
                   </div>
 
-                  <a
-                    href={track.audioUrl}
-                    target="_blank"
-                    download
+                  <button
+                    onClick={() => handleDownload(track.audioUrl, `${selected.title} - ${track.title}.mp3`)}
                     className="h-10 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition"
                   >
                     <Download className="w-3.5 h-3.5" /> Download
-                  </a>
+                  </button>
                 </div>
               ))}
 
