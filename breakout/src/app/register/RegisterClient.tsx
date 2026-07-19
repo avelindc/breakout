@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { registerAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 export function RegisterClient() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,14 +26,25 @@ export function RegisterClient() {
       return;
     }
 
-    const res = await registerAction(formData);
-    
-    if (res?.error) {
-      setError(res.error);
+    try {
+      // 15 second timeout to prevent infinite loading
+      const timeoutPromise = new Promise<{error: string}>((resolve) =>
+        setTimeout(() => resolve({ error: "Pendaftaran timeout. Silakan coba lagi." }), 15000)
+      );
+
+      const res = await Promise.race([registerAction(formData), timeoutPromise]);
+      
+      if (res?.error) {
+        setError(res.error);
+        setLoading(false);
+      } else {
+        // Navigate to success page without refresh
+        window.location.href = `/register/success?name=${encodeURIComponent(formData.get("name") as string)}&email=${encodeURIComponent(formData.get("email") as string)}&whatsapp=${encodeURIComponent(formData.get("whatsapp") as string)}`;
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Terjadi kesalahan. Silakan coba lagi.");
       setLoading(false);
-    } else {
-      router.push(`/register/success?name=${encodeURIComponent(formData.get("name") as string)}&email=${encodeURIComponent(formData.get("email") as string)}&whatsapp=${encodeURIComponent(formData.get("whatsapp") as string)}`);
-      router.refresh();
     }
   }
 
