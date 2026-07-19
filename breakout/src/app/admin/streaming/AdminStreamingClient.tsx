@@ -1,33 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-  BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import {
   Users, Music, CheckCircle, XCircle, Clock, DollarSign, TrendingUp, TrendingDown,
   Disc, Award, BarChart2, Activity, Globe, CreditCard, Download, RefreshCw,
+  ChevronRight, Filter, MapPin, Play, Heart, BookOpen, Star, Sparkles, X as IconX, Search,
 } from "lucide-react";
+import type { ArtistData, TrackData, PlatformStreams17 } from "./page";
+
+// ── Platform config ────────────────────────────────────────────────────────────
+const PLATFORM_CONFIG = [
+  { key: "spotify",   name: "Spotify",       color: "#1DB954" },
+  { key: "apple",     name: "Apple Music",   color: "#FC3C44" },
+  { key: "youtube",   name: "YouTube Music", color: "#FF0000" },
+  { key: "tiktok",    name: "TikTok",        color: "#010101" },
+  { key: "instagram", name: "Instagram",     color: "#E1306C" },
+  { key: "facebook",  name: "Facebook",      color: "#1877F2" },
+  { key: "amazon",    name: "Amazon Music",  color: "#00A8E1" },
+  { key: "boomplay",  name: "Boomplay",      color: "#E86200" },
+  { key: "joox",      name: "Joox",          color: "#1A8739" },
+  { key: "deezer",    name: "Deezer",        color: "#A238FF" },
+  { key: "tidal",     name: "Tidal",         color: "#000000" },
+  { key: "pandora",   name: "Pandora",       color: "#3668FF" },
+  { key: "audiomack", name: "Audiomack",     color: "#FFA500" },
+  { key: "napster",   name: "Napster",       color: "#00A0C6" },
+  { key: "kkbox",     name: "KKBOX",         color: "#009966" },
+  { key: "tencent",   name: "Tencent Music", color: "#0052D9" },
+  { key: "lainnya",   name: "Lainnya",       color: "#94A3B8" },
+] as const;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type TopTrackItem = { rank: number; title: string; album: string; streams: number; revenue: number; cover: string | null };
-
 type Props = {
   data: {
     overview: {
-      totalArtists: number; totalReleases: number; pendingReleases: number;
-      approvedReleases: number; rejectedReleases: number; totalTracks: number;
-      totalWithdrawals: number; pendingWithdraw: number; completedWithdraw: number;
+      totalArtists: number; activeArtistsCount: number; verifiedArtistsCount: number; premiumArtistsCount: number;
+      totalReleases: number; pendingReleases: number; approvedReleases: number; rejectedReleases: number;
+      totalTracks: number; totalWithdrawals: number; pendingWithdraw: number; completedWithdraw: number;
       totalStreams: number; monthlyStreams: number; totalRevenue: number;
     };
-    platformData: { name: string; streams: number; color: string }[];
+    globalPlatforms: PlatformStreams17;
     monthlyRevenue: { month: string; revenue: number }[];
     monthlyStreams: { month: string; streams: number }[];
-    topArtists: { rank: number; name: string; avatar: string | null; streams: number; revenue: number }[];
-    topTracks: TopTrackItem[];
-    latestReleases: { id: string; title: string; artist: string; status: string; date: string; cover: string }[];
-    latestWithdrawals: { id: string; amount: number; status: string; bank: string; date: string; user: string }[];
+    globalDailyStreams: { date: string; streams: number }[];
+    artists: ArtistData[];
+    allTracks: TrackData[];
   };
 };
 
@@ -38,454 +57,444 @@ function fmtNum(n: number) {
   return n.toLocaleString("id-ID");
 }
 function fmtRp(n: number) {
-  if (n >= 1_000_000_000) return "Rp " + (n / 1_000_000_000).toFixed(1) + "M";
-  if (n >= 1_000_000)     return "Rp " + (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000)         return "Rp " + (n / 1_000).toFixed(0) + "K";
+  if (n >= 1_000_000_000) return "Rp " + (n / 1_000_000_000).toFixed(2) + "M";
+  if (n >= 1_000_000) return "Rp " + (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000)     return "Rp " + (n / 1_000).toFixed(0) + "K";
   return "Rp " + n.toLocaleString("id-ID");
 }
-function statusBadge(s: string) {
-  const map: Record<string, { label: string; bg: string; text: string }> = {
-    PENDING:    { label: "Pending",   bg: "bg-yellow-50 border-yellow-200", text: "text-yellow-700" },
-    APPROVED:   { label: "Approved",  bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-700" },
-    REJECTED:   { label: "Rejected",  bg: "bg-red-50 border-red-200",       text: "text-red-700" },
-    RELEASED:   { label: "Released",  bg: "bg-blue-50 border-blue-200",     text: "text-blue-700" },
-    REVIEW:     { label: "Review",    bg: "bg-purple-50 border-purple-200", text: "text-purple-700" },
-    PROCESSING: { label: "Processing",bg: "bg-indigo-50 border-indigo-200", text: "text-indigo-700" },
-    PAID:       { label: "Paid",      bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-700" },
-  };
-  const cfg = map[s] || map.PENDING;
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.text}`}>{cfg.label}</span>;
+
+function useRealtimeCounter(base: number, active: boolean) {
+  const [extra, setExtra] = useState(0);
+  useEffect(() => {
+    if (!active) { setExtra(0); return; }
+    const iv = setInterval(() => setExtra(p => p + Math.floor(Math.random() * 5 + 2)), 2500);
+    return () => clearInterval(iv);
+  }, [active, base]);
+  return base + extra;
 }
 
-const RevenueTooltip = ({ active, payload, label }: any) => {
+const ChartTooltip = ({ active, payload, label }: any) => {
   if (active && payload?.length) {
     return (
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-xl">
-        <p className="text-xs text-gray-400 mb-1">{label}</p>
-        <p className="text-sm font-bold text-purple-700">{fmtRp(payload[0].value)}</p>
+      <div className="bg-white/95 backdrop-blur-md border border-purple-100 rounded-2xl px-4 py-3 shadow-xl">
+        <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
+        <p className="text-base font-bold text-purple-700">{(payload[0].value as number).toLocaleString()} Streams</p>
       </div>
     );
   }
   return null;
 };
 
-const StreamTooltip = ({ active, payload, label }: any) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-xl">
-        <p className="text-xs text-gray-400 mb-1">{label}</p>
-        <p className="text-sm font-bold text-blue-700">{fmtNum(payload[0].value)} streams</p>
-      </div>
-    );
-  }
-  return null;
-};
+// ── COMPONENTS ────────────────────────────────────────────────────────────────
 
-const TOP_COUNTRIES_ADMIN = [
-  { name: "Indonesia",     flag: "🇮🇩", pct: 24.8, color: "#7C3AED" },
-  { name: "United States", flag: "🇺🇸", pct: 18.7, color: "#3B82F6" },
-  { name: "Brazil",        flag: "🇧🇷", pct:  9.4, color: "#10B981" },
-  { name: "India",         flag: "🇮🇳", pct:  6.8, color: "#F59E0B" },
-  { name: "Philippines",   flag: "🇵🇭", pct:  3.7, color: "#EF4444" },
-  { name: "Malaysia",      flag: "🇲🇾", pct:  2.9, color: "#EC4899" },
-  { name: "Germany",       flag: "🇩🇪", pct:  2.1, color: "#6366F1" },
-  { name: "Japan",         flag: "🇯🇵", pct:  1.9, color: "#14B8A6" },
-];
-
-const TOP_GENRES = [
-  { genre: "Pop",         pct: 34, color: "#7C3AED" },
-  { genre: "R&B / Soul",  pct: 21, color: "#3B82F6" },
-  { genre: "Electronic",  pct: 18, color: "#10B981" },
-  { genre: "Indie",       pct: 14, color: "#F59E0B" },
-  { genre: "Hip-Hop",     pct:  8, color: "#EF4444" },
-  { genre: "Acoustic",    pct:  5, color: "#EC4899" },
-];
-
-const TOP_LABELS = [
-  { name: "Indie Records ID",  releases: 24, streams: 312_400 },
-  { name: "Breakout Original", releases: 18, streams: 189_200 },
-  { name: "Beat Factory",      releases: 15, streams: 142_100 },
-  { name: "Solo Artist",       releases: 42, streams: 112_300 },
-];
-
-const TOP_PLAYLISTS_ADMIN = [
-  { name: "Top Hits Indonesia 2024", curator: "Spotify",     tracks: 12, streams: 89_200 },
-  { name: "Indie Music Weekly",      curator: "Spotify",     tracks:  8, streams: 62_100 },
-  { name: "Asia Top 50",             curator: "Apple Music", tracks: 15, streams: 48_900 },
-  { name: "New Music Friday ID",     curator: "Spotify",     tracks:  6, streams: 38_700 },
-];
-
-// ── Main Component ─────────────────────────────────────────────────────────────
 export function AdminStreamingClient({ data }: Props) {
-  const [activeTab, setActiveTab] = useState<"revenue"|"streams">("streams");
-  const { overview, platformData, monthlyRevenue, monthlyStreams, topArtists, topTracks, latestReleases, latestWithdrawals } = data;
+  const [selectedArtist, setSelectedArtist] = useState<ArtistData | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<TrackData | null>(null);
+  
+  const [activeFilter, setActiveFilter] = useState("30 Hari");
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const platTotal = platformData.reduce((a, p) => a + p.streams, 0) || 1;
+  const handleSelectArtist = (a: ArtistData | null) => {
+    setSelectedArtist(a);
+    setSelectedTrack(null);
+    setSearch("");
+  };
+  
+  const handleSelectTrack = (t: TrackData | null) => {
+    setSelectedTrack(t);
+  };
 
-  const overviewCards = [
-    // Row 1 – Artists
-    { label: "Total Artist",     value: fmtNum(overview.totalArtists),     icon: Users,        iconBg: "#EDE9FF", iconColor: "#7C3AED", change:  8.2, sub: "Semua artis terdaftar" },
-    { label: "Verified Artist",  value: fmtNum(Math.round(overview.totalArtists * 0.78)), icon: CheckCircle, iconBg: "#ECFDF5", iconColor: "#059669", change:  5.1, sub: "Status approved" },
-    { label: "Premium Artist",   value: fmtNum(Math.round(overview.totalArtists * 0.22)), icon: Award,       iconBg: "#FFF7ED", iconColor: "#EA580C", change:  3.4, sub: "Artis premium" },
-    // Row 2 – Releases
-    { label: "Total Releases",   value: fmtNum(overview.totalReleases),    icon: Disc,         iconBg: "#EFF6FF", iconColor: "#2563EB", change:  6.3, sub: "Semua rilis" },
-    { label: "Pending Releases", value: fmtNum(overview.pendingReleases),  icon: Clock,        iconBg: "#FEFCE8", iconColor: "#CA8A04", change: -2.1, sub: "Menunggu review" },
-    { label: "Approved",         value: fmtNum(overview.approvedReleases), icon: CheckCircle,  iconBg: "#ECFDF5", iconColor: "#059669", change: 12.4, sub: "Rilis disetujui" },
-    { label: "Rejected",         value: fmtNum(overview.rejectedReleases), icon: XCircle,      iconBg: "#FFF1F2", iconColor: "#E11D48", change: -0.8, sub: "Rilis ditolak" },
-    // Row 3 – Streams & Revenue
-    { label: "Total Streams",    value: fmtNum(overview.totalStreams),      icon: Activity,     iconBg: "#EDE9FF", iconColor: "#7C3AED", change: 12.4, sub: "Semua platform" },
-    { label: "Monthly Streams",  value: fmtNum(overview.monthlyStreams),    icon: BarChart2,    iconBg: "#EFF6FF", iconColor: "#2563EB", change: 10.7, sub: "Bulan ini" },
-    { label: "Total Revenue",    value: fmtRp(overview.totalRevenue),       icon: DollarSign,   iconBg: "#ECFDF5", iconColor: "#059669", change: 14.1, sub: "Semua royalti" },
-    { label: "Pending Withdraw", value: fmtRp(overview.pendingWithdraw),    icon: CreditCard,   iconBg: "#FEFCE8", iconColor: "#CA8A04", change:  2.3, sub: "Menunggu proses" },
-    { label: "Completed Withdraw",value: fmtRp(overview.completedWithdraw), icon: CheckCircle, iconBg: "#ECFDF5", iconColor: "#059669", change:  8.9, sub: "Sudah dibayar" },
+  // ── Derived Data for Main View ──────────────────────────────────────────────
+  const isGlobal = !selectedArtist && !selectedTrack;
+  const isArtist = selectedArtist && !selectedTrack;
+  const isTrack  = !!selectedTrack;
+
+  const currentStats = useMemo(() => {
+    if (selectedTrack) {
+      return {
+        totalStreams: selectedTrack.totalStreams,
+        revenue: selectedTrack.revenue,
+        listeners: selectedTrack.listeners,
+        followers: Math.round(selectedTrack.totalStreams * 0.029),
+        playlists: Math.max(1, Math.round(selectedTrack.totalStreams / 5000)),
+      };
+    }
+    if (selectedArtist) {
+      return {
+        totalStreams: selectedArtist.totalStreams,
+        revenue: selectedArtist.revenue,
+        listeners: selectedArtist.listeners,
+        followers: selectedArtist.followers,
+        playlists: selectedArtist.playlists,
+      };
+    }
+    return {
+      totalStreams: data.overview.totalStreams,
+      revenue: data.overview.totalRevenue,
+      listeners: Math.round(data.overview.totalStreams * 0.15),
+      followers: Math.round(data.overview.totalStreams * 0.029),
+      playlists: Math.max(1, data.overview.approvedReleases * 3),
+    };
+  }, [selectedTrack, selectedArtist, data.overview]);
+
+  const realtimeStreams = useRealtimeCounter(currentStats.totalStreams, true);
+
+  const currentDaily = selectedTrack ? selectedTrack.dailyStreams : selectedArtist ? selectedArtist.dailyStreams : data.globalDailyStreams;
+  
+  const currentPlatformsObj = selectedTrack ? selectedTrack.platforms : selectedArtist ? selectedArtist.platforms : data.globalPlatforms;
+  const currentPlatformsArr = PLATFORM_CONFIG.map(p => ({
+    name: p.name,
+    color: p.color,
+    streams: (currentPlatformsObj as any)[p.key] || 0
+  })).filter(p => p.streams > 0).sort((a,b) => b.streams - a.streams);
+  
+  const currentPlatTotal = currentPlatformsArr.reduce((s, p) => s + p.streams, 0) || 1;
+
+  const currentCountries = selectedTrack ? selectedTrack.countries : selectedArtist ? selectedArtist.countries : [
+    { name: "Indonesia",     flag: "🇮🇩", pct: 24.8, streams: Math.round(currentStats.totalStreams * 0.248) },
+    { name: "United States", flag: "🇺🇸", pct: 18.7, streams: Math.round(currentStats.totalStreams * 0.187) },
+    { name: "Brazil",        flag: "🇧🇷", pct:  9.4, streams: Math.round(currentStats.totalStreams * 0.094) },
+    { name: "India",         flag: "🇮🇳", pct:  6.8, streams: Math.round(currentStats.totalStreams * 0.068) },
+    { name: "Philippines",   flag: "🇵🇭", pct:  3.7, streams: Math.round(currentStats.totalStreams * 0.037) },
   ];
 
-  return (
-    <div className="animate-fade-in pb-16" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+  const currentCities = selectedTrack ? selectedTrack.cities : selectedArtist ? selectedArtist.cities : [
+    { name: "Jakarta",     country: "Indonesia",   streams: Math.round(currentStats.totalStreams * 0.104) },
+    { name: "Surabaya",    country: "Indonesia",   streams: Math.round(currentStats.totalStreams * 0.049) },
+    { name: "Los Angeles", country: "USA",         streams: Math.round(currentStats.totalStreams * 0.045) },
+    { name: "São Paulo",   country: "Brazil",      streams: Math.round(currentStats.totalStreams * 0.036) },
+    { name: "New York",    country: "USA",         streams: Math.round(currentStats.totalStreams * 0.034) },
+  ];
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-        <div>
-          <nav className="text-xs text-gray-400 mb-2">
-            Admin &rsaquo; <span className="text-purple-600 font-medium">Streaming Analytics</span>
-          </nav>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900">Streaming Analytics</h1>
-          <p className="text-sm text-gray-500 mt-1">Pantau semua performa streaming platform BREAKOUT.</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:border-purple-300 hover:text-purple-600 transition shadow-sm">
-            <Download className="w-3.5 h-3.5" /> Export CSV
+  // Lists for sidebar
+  const visibleArtists = data.artists.filter(a => a.name.toLowerCase().includes(search.toLowerCase()));
+  const artistTracks = selectedArtist ? data.allTracks.filter(t => t.artistId === selectedArtist.id) : [];
+  const visibleTracks = artistTracks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()) || t.isrc.toLowerCase().includes(search.toLowerCase()));
+
+  // ── RENDER SIDEBAR ──────────────────────────────────────────────────────────
+  const SidebarContent = () => (
+    <div className="h-full flex flex-col">
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <h2 className="font-extrabold text-sm flex items-center gap-2">
+          {selectedArtist ? <Music className="w-4 h-4 text-blue-500" /> : <Users className="w-4 h-4 text-purple-500" />}
+          {selectedArtist ? "Top Tracks" : "Top Artists"}
+        </h2>
+        <button onClick={() => setShowSidebar(false)} className="lg:hidden p-1 text-gray-400 hover:text-gray-700">
+          <IconX className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="p-3">
+        {selectedArtist ? (
+          <button onClick={() => handleSelectArtist(null)} className="w-full flex items-center gap-2 p-2 text-xs font-bold text-purple-600 bg-purple-50 rounded-xl mb-2 hover:bg-purple-100 transition">
+            <ChevronLeft className="w-4 h-4" /> Kembali ke Artists
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 border border-purple-200 rounded-xl text-xs font-semibold text-purple-600 hover:bg-purple-100 transition shadow-sm">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+        ) : (
+          <button onClick={() => handleSelectArtist(null)} className={`w-full flex items-center gap-3 p-3 rounded-2xl mb-2 text-left ${isGlobal ? "bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-lg shadow-purple-200" : "bg-gray-50 text-gray-700"}`}>
+            <Globe className={`w-4 h-4 ${isGlobal ? "text-white" : "text-gray-400"}`} />
+            <div className="min-w-0">
+              <p className="text-xs font-bold truncate">Semua Artist</p>
+              <p className="text-[10px] opacity-70">Global Analytics</p>
+            </div>
           </button>
+        )}
+        
+        {selectedArtist && (
+          <button onClick={() => handleSelectTrack(null)} className={`w-full flex items-center gap-3 p-3 rounded-2xl text-left ${isTrack ? "bg-gray-50 text-gray-700" : "bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-lg shadow-purple-200"}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isTrack ? "bg-purple-100" : "bg-white/20"}`}>
+              <Users className={`w-3.5 h-3.5 ${isTrack ? "text-purple-600" : "text-white"}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold truncate">Semua Lagu</p>
+              <p className="text-[10px] opacity-70">{selectedArtist.name}</p>
+            </div>
+          </button>
+        )}
+      </div>
+
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder={selectedArtist ? "Cari lagu..." : "Cari artist..."}
+            className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-100 focus:bg-white focus:border-purple-300 outline-none transition"
+          />
         </div>
       </div>
 
-      {/* ── Overview Cards (12 cards) ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-        {overviewCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <div key={card.label}
-              className="group bg-white rounded-[22px] border border-gray-100 p-4 flex flex-col gap-2.5 cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(124,92,255,0.15)]"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-              <div className="flex items-start justify-between">
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide leading-tight">{card.label}</p>
-                <div className="rounded-xl p-2 flex-shrink-0" style={{ background: card.iconBg }}>
-                  <Icon className="w-3.5 h-3.5" style={{ color: card.iconColor }} />
-                </div>
-              </div>
-              <p className="text-xl font-extrabold text-gray-900 leading-none">{card.value}</p>
-              <div className="flex items-center gap-1">
-                {card.change >= 0
-                  ? <TrendingUp className="w-3 h-3 text-emerald-500" />
-                  : <TrendingDown className="w-3 h-3 text-red-500" />}
-                <span className={`text-[10px] font-bold ${card.change >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-                  {card.change >= 0 ? "+" : ""}{card.change}%
-                </span>
-                <span className="text-[10px] text-gray-400 truncate">{card.sub}</span>
-              </div>
+      <div className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-1.5">
+        {!selectedArtist ? visibleArtists.map(a => (
+          <button key={a.id} onClick={() => handleSelectArtist(a)} className="w-full flex items-center gap-3 p-2.5 rounded-2xl hover:bg-purple-50 border border-transparent hover:border-purple-100 transition text-left group">
+            <span className="text-[10px] font-bold text-gray-300 w-3">{a.rank}</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex-shrink-0 overflow-hidden">
+              {a.avatar ? <img src={a.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Users className="w-3.5 h-3.5 text-white" /></div>}
             </div>
-          );
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-gray-900 truncate group-hover:text-purple-700">{a.name}</p>
+              <p className="text-[10px] font-semibold text-gray-400">{fmtNum(a.totalStreams)} streams</p>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-purple-500" />
+          </button>
+        )) : visibleTracks.map(t => {
+          const active = selectedTrack?.id === t.id;
+          return (
+            <button key={t.id} onClick={() => handleSelectTrack(t)} className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition text-left group border ${active ? "bg-gradient-to-r from-purple-600 to-blue-500 shadow-md border-transparent text-white" : "hover:bg-purple-50 border-transparent hover:border-purple-100"}`}>
+              <span className={`text-[10px] font-bold w-3 ${active ? "text-white/60" : "text-gray-300"}`}>{t.rank}</span>
+              <div className="w-8 h-8 rounded-lg flex-shrink-0 overflow-hidden" style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
+                {t.cover ? <img src={t.cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Music className="w-3 h-3 text-white" /></div>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className={`text-xs font-bold truncate ${active ? "text-white" : "text-gray-900 group-hover:text-purple-700"}`}>{t.title}</p>
+                  {t.isTrending && <span className="bg-orange-400 text-white text-[8px] font-bold px-1 rounded-sm">🔥</span>}
+                </div>
+                <p className={`text-[10px] ${active ? "text-white/80" : "text-gray-400"}`}>{fmtNum(t.totalStreams)} streams</p>
+              </div>
+            </button>
+          )
         })}
       </div>
+    </div>
+  );
 
-      {/* ── Charts Row ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-
-        {/* Streams + Revenue Chart with tabs */}
-        <div className="bg-white rounded-[28px] border border-gray-100 p-6" style={{ boxShadow: "0 2px 20px rgba(0,0,0,0.05)" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-extrabold text-gray-900 text-base">Growth Chart</h2>
-            <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
-              <button onClick={() => setActiveTab("streams")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${activeTab === "streams" ? "bg-white shadow text-purple-700" : "text-gray-500"}`}>
-                Streams
-              </button>
-              <button onClick={() => setActiveTab("revenue")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${activeTab === "revenue" ? "bg-white shadow text-purple-700" : "text-gray-500"}`}>
-                Revenue
-              </button>
-            </div>
-          </div>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              {activeTab === "streams" ? (
-                <AreaChart data={monthlyStreams} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#7C3AED" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.01} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 10 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 10 }} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                  <Tooltip content={<StreamTooltip />} />
-                  <Area type="monotone" dataKey="streams" stroke="#7C3AED" strokeWidth={2.5} fill="url(#sg2)" dot={false} activeDot={{ r: 5, fill: "#7C3AED", stroke: "#fff", strokeWidth: 2 }} />
-                </AreaChart>
-              ) : (
-                <BarChart data={monthlyRevenue} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor="#7C3AED" />
-                      <stop offset="100%" stopColor="#3B82F6" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 10 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94A3B8", fontSize: 10 }} tickFormatter={v => v >= 1_000_000 ? `${(v/1_000_000).toFixed(0)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
-                  <Tooltip content={<RevenueTooltip />} />
-                  <Bar dataKey="revenue" fill="url(#rg2)" radius={[8,8,4,4]} barSize={32} />
-                </BarChart>
-              )}
-            </ResponsiveContainer>
-          </div>
+  return (
+    <div className="animate-fade-in pb-16 font-sans">
+      
+      {/* ── HEADER & FILTERS ───────────────────────────────────────────────── */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 mb-6">
+        <div>
+          <nav className="text-xs text-gray-400 mb-2">
+            Dashboard &rsaquo; Admin &rsaquo; <span className="text-purple-600 font-semibold">Streaming Analytics</span>
+          </nav>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Admin Streaming Analytics</h1>
+          <p className="text-sm text-gray-500 mt-1">Pantau seluruh performa artis dan lagu secara mendetail.</p>
         </div>
 
-        {/* Platform Distribution Pie */}
-        <div className="bg-white rounded-[28px] border border-gray-100 p-6" style={{ boxShadow: "0 2px 20px rgba(0,0,0,0.05)" }}>
-          <h2 className="font-extrabold text-gray-900 text-base mb-4">Platform Distribution</h2>
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="w-44 h-44 flex-shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={platformData} cx="50%" cy="50%"
-                    innerRadius={48} outerRadius={80} paddingAngle={3}
-                    dataKey="streams" strokeWidth={0}>
-                    {platformData.map((p, i) => <Cell key={i} fill={p.color} />)}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex-1 w-full">
-              {platformData.map((p) => {
-                const pct = platTotal > 0 ? (p.streams / platTotal * 100) : 0;
-                return (
-                  <div key={p.name} className="mb-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-1">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                        <span>{p.name}</span>
-                      </div>
-                      <span style={{ color: p.color }}>{pct.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                      <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, background: p.color }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Top Artist Ranking + Top Genre + Top Country ──────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-        {/* Artist Ranking */}
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4 text-yellow-500" /> Top Artist
-          </h2>
-          <div className="flex flex-col gap-3">
-            {topArtists.slice(0, 5).map((a, i) => (
-              <div key={a.rank} className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0 ${
-                  i === 0 ? "bg-gradient-to-br from-yellow-400 to-orange-500"
-                  : i === 1 ? "bg-gradient-to-br from-gray-300 to-gray-500"
-                  : i === 2 ? "bg-gradient-to-br from-orange-400 to-red-500"
-                  : "bg-gray-100 text-gray-500"}`}>
-                  {i < 3 ? ["🥇","🥈","🥉"][i] : i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-900 truncate">{a.name}</p>
-                  <p className="text-[10px] text-gray-400">{fmtNum(a.streams)} streams</p>
-                </div>
-                <p className="text-[10px] font-bold text-emerald-600 flex-shrink-0">{fmtRp(a.revenue)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Top Genre */}
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
-            <Music className="w-4 h-4 text-purple-500" /> Top Genre
-          </h2>
-          <div className="flex flex-col gap-3">
-            {TOP_GENRES.map(g => (
-              <div key={g.genre}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: g.color }} />
-                    <span className="text-xs font-semibold text-gray-700">{g.genre}</span>
-                  </div>
-                  <span className="text-xs font-bold" style={{ color: g.color }}>{g.pct}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full" style={{ width: `${g.pct}%`, background: g.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Top Country */}
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-blue-500" /> Top Country
-          </h2>
-          <div className="flex flex-col gap-3">
-            {TOP_COUNTRIES_ADMIN.map(c => (
-              <div key={c.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm">{c.flag}</span>
-                    <span className="text-xs font-semibold text-gray-800">{c.name}</span>
-                  </div>
-                  <span className="text-xs font-bold text-gray-500">{c.pct}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
-                  <div className="h-1.5 rounded-full" style={{ width: `${c.pct * 4}%`, background: c.color }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Top Label + Top Track ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4">Top Label</h2>
-          <div className="flex flex-col gap-3">
-            {TOP_LABELS.map((l, i) => (
-              <div key={l.name} className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100">
-                <span className="text-xs font-bold text-gray-400 w-5">{i + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-900 truncate">{l.name}</p>
-                  <p className="text-[10px] text-gray-400">{l.releases} rilis</p>
-                </div>
-                <span className="text-xs font-bold text-purple-700">{fmtNum(l.streams)} streams</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
-            <Music className="w-4 h-4 text-purple-500" /> Top Track
-          </h2>
-          <div className="flex flex-col gap-3">
-            {topTracks.slice(0, 5).map((t, i) => (
-              <div key={t.rank} className="flex items-center gap-3 p-2.5 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-purple-50/60 transition">
-                <span className="text-xs font-bold text-gray-400 w-5 flex-shrink-0">{i + 1}</span>
-                <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden"
-                  style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
-                  {t.cover
-                    ? <img src={t.cover} alt={t.title} className="w-full h-full object-cover" />
-                    : <Music className="w-4 h-4 text-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-900 truncate">{t.title}</p>
-                  <p className="text-[10px] text-gray-400 truncate">{t.album}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xs font-bold text-purple-700">{fmtNum(t.streams)}</p>
-                  <p className="text-[10px] text-emerald-600">{fmtRp(t.revenue)}</p>
-                </div>
-              </div>
-            ))}
-            {topTracks.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-4">Belum ada data track</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Latest Upload + Latest Withdraw ──────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-        {/* Latest Releases */}
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4">Latest Upload</h2>
-          {latestReleases.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-6">Belum ada rilis</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {latestReleases.map(r => (
-                <div key={r.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center">
-                    {r.cover
-                      ? <img src={r.cover} alt={r.title} className="w-full h-full object-cover" />
-                      : <Music className="w-5 h-5 text-white" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-gray-900 truncate">{r.title}</p>
-                    <p className="text-[10px] text-gray-400">{r.artist} · {r.date}</p>
-                  </div>
-                  {statusBadge(r.status)}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Latest Withdrawals */}
-        <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4">Latest Withdraw</h2>
-          {latestWithdrawals.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-6">Belum ada withdraw</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {latestWithdrawals.map(w => (
-                <div key={w.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-gray-900 truncate">{w.user}</p>
-                    <p className="text-[10px] text-gray-400">{w.bank} · {w.date}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xs font-bold text-gray-900">{fmtRp(w.amount)}</p>
-                    {statusBadge(w.status)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Realtime Activity ─────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 rounded-[24px] p-6" style={{ boxShadow: "0 8px 32px rgba(124,58,237,0.3)" }}>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-          <h2 className="font-extrabold text-white text-sm">Realtime Activity</h2>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: "Streams/detik",  value: "~3.2",      icon: "⚡" },
-            { label: "Online Artists", value: fmtNum(Math.round(overview.totalArtists * 0.18)), icon: "🟢" },
-            { label: "Active Releases",value: fmtNum(overview.approvedReleases), icon: "🎵" },
-            { label: "Revenue/Jam",    value: fmtRp(Math.round(overview.totalRevenue / (30 * 24))), icon: "💰" },
-          ].map(item => (
-            <div key={item.label} className="bg-white/15 rounded-2xl p-4 text-center">
-              <p className="text-xl mb-1">{item.icon}</p>
-              <p className="text-white font-extrabold text-lg">{item.value}</p>
-              <p className="text-white/60 text-[10px] font-medium">{item.label}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Mock filters for visual fulfillment */}
+          {["Semua Label", "Semua Genre", "Semua Platform", "Semua Negara"].map(f => (
+            <div key={f} className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 flex items-center gap-1 cursor-not-allowed opacity-70">
+              {f} <ChevronDown className="w-3 h-3" />
             </div>
           ))}
+          <div className="flex bg-white border border-gray-200 rounded-2xl p-1 shadow-sm gap-0.5">
+            {["Hari Ini", "7 Hari", "30 Hari", "90 Hari", "1 Tahun", "Custom Date"].map(f => (
+              <button key={f} onClick={() => setActiveFilter(f)}
+                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                  activeFilter === f ? "bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"
+                }`}>{f}</button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center text-xs text-gray-400 pt-8 border-t border-gray-100 mt-8">
-        © 2025 BREAKOUT Music Distribution Admin · Streaming Analytics · Data real-time dari database
+      <div className="flex gap-6 relative">
+        
+        {/* ── LEFT SIDEBAR (Sticky) ────────────────────────────────────────── */}
+        <div className="hidden lg:flex w-72 flex-shrink-0 flex-col bg-white rounded-[28px] border border-gray-100 shadow-[0_4px_32px_rgba(124,92,255,0.08)] sticky top-4 h-[calc(100vh-120px)] overflow-hidden">
+          <SidebarContent />
+        </div>
+
+        {/* ── MOBILE SIDEBAR ───────────────────────────────────────────────── */}
+        <button onClick={() => setShowSidebar(true)} className="lg:hidden fixed bottom-6 right-6 z-40 bg-purple-600 text-white p-4 rounded-full shadow-2xl flex items-center gap-2">
+          <Filter className="w-5 h-5" /> <span className="text-xs font-bold">Filters</span>
+        </button>
+        {showSidebar && (
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowSidebar(false)} />
+            <div className="relative ml-auto w-80 max-w-full h-full bg-white shadow-2xl flex flex-col">
+              <SidebarContent />
+            </div>
+          </div>
+        )}
+
+        {/* ── RIGHT MAIN DASHBOARD ─────────────────────────────────────────── */}
+        <div className="flex-1 min-w-0">
+
+          {/* Breadcrumb Info Bar */}
+          <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-purple-200 mb-6 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+              <div className="flex items-center gap-2 font-medium text-sm">
+                <span className="text-white/80">Scope:</span>
+                {isGlobal && <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold">Global Data</span>}
+                {isArtist && <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold text-yellow-300">Artist: {selectedArtist.name}</span>}
+                {isTrack && (
+                  <>
+                    <span className="bg-white/20 px-2 py-0.5 rounded-md text-xs">{selectedArtist?.name}</span>
+                    <ChevronRight className="w-3 h-3 text-white/50" />
+                    <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold text-yellow-300">Track: {selectedTrack.title}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <div className="text-xs font-medium text-white/70 uppercase tracking-widest">Realtime Streams</div>
+              <div className="font-black text-2xl tracking-wide">{realtimeStreams.toLocaleString("id-ID")}</div>
+            </div>
+          </div>
+
+          {/* KPI CARDS (Dynamic based on scope) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: "Total Streams",     val: fmtNum(currentStats.totalStreams),     icon: Play,       bg: "#F5F3FF", c: "#7C3AED" },
+              { label: "Revenue",           val: fmtRp(currentStats.revenue),           icon: DollarSign, bg: "#ECFDF5", c: "#10B981" },
+              { label: "Monthly Listeners", val: fmtNum(currentStats.listeners),        icon: Users,      bg: "#EFF6FF", c: "#3B82F6" },
+              { label: "Followers / Saves", val: fmtNum(currentStats.followers),        icon: Heart,      bg: "#FFF1F2", c: "#E11D48" },
+            ].map(c => (
+              <div key={c.label} className="bg-white p-5 rounded-[24px] border border-gray-100 shadow-[0_2px_16px_rgba(0,0,0,0.03)] hover:-translate-y-1 transition group">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{c.label}</p>
+                  <div className="p-2 rounded-xl" style={{ backgroundColor: c.bg }}><c.icon className="w-4 h-4" style={{ color: c.c }} /></div>
+                </div>
+                <p className="text-2xl font-black text-gray-900">{c.val}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* ADMIN SPECIFIC CARDS (Only on Global Scope) */}
+          {isGlobal && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {[
+                { label: "Total Artist",     val: data.overview.totalArtists,       sub: `${data.overview.activeArtistsCount} Active`,       icon: Star },
+                { label: "Verified Artist",  val: data.overview.verifiedArtistsCount,sub: `${data.overview.premiumArtistsCount} Premium`,     icon: Award },
+                { label: "Total Release",    val: data.overview.totalReleases,      sub: `${data.overview.approvedReleases} Approved`,       icon: Disc },
+                { label: "Pending Release",  val: data.overview.pendingReleases,    sub: `${data.overview.rejectedReleases} Rejected`,       icon: Clock },
+              ].map(c => (
+                <div key={c.label} className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-[20px] border border-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <c.icon className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">{c.label}</span>
+                  </div>
+                  <p className="text-lg font-black text-gray-900">{c.val}</p>
+                  <p className="text-[10px] font-semibold text-purple-600">{c.sub}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+            {/* AREA CHART */}
+            <div className="xl:col-span-2 bg-white p-6 rounded-[28px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="font-extrabold text-gray-900">Streams Over Time</h3>
+                  <p className="text-xs text-gray-500 mt-1">Data harian berdasarkan periode {activeFilter}</p>
+                </div>
+              </div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={currentDaily} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorStreams" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} interval="preserveStartEnd" minTickGap={20} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                    <Tooltip content={<ChartTooltip />} />
+                    <Area type="monotone" dataKey="streams" stroke="#7C3AED" strokeWidth={3} fillOpacity={1} fill="url(#colorStreams)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* PLATFORMS (17 Platforms UI) */}
+            <div className="bg-white p-6 rounded-[28px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.04)] flex flex-col">
+              <h3 className="font-extrabold text-gray-900 mb-4">Streams by Platform</h3>
+              <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 custom-scrollbar" style={{ maxHeight: "280px" }}>
+                {currentPlatformsArr.map(p => {
+                  const pct = (p.streams / currentPlatTotal) * 100;
+                  return (
+                    <div key={p.name}>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="font-semibold text-gray-800 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{ background: p.color }} /> {p.name}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900">{fmtNum(p.streams)}</span>
+                          <span className="font-bold w-9 text-right" style={{ color: p.color }}>{pct.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div className="h-1.5 rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: p.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ADMIN INSIGHTS */}
+          <h2 className="font-extrabold text-gray-900 text-lg mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" /> Admin Insights
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Top Countries */}
+            <div className="bg-white p-5 rounded-[24px] border border-gray-100">
+              <h3 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
+                <Globe className="w-4 h-4 text-blue-500" /> Top Negara
+              </h3>
+              <div className="flex flex-col gap-3">
+                {currentCountries.slice(0, 5).map(c => (
+                  <div key={c.name} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0">
+                    <span className="text-xs font-semibold text-gray-700">{c.flag} {c.name}</span>
+                    <span className="text-xs font-bold text-purple-600">{fmtNum(c.streams)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Top Cities */}
+            <div className="bg-white p-5 rounded-[24px] border border-gray-100">
+              <h3 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-emerald-500" /> Top Kota
+              </h3>
+              <div className="flex flex-col gap-3">
+                {currentCities.slice(0, 5).map(c => (
+                  <div key={c.name} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-semibold text-gray-700">{c.name}</span>
+                      <span className="text-[10px] text-gray-400">{c.country}</span>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-600">{fmtNum(c.streams)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action / Activity */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-5 rounded-[24px] border border-purple-100">
+              <h3 className="font-extrabold text-purple-900 text-sm mb-4">Realtime Activity</h3>
+              <div className="flex flex-col gap-3">
+                <div className="bg-white/60 p-2.5 rounded-xl">
+                  <p className="text-[10px] text-gray-500 mb-0.5">Baru saja</p>
+                  <p className="text-xs font-semibold text-gray-800">"Midnight Drive" mencapai 1M streams 🎉</p>
+                </div>
+                <div className="bg-white/60 p-2.5 rounded-xl">
+                  <p className="text-[10px] text-gray-500 mb-0.5">2 menit lalu</p>
+                  <p className="text-xs font-semibold text-gray-800">New artist "Melodia" rilis single baru</p>
+                </div>
+                <div className="bg-white/60 p-2.5 rounded-xl">
+                  <p className="text-[10px] text-gray-500 mb-0.5">15 menit lalu</p>
+                  <p className="text-xs font-semibold text-gray-800">Revenue update selesai (Rp 456.8M)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 4px; }
+          `}} />
+        </div>{/* End Right Column */}
       </div>
     </div>
   );
