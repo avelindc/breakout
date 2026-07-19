@@ -215,7 +215,7 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="text-[10px] font-extrabold tracking-widest bg-white/20 text-white px-2.5 py-0.5 rounded-full uppercase border border-white/10">
-                    Released Catalog
+                    Released Catalog v2
                   </span>
                   <h2 className="text-xl font-bold mt-1.5 truncate">{selected.title}</h2>
                   <p className="text-white/80 text-sm truncate">by {selected.primaryArtist}</p>

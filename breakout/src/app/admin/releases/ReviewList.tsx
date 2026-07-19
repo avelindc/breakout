@@ -174,7 +174,7 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="text-[10px] font-extrabold tracking-widest bg-yellow-400 text-yellow-950 px-2.5 py-0.5 rounded-full uppercase">
-                    Review Queue
+                    Review Queue v2
                   </span>
                   <h2 className="text-xl font-bold mt-1.5 truncate">{selected.title}</h2>
                   <p className="text-white/80 text-sm truncate">by {selected.primaryArtist}</p>
