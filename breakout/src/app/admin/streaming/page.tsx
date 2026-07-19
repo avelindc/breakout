@@ -168,8 +168,7 @@ export default async function AdminStreamingPage() {
           { name: "YouTube Music", streams:  94_206, color: "#FF0000" },
           { name: "TikTok",        streams:  59_948, color: "#69C9D0" },
           { name: "Amazon Music",  streams:  28_642, color: "#00A8E1" },
-          { name: "Deezer",        streams:  12_963, color: "#A238FF" },
-          { name: "Lainnya",       streams:   7_742, color: "#94A3B8" },
+          { name: "Lainnya",       streams:  20_705, color: "#94A3B8" },
         ],
     monthlyRevenue: monthlyRevenue.every(d => d.revenue === 0)
       ? [

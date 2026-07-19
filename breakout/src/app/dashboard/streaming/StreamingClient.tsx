@@ -12,25 +12,14 @@ import {
 } from "lucide-react";
 import type { TrackData } from "./page";
 
-// ── Platform config ────────────────────────────────────────────────────────────
+// ── Platform config (Strictly matching DB Royalty fields) ────────────────────────
 const PLATFORM_CONFIG = [
   { key: "spotify",   name: "Spotify",       color: "#1DB954" },
   { key: "apple",     name: "Apple Music",   color: "#FC3C44" },
   { key: "youtube",   name: "YouTube Music", color: "#FF0000" },
   { key: "tiktok",    name: "TikTok",        color: "#010101" },
   { key: "amazon",    name: "Amazon Music",  color: "#00A8E1" },
-  { key: "instagram", name: "Instagram",     color: "#E1306C" },
-  { key: "facebook",  name: "Facebook",      color: "#1877F2" },
-  { key: "boomplay",  name: "Boomplay",      color: "#E86200" },
-  { key: "deezer",    name: "Deezer",        color: "#A238FF" },
-  { key: "tidal",     name: "Tidal",         color: "#000000" },
-  { key: "joox",      name: "Joox",          color: "#1A8739" },
-  { key: "audiomack", name: "Audiomack",     color: "#FFA500" },
-  { key: "pandora",   name: "Pandora",       color: "#3668FF" },
-  { key: "kkbox",     name: "KKBOX",         color: "#009966" },
-  { key: "napster",   name: "Napster",       color: "#00A0C6" },
-  { key: "tencent",   name: "Tencent Music", color: "#0052D9" },
-  { key: "lainnya",   name: "Lainnya",       color: "#94A3B8" },
+  { key: "other",     name: "Lainnya",       color: "#94A3B8" },
 ] as const;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
