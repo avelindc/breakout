@@ -21,14 +21,20 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
   const handleSave = async () => {
     setIsSaving(true);
     setMessage(null);
-    const res = await saveLandingPageCMS(data);
-    setIsSaving(false);
-    
-    if (res.error) {
-      setMessage({ text: res.error, type: 'error' });
-    } else {
-      setMessage({ text: 'CMS Data saved successfully! Landing page is updated.', type: 'success' });
-      setTimeout(() => setMessage(null), 3000);
+    try {
+      const res = await saveLandingPageCMS(data);
+      setIsSaving(false);
+      
+      if (res.error) {
+        setMessage({ text: res.error, type: 'error' });
+      } else {
+        setMessage({ text: 'CMS Data saved successfully! Landing page is updated.', type: 'success' });
+        setTimeout(() => setMessage(null), 3000);
+      }
+    } catch (error: any) {
+      console.error("Client Save Error:", error);
+      setIsSaving(false);
+      setMessage({ text: error.message || 'An unexpected error occurred while saving.', type: 'error' });
     }
   };
 
