@@ -95,14 +95,13 @@ export async function registerAction(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const whatsapp = formData.get("whatsapp") as string;
-  const ktpFile = formData.get("ktp") as File | null;
   const youtubeUrl = formData.get("youtubeUrl") as string;
   const nik = formData.get("nik") as string;
   const address = formData.get("address") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !youtubeUrl || !nik || !address) {
-    return { error: "All fields including KTP, NIK, Address, and YouTube URL are required" };
+  if (!name || !email || !password || !whatsapp || !youtubeUrl || !nik || !address) {
+    return { error: "All fields including NIK, Address, and YouTube URL are required" };
   }
 
   try {
@@ -118,34 +117,7 @@ export async function registerAction(formData: FormData) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Upload KTP
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-    let ktpUrl = null;
-
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const ext = ktpFile.name.split('.').pop();
-      const path = `ktp-${Date.now()}.${ext}`;
-      const buffer = Buffer.from(await ktpFile.arrayBuffer());
-      
-      const { error: uploadError, data } = await supabase.storage
-        .from('identity-documents')
-        .upload(path, buffer, {
-          contentType: ktpFile.type,
-          upsert: false
-        });
-        
-      if (uploadError) {
-        console.error("KTP Upload error:", uploadError);
-        return { error: "Failed to upload KTP document. Please try again." };
-      }
-      
-      // Store the path so we can generate signed URLs later
-      ktpUrl = data?.path || path;
-    } else {
-      console.warn("Supabase credentials missing, skipping KTP upload");
-    }
+    const ktpUrl = null; // KTP upload removed
 
     const user = await prisma.user.create({
       data: {

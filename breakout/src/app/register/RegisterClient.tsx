@@ -21,17 +21,9 @@ export function RegisterClient() {
     const formData = new FormData(e.currentTarget);
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
-    const ktp = formData.get("ktp") as File;
-    const email = formData.get("email") as string;
     
     if (password !== confirmPassword) {
       setError("Password dan Konfirmasi Password tidak cocok.");
-      setLoading(false);
-      return;
-    }
-
-    if (ktp && ktp.size > 4 * 1024 * 1024) {
-      setError("Ukuran foto KTP maksimal 4MB.");
       setLoading(false);
       return;
     }
@@ -158,19 +150,6 @@ export function RegisterClient() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Upload Foto KTP</label>
-                  <div className="relative">
-                    <input 
-                      type="file" 
-                      name="ktp" 
-                      accept="image/jpeg, image/png, application/pdf"
-                      required
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 outline-none focus:border-[#00F0FF] transition text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#00F0FF]/10 file:text-[#00F0FF] hover:file:bg-[#00F0FF]/20"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Format JPG, PNG, atau PDF. Maksimal 4MB.</p>
-                </div>
 
                 <div className="flex items-start gap-3 mt-2">
                   <div className="flex items-center h-5">
