@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Users, Music, CheckCircle, BarChart, 
-  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen, Disc
+  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen, Disc, Globe
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
 const links = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
+  { name: "Website CMS", href: "/admin/website-cms", icon: Globe },
   { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/admin/publisher-catalog", icon: BookOpen },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
