@@ -2,8 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
-import { toJpeg } from "html-to-image";
-import { getContractUploadUrlsAction, finalizeContractAction } from "@/app/actions/auth";
+import { processContractByEmailAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
 interface ContractStepProps {
@@ -35,46 +34,15 @@ export default function ContractStep({ userId, name, nik, address, email, whatsa
     setError(null);
 
     try {
-      // 1. Generate full-height image using html-to-image
-      if (!contractRef.current) throw new Error("Contract element not found");
-      const contractEl = contractRef.current!;
-      
-      // We directly use the element to avoid mobile browser hanging on detached/off-screen DOM
-      const dataUrl = await Promise.race([
-        toJpeg(contractEl, {
-          quality: 0.7,
-          backgroundColor: "#ffffff",
-          pixelRatio: 1 // 1 instead of 2 to avoid memory crash on mobile devices
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Gagal merender dokumen (Timeout). Coba gunakan perangkat lain atau hubungi admin.")), 15000))
-      ]) as string;
-
-      if (!dataUrl) throw new Error("Failed to create contract image");
-      const contractBlob = await (await fetch(dataUrl)).blob();
-
-      // 2. Get signed upload URLs from server
-      const urlsRes = await getContractUploadUrlsAction(userId);
-      if (urlsRes?.error || !urlsRes.pdf) {
-        throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan.");
-      }
-
-      // 3. Upload Contract JPEG Blob (contractBlob is already created above)
-      
-      const pdfUpload = await fetch(urlsRes.pdf.url, {
-        method: "PUT",
-        body: contractBlob,
-        headers: { "Content-Type": "image/jpeg" }
+      const finalizeRes = await processContractByEmailAction({
+        userId, name, nik, address, email, whatsapp
       });
-      if (!pdfUpload.ok) throw new Error("Gagal mengunggah gambar kontrak");
-
-      // 4. Finalize in database
-      const signaturePath = "agreed-digitally";
-      const finalizeRes = await finalizeContractAction(userId, signaturePath, urlsRes.pdf.path);
       
       if (finalizeRes?.error) {
         setError(finalizeRes.error);
         setLoading(false);
       } else {
+        alert("Kontrak berhasil dikirim ke admin");
         router.push(`/register/success?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&whatsapp=${encodeURIComponent(whatsapp)}`);
         router.refresh();
       }

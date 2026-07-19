@@ -301,3 +301,37 @@ export async function sendWithdrawalPaidEmail(to: string, name: string) {
     return { error };
   }
 }
+
+export async function sendContractToAdminEmail(data: {userId: string; name: string; nik: string; address: string; email: string; whatsapp: string;}) {
+  const subject = `[Kontrak Baru] Pendaftaran Artis - ${data.name}`;
+  const html = generateEmailHtml(
+    'Kontrak Pendaftaran Artis Baru',
+    `
+      <p>Terdapat pendaftaran artis baru yang telah menyetujui kontrak distribusi digital.</p>
+      <div style="background-color: #f3f4f6; color: #111827; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top:0;">Data Artis (PIHAK KEDUA)</h3>
+        <p><strong>Nama:</strong> ${data.name}</p>
+        <p><strong>NIK:</strong> ${data.nik}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>WhatsApp:</strong> ${data.whatsapp}</p>
+        <p><strong>Alamat:</strong> ${data.address}</p>
+        <p><strong>User ID:</strong> ${data.userId}</p>
+      </div>
+      <p>Artis tersebut <strong>Telah Menyetujui</strong> secara digital seluruh klausul Perjanjian Distribusi Digital BREAKOUT MUSIC RECORD dengan pembagian hasil 72.5% (Artis) dan 27.5% (Label).</p>
+      <p>Email ini bertindak sebagai bukti persetujuan digital yang sah.</p>
+    `
+  );
+
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('Simulated Email Send Contract:', subject);
+    return { success: true };
+  }
+
+  try {
+    await resend.emails.send({ from: fromEmail, to: "daskat38@gmail.com", subject, html });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send contract email:', error);
+    return { error };
+  }
+}

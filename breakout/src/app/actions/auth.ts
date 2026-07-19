@@ -4,7 +4,7 @@ import { signIn } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
-import { sendOtpEmail } from "@/lib/email";
+import { sendOtpEmail, sendContractToAdminEmail } from "@/lib/email";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -262,5 +262,21 @@ export async function finalizeContractAction(userId: string, signaturePath: stri
   } catch (error) {
     console.error("finalizeContractAction error:", error);
     return { error: "Gagal menyimpan kontrak ke database." };
+  }
+}
+
+export async function processContractByEmailAction(data: {userId: string; name: string; nik: string; address: string; email: string; whatsapp: string;}) {
+  try {
+    const emailRes = await sendContractToAdminEmail(data);
+    if (emailRes.error) {
+      return { error: "Gagal mengirim kontrak ke admin." };
+    }
+    
+    // Save to DB to maintain flow
+    await finalizeContractAction(data.userId, "agreed-digitally", "sent-via-email");
+    return { success: true };
+  } catch (error) {
+    console.error("processContractByEmailAction error:", error);
+    return { error: "Gagal memproses kontrak." };
   }
 }
