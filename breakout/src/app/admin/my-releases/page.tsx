@@ -14,31 +14,37 @@ export default async function AdminMyReleasesPage() {
     orderBy: { updatedAt: 'desc' }
   });
 
-  const serializedReleases = approvedReleases.map(release => ({
-    id: release.id,
-    title: release.title,
-    genre: release.genre,
-    language: release.language,
-    primaryArtist: release.primaryArtist,
-    featuredArtist: release.featuredArtist,
-    releaseDate: release.releaseDate.toISOString(),
-    coverArtworkUrl: release.coverArtworkUrl,
-    status: release.status,
-    artistUserId: release.artist.userId,
-    artistName: release.artist.user.name || "Artist",
-    artistEmail: release.artist.user.email,
-    tracks: release.tracks.map(t => ({
-      id: t.id,
-      title: t.title,
-      audioUrl: t.audioUrl,
-      composer: t.composer || null,
-      producer: t.producer || null,
-      lyrics: t.lyrics || null,
-      isrc: t.isrc || null,
-      upc: t.upc || null,
-      tiktokClipStart: t.tiktokClipStart || null,
-    }))
-  }));
+  const serializedReleases = approvedReleases.map(release => {
+    const releaseDateStr = release.releaseDate instanceof Date && !isNaN(release.releaseDate.getTime())
+      ? release.releaseDate.toISOString()
+      : new Date().toISOString();
+
+    return {
+      id: release.id,
+      title: release.title,
+      genre: release.genre,
+      language: release.language,
+      primaryArtist: release.primaryArtist,
+      featuredArtist: release.featuredArtist || null,
+      releaseDate: releaseDateStr,
+      coverArtworkUrl: release.coverArtworkUrl,
+      status: release.status,
+      artistUserId: release.artist?.userId || "",
+      artistName: release.artist?.user?.name || "Artist",
+      artistEmail: release.artist?.user?.email || "",
+      tracks: (release.tracks || []).map(t => ({
+        id: t.id,
+        title: t.title,
+        audioUrl: t.audioUrl,
+        composer: t.composer || null,
+        producer: t.producer || null,
+        lyrics: t.lyrics || null,
+        isrc: t.isrc || null,
+        upc: t.upc || null,
+        tiktokClipStart: t.tiktokClipStart || null,
+      }))
+    };
+  });
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 md:px-0">

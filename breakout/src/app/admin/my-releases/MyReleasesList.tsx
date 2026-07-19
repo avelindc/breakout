@@ -301,11 +301,11 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
               )}
 
               {/* Audio Play preview inside modal */}
-              {!isEditing && selected.tracks[0] && (
+              {!isEditing && selected.tracks && selected.tracks[0] && (
                 <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => playAudio(selected.tracks[0])}
+                      onClick={() => playAudio(selected.tracks[0]!)}
                       className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                         playingTrackId === selected.tracks[0].id 
                           ? "bg-emerald-600 text-white shadow-lg" 
