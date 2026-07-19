@@ -96,11 +96,10 @@ export async function registerAction(formData: FormData) {
   const password = formData.get("password") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const youtubeUrl = formData.get("youtubeUrl") as string;
-  const address = formData.get("address") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !youtubeUrl || !address) {
-    return { error: "All fields including Address and YouTube URL are required" };
+  if (!name || !email || !password || !whatsapp || !youtubeUrl) {
+    return { error: "Semua field wajib diisi" };
   }
 
   try {
@@ -116,8 +115,6 @@ export async function registerAction(formData: FormData) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const ktpUrl = null; // KTP upload removed
-
     const user = await prisma.user.create({
       data: {
         name,
@@ -125,9 +122,6 @@ export async function registerAction(formData: FormData) {
         password: hashedPassword,
         whatsapp,
         youtubeUrl,
-        ktpUrl,
-        nik,
-        address,
         role: "USER",
         status: "PENDING",
       },
