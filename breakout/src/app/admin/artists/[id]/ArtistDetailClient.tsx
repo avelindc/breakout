@@ -4,11 +4,11 @@ import { useState, useRef } from "react";
 import { 
   ArrowLeft, Edit, Ban, CheckCircle, Key, Mail, 
   Music, Disc, DollarSign, ArrowDownCircle, Play, Pause,
-  Search, Filter, Activity, Eye, Trash2
+  Search, Filter, Activity, Eye, Trash2, RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { updateArtistStatusAction, resetUserPassword } from "@/app/actions/admin";
+import { updateArtistStatusAction, resetUserPassword, deleteUserAction, resetArtistDataAction } from "@/app/actions/admin";
 
 type ArtistDetailClientProps = {
   user: any;
@@ -90,6 +90,35 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
       setMessage({ text: 'Password successfully reset', type: 'success' });
       setShowPasswordModal(false);
       setNewPassword("");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("PERINGATAN: Apakah Anda yakin ingin menghapus Artis dan User ini secara permanen? Seluruh lagu, royalty, dan data terkait akan terhapus dan TIDAK DAPAT dikembalikan!")) return;
+    
+    setIsProcessing(true);
+    const res = await deleteUserAction(user.id);
+    if (res?.error) {
+      setIsProcessing(false);
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      router.push('/admin/artists');
+    }
+  };
+
+  const handleResetData = async () => {
+    if (!primaryArtist.id) return;
+    if (!confirm("PERINGATAN: Anda akan mereset seluruh data streaming & royalty hasil import untuk artis ini menjadi 0. Data lagu master tetap aman. Yakin?")) return;
+    
+    setIsProcessing(true);
+    const res = await resetArtistDataAction(primaryArtist.id);
+    setIsProcessing(false);
+    
+    if (res?.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setMessage({ text: 'Data streaming & royalty berhasil direset menjadi 0.', type: 'success' });
+      router.refresh();
     }
   };
 
@@ -187,6 +216,24 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
               >
                 <Mail className="w-4 h-4" /> Send Message
               </a>
+
+              <div className="pt-4 border-t border-white/10 mt-4 space-y-3">
+                <button 
+                  onClick={handleResetData}
+                  disabled={isProcessing || !primaryArtist.id}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition font-medium"
+                >
+                  <RefreshCw className="w-4 h-4" /> Reset Royalty Data
+                </button>
+                
+                <button 
+                  onClick={handleDeleteAccount}
+                  disabled={isProcessing}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 text-red-500 rounded-xl transition font-medium"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Account & Artist
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -109,3 +109,14 @@ export async function updateReleaseStatusAction(
   revalidatePath("/admin/releases");
   revalidatePath("/dashboard/releases");
 }
+
+export async function resetArtistDataAction(artistId: string) {
+  try {
+    await prisma.royalty.deleteMany({ where: { artistId } });
+    revalidatePath('/admin/artists');
+    revalidatePath('/admin/analytics');
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to reset artist data' };
+  }
+}
