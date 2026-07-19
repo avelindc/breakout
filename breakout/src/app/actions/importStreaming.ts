@@ -73,6 +73,7 @@ export async function processImportStreamingBatch(
       amazon: number;
       other: number;
       revenue: number;
+      platformData: Record<string, number>;
     }>();
 
     for (const row of rows) {
@@ -123,7 +124,8 @@ export async function processImportStreamingBatch(
           songName: track.title,
           month,
           year,
-          spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, other: 0, revenue: 0
+          spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, other: 0, revenue: 0,
+          platformData: {}
         });
       }
 
@@ -131,8 +133,11 @@ export async function processImportStreamingBatch(
       const streams = row.streams || 0;
       const revenue = row.revenue || 0;
       agg.revenue += revenue;
+      
+      const originalPlatform = row.platform?.trim() || "Unknown";
+      agg.platformData[originalPlatform] = (agg.platformData[originalPlatform] || 0) + streams;
 
-      const p = (row.platform || "").toLowerCase();
+      const p = originalPlatform.toLowerCase();
       if (p.includes("spotify")) agg.spotify += streams;
       else if (p.includes("apple")) agg.apple += streams;
       else if (p.includes("youtube")) agg.youtube += streams;
@@ -153,6 +158,15 @@ export async function processImportStreamingBatch(
       });
 
       if (existing) {
+        // Merge existing platform data
+        const mergedPlatformData: Record<string, number> = existing.platformData && typeof existing.platformData === 'object' 
+          ? { ...(existing.platformData as Record<string, number>) } 
+          : {};
+        
+        for (const [plat, strm] of Object.entries(agg.platformData)) {
+          mergedPlatformData[plat] = (mergedPlatformData[plat] || 0) + strm;
+        }
+
         await prisma.royalty.update({
           where: { id: existing.id },
           data: {
@@ -162,7 +176,8 @@ export async function processImportStreamingBatch(
             tiktokStreams: existing.tiktokStreams + agg.tiktok,
             amazonStreams: existing.amazonStreams + agg.amazon,
             otherStreams: existing.otherStreams + agg.other,
-            totalRevenue: existing.totalRevenue + agg.revenue
+            totalRevenue: existing.totalRevenue + agg.revenue,
+            platformData: mergedPlatformData
           }
         });
       } else {
@@ -178,7 +193,8 @@ export async function processImportStreamingBatch(
             tiktokStreams: agg.tiktok,
             amazonStreams: agg.amazon,
             otherStreams: agg.other,
-            totalRevenue: agg.revenue
+            totalRevenue: agg.revenue,
+            platformData: agg.platformData
           }
         });
       }

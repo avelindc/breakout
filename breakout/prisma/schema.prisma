@@ -181,6 +181,7 @@ model Royalty {
   tiktokStreams      Int @default(0)
   amazonStreams      Int @default(0)
   otherStreams       Int @default(0)
+  platformData       Json?
   
   totalRevenue       Float @default(0)
   

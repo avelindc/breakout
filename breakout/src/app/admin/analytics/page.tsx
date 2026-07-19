@@ -10,11 +10,8 @@ export default async function AdminAnalyticsPage() {
   const royalties = await prisma.royalty.findMany();
 
   let totalRevenue = 0;
-  let totalSpotify = 0;
-  let totalApple = 0;
-  let totalYoutube = 0;
-  let totalTiktok = 0;
-  let totalLainnya = 0;
+  let totalStreams = 0;
+  const platformMap: Record<string, number> = {};
 
   // Track revenue by month for the current year
   const currentYear = new Date().getFullYear();
@@ -22,32 +19,48 @@ export default async function AdminAnalyticsPage() {
 
   royalties.forEach(r => {
     totalRevenue += r.totalRevenue;
-    totalSpotify += r.spotifyStreams;
-    totalApple += r.appleMusicStreams;
-    totalYoutube += r.youtubeStreams;
-    totalTiktok += r.tiktokStreams;
-    totalLainnya += (r.amazonStreams + r.otherStreams);
+    
+    let rowStreams = 0;
+    if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+      const pd = r.platformData as Record<string, number>;
+      for (const [p, s] of Object.entries(pd)) {
+        let platName = p;
+        if (p.toLowerCase() === 'spotify') platName = 'Spotify';
+        if (p.toLowerCase() === 'apple music' || p.toLowerCase() === 'apple') platName = 'Apple Music';
+        if (p.toLowerCase() === 'youtube') platName = 'YouTube';
+        if (p.toLowerCase() === 'tiktok') platName = 'TikTok';
+        if (p.toLowerCase() === 'amazon' || p.toLowerCase() === 'amazon music') platName = 'Amazon Music';
+        
+        platformMap[platName] = (platformMap[platName] || 0) + s;
+        rowStreams += s;
+      }
+    } else {
+      platformMap['Spotify'] = (platformMap['Spotify'] || 0) + r.spotifyStreams;
+      platformMap['Apple Music'] = (platformMap['Apple Music'] || 0) + r.appleMusicStreams;
+      platformMap['YouTube'] = (platformMap['YouTube'] || 0) + r.youtubeStreams;
+      platformMap['TikTok'] = (platformMap['TikTok'] || 0) + r.tiktokStreams;
+      platformMap['Amazon Music'] = (platformMap['Amazon Music'] || 0) + r.amazonStreams;
+      platformMap['Lainnya'] = (platformMap['Lainnya'] || 0) + r.otherStreams;
+      rowStreams = r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+    }
+    
+    totalStreams += rowStreams;
 
     if (r.year === currentYear && r.month >= 1 && r.month <= 12) {
       monthlyRevenue[r.month - 1] += r.totalRevenue;
     }
   });
 
-  const totalStreams = totalSpotify + totalApple + totalYoutube + totalTiktok + totalLainnya;
-
-  const rawPlatformData = [
-    { name: 'Spotify', value: totalSpotify },
-    { name: 'Apple Music', value: totalApple },
-    { name: 'YouTube', value: totalYoutube },
-    { name: 'TikTok', value: totalTiktok },
-    { name: 'Lainnya', value: totalLainnya },
-  ];
+  const rawPlatformData = Object.entries(platformMap)
+    .map(([name, value]) => ({ name, value }))
+    .filter(p => p.value > 0)
+    .sort((a, b) => b.value - a.value);
 
   // Convert to percentages
   let platformData = rawPlatformData.map(p => ({
     name: p.name,
-    value: totalStreams > 0 ? Math.round((p.value / totalStreams) * 100) : 0
-  })).filter(p => p.value > 0);
+    value: totalStreams > 0 ? (p.value / totalStreams) * 100 : 0
+  }));
 
   // Fallback if no streams yet
   if (platformData.length === 0) {

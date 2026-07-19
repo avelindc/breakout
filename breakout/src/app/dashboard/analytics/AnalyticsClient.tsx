@@ -85,17 +85,10 @@ export function AnalyticsClient({ data, user }: { data: AnalyticsData; user: any
   const platformChartData = data.platformBreakdown.map((p, i) => ({
     name:   p.name,
     value:  Math.round((p.streams / platformTotal) * 1000) / 10,
-    color:  PLATFORM_COLORS[i] || "#7C5CFF",
+    color:  PLATFORM_COLORS[i % PLATFORM_COLORS.length] || "#7C5CFF",
   }));
 
-  // Use dummy platform data if none exists
-  const displayPlatforms = platformChartData.length > 0 ? platformChartData : [
-    { name: "Spotify",       value: 62.3, color: "#7C5CFF" },
-    { name: "Apple Music",   value: 18.7, color: "#BFA7FF" },
-    { name: "YouTube Music", value: 9.8,  color: "#45D7FF" },
-    { name: "TikTok",        value: 5.6,  color: "#E8DEFF" },
-    { name: "Deezer",        value: 3.6,  color: "#C4B5FD" },
-  ];
+  const displayPlatforms = platformChartData;
 
   const statsCards = [
     {

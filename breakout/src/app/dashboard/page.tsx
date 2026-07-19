@@ -38,14 +38,21 @@ export default async function UserDashboardPage() {
   
   const availableBalance = totalRevenue - totalWithdrawn - pendingWithdrawal;
   
-  const totalStreamsData = artistIds.length > 0 ? await prisma.royalty.aggregate({
-    _sum: { spotifyStreams: true, appleMusicStreams: true, youtubeStreams: true, tiktokStreams: true, amazonStreams: true, otherStreams: true },
+  const royalties = artistIds.length > 0 ? await prisma.royalty.findMany({
     where: { artistId: { in: artistIds } }
-  }) : null;
+  }) : [];
 
-  const totalStreams = totalStreamsData 
-    ? (totalStreamsData._sum.spotifyStreams || 0) + (totalStreamsData._sum.appleMusicStreams || 0) + (totalStreamsData._sum.youtubeStreams || 0) + (totalStreamsData._sum.tiktokStreams || 0) + (totalStreamsData._sum.amazonStreams || 0) + (totalStreamsData._sum.otherStreams || 0)
-    : 0;
+  let totalStreams = 0;
+  royalties.forEach(r => {
+    let rowStreams = 0;
+    if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+      const pd = r.platformData as Record<string, number>;
+      rowStreams = Object.values(pd).reduce((a, b) => a + b, 0);
+    } else {
+      rowStreams = r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+    }
+    totalStreams += rowStreams;
+  });
 
   const data = {
     totalReleases,

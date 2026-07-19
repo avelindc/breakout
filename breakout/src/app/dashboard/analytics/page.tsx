@@ -17,29 +17,49 @@ export default async function AnalyticsPage() {
   const artistIds = user?.artists.map((a) => a.id) || [];
 
   // ── Totals ──────────────────────────────────────────────────────────────────
-  const royaltyAgg = artistIds.length > 0
-    ? await prisma.royalty.aggregate({
-        _sum: {
-          totalRevenue: true,
-          spotifyStreams: true,
-          appleMusicStreams: true,
-          youtubeStreams: true,
-          tiktokStreams: true,
-          amazonStreams: true,
-          otherStreams: true,
-        },
-        where: { artistId: { in: artistIds } },
-      })
-    : null;
+  const royalties = artistIds.length > 0
+    ? await prisma.royalty.findMany({ where: { artistId: { in: artistIds } } })
+    : [];
 
-  const totalRevenue    = royaltyAgg?._sum.totalRevenue    || 0;
-  const spotifyStreams  = royaltyAgg?._sum.spotifyStreams   || 0;
-  const appleMStreams   = royaltyAgg?._sum.appleMusicStreams|| 0;
-  const ytStreams       = royaltyAgg?._sum.youtubeStreams   || 0;
-  const tiktokStreams   = royaltyAgg?._sum.tiktokStreams    || 0;
-  const amazonStreams   = royaltyAgg?._sum.amazonStreams    || 0;
-  const otherStreams    = royaltyAgg?._sum.otherStreams     || 0;
-  const totalStreams    = spotifyStreams + appleMStreams + ytStreams + tiktokStreams + amazonStreams + otherStreams;
+  let totalRevenue = 0;
+  let totalStreams = 0;
+  const platformMap: Record<string, number> = {};
+
+  royalties.forEach(r => {
+    totalRevenue += r.totalRevenue;
+    let rowStreams = 0;
+
+    if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+      const pd = r.platformData as Record<string, number>;
+      for (const [p, s] of Object.entries(pd)) {
+        // Format common platforms for better display
+        let platName = p;
+        if (p.toLowerCase() === 'spotify') platName = 'Spotify';
+        if (p.toLowerCase() === 'apple music' || p.toLowerCase() === 'apple') platName = 'Apple Music';
+        if (p.toLowerCase() === 'youtube') platName = 'YouTube Music';
+        if (p.toLowerCase() === 'tiktok') platName = 'TikTok';
+        if (p.toLowerCase() === 'amazon' || p.toLowerCase() === 'amazon music') platName = 'Amazon Music';
+        
+        platformMap[platName] = (platformMap[platName] || 0) + s;
+        rowStreams += s;
+      }
+    } else {
+      platformMap["Spotify"] = (platformMap["Spotify"] || 0) + r.spotifyStreams;
+      platformMap["Apple Music"] = (platformMap["Apple Music"] || 0) + r.appleMusicStreams;
+      platformMap["YouTube Music"] = (platformMap["YouTube Music"] || 0) + r.youtubeStreams;
+      platformMap["TikTok"] = (platformMap["TikTok"] || 0) + r.tiktokStreams;
+      platformMap["Amazon Music"] = (platformMap["Amazon Music"] || 0) + r.amazonStreams;
+      platformMap["Lainnya"] = (platformMap["Lainnya"] || 0) + r.otherStreams;
+      rowStreams = r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+    }
+    
+    totalStreams += rowStreams;
+  });
+
+  const platformBreakdown = Object.entries(platformMap)
+    .map(([name, streams]) => ({ name, streams }))
+    .filter(p => p.streams > 0)
+    .sort((a, b) => b.streams - a.streams);
 
   // ── Withdraw for available balance ──────────────────────────────────────────
   const withdrawRequests = await prisma.withdrawRequest.findMany({
@@ -54,16 +74,6 @@ export default async function AnalyticsPage() {
     ? await prisma.release.count({ where: { artistId: { in: artistIds }, status: "APPROVED" } })
     : 0;
 
-  // ── Platform breakdown ──────────────────────────────────────────────────────
-  const platformBreakdown = [
-    { name: "Spotify",       streams: spotifyStreams },
-    { name: "Apple Music",   streams: appleMStreams  },
-    { name: "YouTube Music", streams: ytStreams      },
-    { name: "TikTok",        streams: tiktokStreams  },
-    { name: "Amazon Music",  streams: amazonStreams  },
-    { name: "Other",         streams: otherStreams   },
-  ].filter(p => p.streams > 0);
-
   // ── Monthly streams (last 6 months from Royalty table) ─────────────────────
   const now = new Date();
   const monthlyStreams: { month: string; streams: number }[] = [];
@@ -73,23 +83,18 @@ export default async function AnalyticsPage() {
     const y = d.getFullYear();
     const label = d.toLocaleString("en-US", { month: "short" }) + " " + y;
 
-    const agg = artistIds.length > 0
-      ? await prisma.royalty.aggregate({
-          _sum: {
-            spotifyStreams: true, appleMusicStreams: true, youtubeStreams: true,
-            tiktokStreams: true, amazonStreams: true, otherStreams: true,
-          },
-          where: { artistId: { in: artistIds }, month: m, year: y },
-        })
-      : null;
+    let monthTotal = 0;
+    const monthRoyalties = royalties.filter(r => r.month === m && r.year === y);
+    monthRoyalties.forEach(r => {
+      if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+        const pd = r.platformData as Record<string, number>;
+        monthTotal += Object.values(pd).reduce((a, b) => a + b, 0);
+      } else {
+        monthTotal += r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+      }
+    });
 
-    const total = agg
-      ? (agg._sum.spotifyStreams || 0) + (agg._sum.appleMusicStreams || 0) +
-        (agg._sum.youtubeStreams || 0) + (agg._sum.tiktokStreams || 0) +
-        (agg._sum.amazonStreams || 0)  + (agg._sum.otherStreams || 0)
-      : 0;
-
-    monthlyStreams.push({ month: label, streams: total });
+    monthlyStreams.push({ month: label, streams: monthTotal });
   }
 
   // ── Monthly revenue (last 6 months) ────────────────────────────────────────
