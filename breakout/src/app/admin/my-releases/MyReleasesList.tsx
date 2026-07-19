@@ -298,10 +298,10 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
                 <div className="grid grid-cols-2 gap-3.5">
                   <SpecItem label="Genre" value={selected.genre} icon={<Compass className="w-4 h-4 text-[#10b981]" />} />
                   <SpecItem label="Bahasa" value={selected.language} icon={<Radio className="w-4 h-4 text-[#10b981]" />} />
-                  <SpecItem label="TikTok Clip Start" value={selected.tracks[0]?.tiktokClipStart ? `Detik ${selected.tracks[0].tiktokClipStart}` : "-"} icon={<Clock className="w-4 h-4 text-[#10b981]" />} />
+                  <SpecItem label="TikTok Clip Start" value={selected.tracks?.[0]?.tiktokClipStart ? `Detik ${selected.tracks?.[0]?.tiktokClipStart}` : "-"} icon={<Clock className="w-4 h-4 text-[#10b981]" />} />
                   <SpecItem label="Artis Terdaftar" value={selected.artistName} icon={<User className="w-4 h-4 text-[#10b981]" />} />
-                  <SpecItem label="ISRC" value={selected.tracks[0]?.isrc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
-                  <SpecItem label="UPC" value={selected.tracks[0]?.upc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
+                  <SpecItem label="ISRC" value={selected.tracks?.[0]?.isrc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
+                  <SpecItem label="UPC" value={selected.tracks?.[0]?.upc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
                 </div>
               )}
 

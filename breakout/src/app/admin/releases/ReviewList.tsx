@@ -222,24 +222,24 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                 </div>
               ))}
 
-              {/* Specs Grid */}
+               {/* Specs Grid */}
               <div className="grid grid-cols-2 gap-3.5">
                 <SpecItem label="Genre" value={selected.genre} icon={<Compass className="w-4 h-4 text-purple-600" />} />
                 <SpecItem label="Bahasa" value={selected.language} icon={<Radio className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="TikTok Clip Start" value={selected.tracks[0]?.tiktokClipStart ? `Detik ${selected.tracks[0].tiktokClipStart}` : "-"} icon={<Clock className="w-4 h-4 text-purple-600" />} />
+                <SpecItem label="TikTok Clip Start" value={selected.tracks?.[0]?.tiktokClipStart ? `Detik ${selected.tracks?.[0]?.tiktokClipStart}` : "-"} icon={<Clock className="w-4 h-4 text-purple-600" />} />
                 <SpecItem label="Artis Terdaftar" value={selected.artistName} icon={<User className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="ISRC" value={selected.tracks[0]?.isrc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="UPC" value={selected.tracks[0]?.upc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
+                <SpecItem label="ISRC" value={selected.tracks?.[0]?.isrc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
+                <SpecItem label="UPC" value={selected.tracks?.[0]?.upc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
               </div>
 
               {/* Lyrics Panel */}
-              {selected.tracks[0]?.lyrics && (
+              {selected.tracks?.[0]?.lyrics && (
                 <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <FileText className="w-4 h-4 text-gray-400" /> Lirik Lagu
                   </h4>
                   <pre className="text-xs text-gray-700 leading-relaxed font-sans whitespace-pre-wrap max-h-32 overflow-y-auto bg-white p-3.5 rounded-xl border border-gray-100">
-                    {selected.tracks[0].lyrics}
+                    {selected.tracks?.[0].lyrics}
                   </pre>
                 </div>
               )}
