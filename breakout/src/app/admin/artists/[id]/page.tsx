@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ArtistDetailClient } from "./ArtistDetailClient";
 
 const prisma = new PrismaClient();
@@ -33,7 +33,7 @@ export default async function AdminArtistDetailPage({ params }: { params: Promis
   });
 
   if (!user) {
-    notFound();
+    redirect("/admin/artists");
   }
 
   // Calculate statistics
