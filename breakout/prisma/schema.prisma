@@ -346,3 +346,26 @@ model PublisherCatalogSong {
   @@index([publisher])
 }
 
+model ImportLog {
+  id             String          @id @default(cuid())
+  fileName       String
+  totalRows      Int
+  successCount   Int
+  failedCount    Int
+  duplicateCount Int
+  status         String          // "SUCCESS", "PARTIAL", "FAILED"
+  unmatchedSongs UnmatchedSong[]
+  createdAt      DateTime        @default(now())
+}
+
+model UnmatchedSong {
+  id          String     @id @default(cuid())
+  isrc        String?
+  upc         String?
+  title       String?
+  artist      String?
+  reason      String
+  importLogId String
+  importLog   ImportLog  @relation(fields: [importLogId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+}
