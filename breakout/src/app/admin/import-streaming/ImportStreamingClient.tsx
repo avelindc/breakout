@@ -47,7 +47,24 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
       let rawData: any[] = [];
 
       if (f.name.toLowerCase().endsWith(".csv")) {
-        const text = await f.text();
+        let text = await f.text();
+        
+        // Remove Byte Order Mark (BOM) if present
+        text = text.replace(/^\uFEFF/, '');
+        
+        // Unwrap lines if the entire CSV row is enclosed in double quotes (common in Believe CSV exports)
+        let lines = text.split('\n');
+        if (lines.length > 0 && lines[0].trim().startsWith('"') && lines[0].trim().endsWith('"') && lines[0].includes(';')) {
+            text = lines.map(line => {
+                let l = line.trim();
+                if (l.startsWith('"') && l.endsWith('"')) {
+                    // Remove starting and ending quotes and unescape double-quotes
+                    return l.substring(1, l.length - 1).replace(/""/g, '"');
+                }
+                return line;
+            }).join('\n');
+        }
+
         // Use papaparse for CSV to auto-detect delimiter (; or ,)
         const result = Papa.parse(text, {
           header: true,
