@@ -85,7 +85,8 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       lyrics,
       isrc,
       upc,
-      releaseDateStr
+      releaseDateStr,
+      tiktokClipStart
     } = data;
     
     // Find the specific artist the user selected
@@ -125,7 +126,8 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
             producer,
             lyrics,
             isrc,
-            upc
+            upc,
+            tiktokClipStart
           }
         }
       }

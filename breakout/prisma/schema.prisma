@@ -132,6 +132,7 @@ model Track {
   composer    String?
   producer    String?
   lyrics      String?
+  tiktokClipStart String? // e.g. "00:30" or "01:15"
   
   streams     Streaming[]
   
