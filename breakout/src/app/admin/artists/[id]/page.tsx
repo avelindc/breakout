@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { redirect } from "next/navigation";
+// import { redirect } from "next/navigation";
 import { ArtistDetailClient } from "./ArtistDetailClient";
 
 const prisma = new PrismaClient();
@@ -33,7 +33,15 @@ export default async function AdminArtistDetailPage({ params }: { params: Promis
   });
 
   if (!user) {
-    redirect("/admin/artists");
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center text-white">
+        <h2 className="text-2xl font-bold mb-4">Account Deleted</h2>
+        <p className="text-gray-400 mb-6">This artist account and all associated data have been permanently removed.</p>
+        <a href="/admin/artists" className="px-6 py-3 bg-green-500 hover:bg-green-600 text-black font-bold rounded-xl transition">
+          Return to Artists List
+        </a>
+      </div>
+    );
   }
 
   // Calculate statistics
