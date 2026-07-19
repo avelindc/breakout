@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+type TopTrackItem = { rank: number; title: string; album: string; streams: number; revenue: number; cover: string | null };
+
 type Props = {
   data: {
     overview: {
@@ -23,6 +25,7 @@ type Props = {
     monthlyRevenue: { month: string; revenue: number }[];
     monthlyStreams: { month: string; streams: number }[];
     topArtists: { rank: number; name: string; avatar: string | null; streams: number; revenue: number }[];
+    topTracks: TopTrackItem[];
     latestReleases: { id: string; title: string; artist: string; status: string; date: string; cover: string }[];
     latestWithdrawals: { id: string; amount: number; status: string; bank: string; date: string; user: string }[];
   };
@@ -115,7 +118,7 @@ const TOP_PLAYLISTS_ADMIN = [
 // ── Main Component ─────────────────────────────────────────────────────────────
 export function AdminStreamingClient({ data }: Props) {
   const [activeTab, setActiveTab] = useState<"revenue"|"streams">("streams");
-  const { overview, platformData, monthlyRevenue, monthlyStreams, topArtists, latestReleases, latestWithdrawals } = data;
+  const { overview, platformData, monthlyRevenue, monthlyStreams, topArtists, topTracks, latestReleases, latestWithdrawals } = data;
 
   const platTotal = platformData.reduce((a, p) => a + p.streams, 0) || 1;
 
@@ -354,7 +357,7 @@ export function AdminStreamingClient({ data }: Props) {
         </div>
       </div>
 
-      {/* ── Top Label + Top Playlist ─────────────────────────────────────────── */}
+      {/* ── Top Label + Top Track ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
           <h2 className="font-extrabold text-gray-900 text-sm mb-4">Top Label</h2>
@@ -373,18 +376,32 @@ export function AdminStreamingClient({ data }: Props) {
         </div>
 
         <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-          <h2 className="font-extrabold text-gray-900 text-sm mb-4">Top Playlist</h2>
+          <h2 className="font-extrabold text-gray-900 text-sm mb-4 flex items-center gap-2">
+            <Music className="w-4 h-4 text-purple-500" /> Top Track
+          </h2>
           <div className="flex flex-col gap-3">
-            {TOP_PLAYLISTS_ADMIN.map((p, i) => (
-              <div key={p.name} className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50 border border-gray-100">
-                <span className="text-xs font-bold text-gray-400 w-5">{i + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                  <p className="text-[10px] text-gray-400">{p.curator} · {p.tracks} tracks</p>
+            {topTracks.slice(0, 5).map((t, i) => (
+              <div key={t.rank} className="flex items-center gap-3 p-2.5 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-purple-50/60 transition">
+                <span className="text-xs font-bold text-gray-400 w-5 flex-shrink-0">{i + 1}</span>
+                <div className="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden"
+                  style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
+                  {t.cover
+                    ? <img src={t.cover} alt={t.title} className="w-full h-full object-cover" />
+                    : <Music className="w-4 h-4 text-white" />}
                 </div>
-                <span className="text-xs font-bold text-blue-700">{fmtNum(p.streams)}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-gray-900 truncate">{t.title}</p>
+                  <p className="text-[10px] text-gray-400 truncate">{t.album}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs font-bold text-purple-700">{fmtNum(t.streams)}</p>
+                  <p className="text-[10px] text-emerald-600">{fmtRp(t.revenue)}</p>
+                </div>
               </div>
             ))}
+            {topTracks.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-4">Belum ada data track</p>
+            )}
           </div>
         </div>
       </div>

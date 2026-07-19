@@ -103,6 +103,46 @@ export default async function AdminStreamingPage() {
     select: { id: true, amount: true, status: true, bankName: true, createdAt: true, user: { select: { name: true } } },
   });
 
+  // ── Top Tracks from Royalties (song name + stream data) ───────────────────
+  const topRoyaltiesAll = await prisma.royalty.groupBy({
+    by: ["songName"],
+    _sum: {
+      spotifyStreams: true, appleMusicStreams: true, youtubeStreams: true,
+      tiktokStreams: true, amazonStreams: true, otherStreams: true, totalRevenue: true,
+    },
+    orderBy: { _sum: { spotifyStreams: "desc" } },
+    take: 10,
+  });
+
+  // Also fetch from releases if royalties empty
+  const releasesForTracks = topRoyaltiesAll.length === 0
+    ? await prisma.release.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        select: { id: true, title: true, coverArtworkUrl: true, primaryArtist: true },
+      })
+    : [];
+
+  const topTracksFromDB = topRoyaltiesAll.length > 0
+    ? topRoyaltiesAll.map((r, i) => ({
+        rank: i + 1,
+        title: r.songName,
+        album: r.songName,
+        streams: (r._sum.spotifyStreams || 0) + (r._sum.appleMusicStreams || 0) + (r._sum.youtubeStreams || 0) + (r._sum.tiktokStreams || 0) + (r._sum.amazonStreams || 0) + (r._sum.otherStreams || 0),
+        revenue: r._sum.totalRevenue || 0,
+        cover: null,
+      }))
+    : releasesForTracks.map((r, i) => ({
+        rank: i + 1,
+        title: r.title,
+        album: r.primaryArtist,
+        streams: 0,
+        revenue: 0,
+        cover: r.coverArtworkUrl,
+      }));
+
+  const topTracks = topTracksFromDB.length > 0 ? topTracksFromDB : DUMMY_TRACKS;
+
   const data = {
     overview: {
       totalArtists, totalReleases, pendingReleases, approvedReleases, rejectedReleases,
@@ -146,6 +186,7 @@ export default async function AdminStreamingPage() {
         ]
       : monthlyStreams,
     topArtists: topArtistsList.length > 0 ? topArtistsList : DUMMY_ARTISTS,
+    topTracks,
     latestReleases: latestReleases.map(r => ({
       id: r.id, title: r.title, artist: r.primaryArtist,
       status: r.status, date: r.createdAt.toLocaleDateString("id-ID"), cover: r.coverArtworkUrl,
@@ -166,4 +207,12 @@ const DUMMY_ARTISTS = [
   { rank: 3, name: "RajaFunky",   avatar: null, streams: 142_100, revenue:  7_105_000 },
   { rank: 4, name: "Suara Hati",  avatar: null, streams:  98_700, revenue:  4_935_000 },
   { rank: 5, name: "AkuBisa",     avatar: null, streams:  72_350, revenue:  3_617_500 },
+];
+
+const DUMMY_TRACKS = [
+  { rank: 1, title: "Midnight Drive",  album: "City Lights EP",    streams: 142_321, revenue: 7_116_050, cover: null },
+  { rank: 2, title: "Sunset Paradise", album: "Summer Vibes",      streams:  67_892, revenue: 3_394_600, cover: null },
+  { rank: 3, title: "Broken Dreams",   album: "City Lights EP",    streams:  45_871, revenue: 2_293_550, cover: null },
+  { rank: 4, title: "Lost in Space",   album: "Cosmic Journey",    streams:  32_145, revenue: 1_607_250, cover: null },
+  { rank: 5, title: "Echoes of You",   album: "Reminiscence",      streams:  27_100, revenue: 1_355_000, cover: null },
 ];

@@ -451,26 +451,33 @@ export function StreamingClient({ data, userName }: Props) {
           </div>
         </div>
 
-        {/* Top Playlists */}
+        {/* Top Track */}
         <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
           <h2 className="font-extrabold text-gray-900 text-sm flex items-center gap-2 mb-4">
-            <ListMusic className="w-4 h-4 text-emerald-500" /> Top Playlist
+            <Music className="w-4 h-4 text-emerald-500" /> Top Track
           </h2>
           <div className="flex flex-col gap-3">
-            {TOP_PLAYLISTS.map((p, i) => (
-              <div key={p.name} className="flex items-center justify-between gap-2">
+            {data.topTracks.slice(0, 6).map((t, i) => (
+              <div key={t.rank} className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs font-bold text-gray-300 w-4 flex-shrink-0">{i + 1}</span>
+                  <div className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden"
+                    style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
+                    {t.cover
+                      ? <img src={t.cover} alt={t.title} className="w-full h-full object-cover" />
+                      : <Music className="w-3.5 h-3.5 text-white" />}
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-gray-800 truncate">{p.name}</p>
-                    <p className="text-[10px] text-gray-400">{p.curator}</p>
+                    <p className="text-xs font-semibold text-gray-800 truncate">{t.title}</p>
+                    <p className="text-[10px] text-gray-400">{t.album}</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-gray-600 flex-shrink-0">{fmtNum(p.streams)}</span>
+                <span className="text-xs font-bold text-purple-700 flex-shrink-0">{fmtNum(t.streams)}</span>
               </div>
             ))}
           </div>
         </div>
+
 
         {/* Top Sources */}
         <div className="bg-white rounded-[24px] border border-gray-100 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
