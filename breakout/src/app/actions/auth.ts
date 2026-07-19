@@ -111,9 +111,8 @@ export async function registerAction(formData: FormData) {
       return { error: "Email already in use" };
     }
 
-    // Removed OTP Verification
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Lower cost factor (8 instead of 10) for faster hashing on serverless
+    const hashedPassword = await bcrypt.hash(password, 8);
 
     const user = await prisma.user.create({
       data: {
@@ -127,21 +126,18 @@ export async function registerAction(formData: FormData) {
       },
     });
 
-    // Notify admins
-    const superAdmins = await prisma.user.findMany({
-      where: { role: "ADMIN" }
-    });
-    
-    if (superAdmins.length > 0) {
-      const notifications = superAdmins.map(admin => ({
-        userId: admin.id,
-        title: "New Artist Registration",
-        message: `Artist ${stageName} (${name}) has registered and is pending approval.`,
-      }));
-      await prisma.notification.createMany({
-        data: notifications
-      });
-    }
+    // Fire admin notifications in background - don't await (non-blocking)
+    prisma.user.findMany({ where: { role: "ADMIN" } }).then(admins => {
+      if (admins.length > 0) {
+        prisma.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            title: "New Artist Registration",
+            message: `Artist ${stageName} (${name}) has registered and is pending approval.`,
+          }))
+        }).catch(console.error);
+      }
+    }).catch(console.error);
 
     return { success: true, userId: user.id };
   } catch (error) {
