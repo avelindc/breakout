@@ -59,7 +59,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
             <div className="flex justify-between items-start mb-6">
               <div>
                 <p className="text-slate-300 font-medium mb-1">Total artist balance</p>
-                <h2 className="text-5xl font-semibold text-white">
+                <h2 className="text-4xl md:text-5xl font-semibold text-white">
                   Rp {data.availableBalance >= 1000000 ? (data.availableBalance / 1000000).toFixed(1) + 'M' : data.availableBalance >= 1000 ? (data.availableBalance / 1000).toFixed(1) + 'K' : data.availableBalance}
                 </h2>
               </div>
@@ -69,26 +69,26 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
               </div>
             </div>
             
-            <div className="flex items-center justify-between relative z-10 mt-12 mb-4">
+            <div className="flex flex-col md:flex-row items-center justify-between relative z-10 mt-12 mb-4 gap-8 md:gap-0">
               <div className="flex items-center">
                 {/* Circle 1 */}
-                <div className="w-32 h-32 rounded-full bg-white/10 backdrop-blur-lg flex flex-col items-center justify-center border border-white/20shadow-sm z-20 relative">
-                  <span className="text-lg font-bold">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-white/10 backdrop-blur-lg flex flex-col items-center justify-center border border-white/20 shadow-sm z-20 relative">
+                  <span className="text-[11px] sm:text-sm md:text-lg font-bold">
                     Rp {data.totalRevenue >= 1000000 ? (data.totalRevenue / 1000000).toFixed(1) + 'M' : data.totalRevenue.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium">Total Earned</span>
+                  <span className="text-[9px] sm:text-xs text-slate-400 font-medium">Total Earned</span>
                 </div>
                 {/* Circle 2 (Main) */}
-                <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex flex-col items-center justify-center shadow-lg z-30 -ml-10 relative">
-                  <span className="text-xl font-bold text-white">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex flex-col items-center justify-center shadow-lg z-30 -ml-4 sm:-ml-6 md:-ml-10 relative">
+                  <span className="text-[13px] sm:text-base md:text-xl font-bold text-white">
                     Rp {data.availableBalance >= 1000000 ? (data.availableBalance / 1000000).toFixed(1) + 'M' : data.availableBalance.toLocaleString('id-ID')}
                   </span>
-                  <span className="text-xs text-white/80 font-medium">Available</span>
+                  <span className="text-[10px] sm:text-xs text-white/80 font-medium">Available</span>
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3">
-                <button className="px-6 py-3 rounded-full bg-white/10 backdrop-blur border border-white/20text-white font-medium shadow-sm hover:bg-white hover:text-slate-900 transition text-sm">
+              <div className="flex flex-row md:flex-col gap-3 w-full md:w-auto justify-center">
+                <button className="px-6 py-3 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white font-medium shadow-sm hover:bg-white hover:text-slate-900 transition text-sm">
                   Upload Release
                 </button>
                 <button className="px-6 py-3 rounded-full bg-white text-slate-900 hover:bg-slate-200 font-medium shadow-lg hover:bg-slate-800 transition text-sm">
@@ -128,7 +128,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
 
             {/* Financial Health -> Fan Engagement */}
             <div className="bg-gradient-to-br from-indigo-400 to-purple-600 rounded-[2rem] p-6 text-white flex flex-col relative overflow-hidden shadow-lg">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
+              <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
               <div className="flex justify-between items-center mb-4 relative z-10">
                 <p className="font-medium text-white/90">Fan Engagement</p>
                 <div className="bg-white/5 p-1.5 rounded-full backdrop-blur-md">
@@ -161,7 +161,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
               <p className="text-white font-medium">Releases Status</p>
               <button className="bg-white text-slate-900 hover:bg-slate-200 text-xs font-semibold px-4 py-1.5 rounded-full hover:bg-slate-800 transition">View All</button>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row md:flex-col gap-3 w-full md:w-auto justify-center">
               <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/20">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-600"><Music className="w-4 h-4" /></div>
@@ -244,13 +244,13 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
               <button className="w-12 h-12 rounded-full border border-dashed border-slate-400 flex flex-col items-center justify-center text-slate-400 hover:border-blue-500 hover:text-blue-500 transition gap-1">
                 <Plus className="w-5 h-5" />
               </button>
-              <div className="w-12 h-12 rounded-full bg-blue-100 border border-white/20shadow-sm flex items-center justify-center text-blue-600">
+              <div className="w-12 h-12 rounded-full bg-blue-100 border border-white/20 shadow-sm flex items-center justify-center text-blue-600">
                 <Music className="w-5 h-5" />
               </div>
-              <div className="w-12 h-12 rounded-full bg-purple-100 border border-white/20shadow-sm flex items-center justify-center text-purple-600">
+              <div className="w-12 h-12 rounded-full bg-purple-100 border border-white/20 shadow-sm flex items-center justify-center text-purple-600">
                 <DollarSign className="w-5 h-5" />
               </div>
-              <button className="w-12 h-12 rounded-full bg-white/10 border border-white/20flex items-center justify-center shadow-sm">
+              <button className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center shadow-sm">
                 <MoreHorizontal className="w-5 h-5 text-slate-300" />
               </button>
             </div>
