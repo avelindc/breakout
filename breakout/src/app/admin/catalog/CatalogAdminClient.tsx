@@ -288,80 +288,91 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
         )}
       </div>
 
-      {/* Premium Modal Add/Edit */}
+      {/* Light Theme Modal Add/Edit (Match Screenshot) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-fade-in transform-gpu">
-          <div className="bg-gradient-to-b from-[#1c2331] to-[#121620] rounded-[2rem] w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] border border-white/10 transform animate-scale-up overflow-hidden transform-gpu">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                {editingSong ? <Edit className="w-5 h-5 text-blue-400"/> : <Plus className="w-5 h-5 text-blue-400"/>}
-                {editingSong ? 'Edit Data Lagu' : 'Tambah Data Baru'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm animate-fade-in transform-gpu">
+          <div className="bg-[#F8F9FA] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden transform-gpu font-sans">
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-white shrink-0">
+              <h2 className="text-xl font-bold text-gray-800">
+                {editingSong ? 'Edit Lagu MP3' : 'Tambah Lagu MP3 Baru'}
               </h2>
-              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 flex items-center justify-center transition-all">
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex items-center justify-center transition-all">
+                <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto overscroll-contain touch-pan-y space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto overscroll-contain touch-pan-y space-y-5 bg-[#F8F9FA]">
               {errorMsg && (
-                <div className="p-4 bg-red-500/20 border border-red-500/30 text-red-200 text-sm font-medium rounded-xl flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 shrink-0" /> {errorMsg}
+                <div className="p-4 bg-red-50 border border-red-200 text-red-600 text-sm font-medium rounded-lg">
+                  {errorMsg}
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Judul *</label>
-                <input required name="title" defaultValue={editingSong?.title} type="text" 
-                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
-                  placeholder="Masukkan judul lagu" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">Judul Lagu *</label>
+                  <input required name="title" defaultValue={editingSong?.title} type="text" 
+                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">Nama Artis *</label>
+                  <input required name="artist" defaultValue={editingSong?.artist} type="text" 
+                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">Publisher</label>
+                  <input name="publisher" defaultValue={editingSong?.publisher} type="text" 
+                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
+                    placeholder="Optional" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700">Genre</label>
+                  <input name="genre" defaultValue={editingSong?.genre} type="text" 
+                    className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 
+                    placeholder="Optional" />
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Artist *</label>
-                <input required name="artist" defaultValue={editingSong?.artist} type="text" 
-                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
-                  placeholder="Nama artis / pengarang" />
+                <label className="text-sm font-bold text-gray-700">Cover Image</label>
+                <div className="relative">
+                  <input type="file" name="coverFile" accept="image/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 border border-gray-300 rounded-lg bg-white cursor-pointer" />
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Vokal</label>
-                <input name="vokal" defaultValue={editingSong?.vokal} type="text" 
-                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
-                  placeholder="Nama penyanyi / vokal" />
+                <label className="text-sm font-bold text-gray-700">File MP3 {editingSong ? '' : '*'}</label>
+                <div className="relative">
+                  <input type="file" name="audioFile" accept="audio/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 border border-gray-300 rounded-lg bg-white cursor-pointer" />
+                </div>
+                {editingSong?.audioUrl && <p className="text-xs text-green-600 mt-1">File MP3 sudah ada (Upload baru untuk mengganti).</p>}
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1">Publisher</label>
-                <input name="publisher" defaultValue={editingSong?.publisher} type="text" 
-                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
-                  placeholder="Nama publisher / label" />
-              </div>
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 font-medium">
+                  <input type="checkbox" name="isActive" value="true" defaultChecked={editingSong ? editingSong.isActive : true} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                  Status Aktif (Ditampilkan)
+                </label>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-blue-200/70 uppercase tracking-wider pl-1 flex items-center gap-1.5">Link Drive</label>
-                <input name="driveLink" defaultValue={editingSong?.driveLink} type="url" 
-                  className="w-full bg-black/30 border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:bg-black/50 transition-all font-medium" 
-                  placeholder="https://drive.google.com/..." />
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <label className="flex items-center gap-3 cursor-pointer bg-white/5 p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
-                  <input type="hidden" name="isActive" value="false" />
-                  <input type="checkbox" name="isActive" value="true" 
-                    defaultChecked={editingSong ? editingSong.isActive : true} 
-                    className="w-5 h-5 text-blue-600 rounded border-gray-600 bg-black focus:ring-blue-500 focus:ring-offset-gray-900" />
-                  <span className="text-sm font-bold text-white">Status Aktif (Ditampilkan ke pengguna)</span>
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 font-medium">
+                  <input type="checkbox" name="isDownloadable" value="true" defaultChecked={editingSong ? editingSong.isDownloadable : false} className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                  Boleh di Download
                 </label>
               </div>
 
-              <div className="pt-2 mt-2">
+              <div className="pt-6">
                 <button 
-                  type="submit"
+                  type="submit" 
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 flex justify-center items-center gap-2 border border-blue-400/50"
+                  className="w-full h-12 bg-[#4267B2] hover:bg-[#365899] text-white font-bold rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                 >
-                  {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
-                  {isSubmitting ? "Menyimpan Data..." : "Simpan Data Lagu"}
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                  {isSubmitting ? 'Menyimpan...' : 'Simpan Lagu'}
                 </button>
               </div>
             </form>

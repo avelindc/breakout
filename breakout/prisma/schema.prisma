@@ -285,6 +285,10 @@ model CatalogSong {
   genre     String?
   driveLink String?
   
+  coverUrl  String?
+  audioUrl  String?
+  isDownloadable Boolean @default(false)
+  
   isActive  Boolean @default(true)
 
   createdAt DateTime @default(now())
