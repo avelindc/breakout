@@ -135,7 +135,13 @@ export function ReviewList({ releases }: { releases: Release[] }) {
               </div>
 
               <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {new Date(rel.releaseDate).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {(() => {
+                    const d = new Date(rel.releaseDate);
+                    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+                  })()}
+                </span>
                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition" />
               </div>
             </div>

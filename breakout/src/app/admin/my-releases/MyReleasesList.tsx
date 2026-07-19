@@ -177,7 +177,12 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
               </div>
 
               <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-                <span>Rilis: {new Date(rel.releaseDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
+                <span>
+                  Rilis: {(() => {
+                    const d = new Date(rel.releaseDate);
+                    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+                  })()}
+                </span>
                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition" />
               </div>
             </div>
