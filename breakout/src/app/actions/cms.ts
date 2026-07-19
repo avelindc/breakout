@@ -161,7 +161,23 @@ export async function getLandingPageCMS(): Promise<CMSData> {
 
     // Merge DB data with default data to ensure missing fields are populated
     const parsedData = JSON.parse(setting.value);
-    return { ...defaultCMSData, ...parsedData };
+    
+    // Perform manual deep merge for known top-level objects to prevent missing nested fields
+    return {
+      ...defaultCMSData,
+      ...parsedData,
+      seo: { ...defaultCMSData.seo, ...(parsedData.seo || {}) },
+      hero: { ...defaultCMSData.hero, ...(parsedData.hero || {}) },
+      about: { ...defaultCMSData.about, ...(parsedData.about || {}) },
+      contact: { ...defaultCMSData.contact, ...(parsedData.contact || {}) },
+      footer: { ...defaultCMSData.footer, ...(parsedData.footer || {}) },
+      // Arrays are replaced entirely if they exist in DB, otherwise use default
+      features: parsedData.features || defaultCMSData.features,
+      pricing: parsedData.pricing || defaultCMSData.pricing,
+      faq: parsedData.faq || defaultCMSData.faq,
+      testimonials: parsedData.testimonials || defaultCMSData.testimonials,
+      partners: parsedData.partners || defaultCMSData.partners,
+    };
   } catch (error) {
     console.error("Failed to parse CMS Data:", error);
     return defaultCMSData;
