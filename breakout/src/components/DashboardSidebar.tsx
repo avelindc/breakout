@@ -4,13 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Music, User, UploadCloud, Disc, BarChart2, 
+  Music, User, UploadCloud, Disc, BarChart2, LineChart,
   DollarSign, CreditCard, Bell, Settings, LogOut, Menu, X, Mail, Library, FileText, BookOpen
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const links = [
-  { name: "Dasbor", href: "/dashboard", icon: BarChart2 },
+  { name: "Dasbor",    href: "/dashboard",           icon: BarChart2  },
+  { name: "Analytics", href: "/dashboard/analytics",  icon: LineChart  },
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
