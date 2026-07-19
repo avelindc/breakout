@@ -69,11 +69,11 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <p className="text-slate-600 font-medium mb-1">Total platform revenue</p>
-                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800">{formatCurrency(data.totalRevenue)}</h2>
+                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800 mt-2 pt-1">{formatCurrency(data.totalRevenue)}</h2>
               </div>
               <div className="flex bg-white/50 backdrop-blur-md rounded-full p-1 border border-white/60 shadow-sm">
-                <button className="px-4 py-1.5 rounded-full bg-white shadow-sm text-sm font-medium">IDR</button>
-                <button className="px-4 py-1.5 rounded-full text-slate-500 text-sm font-medium">USD</button>
+                <button onClick={() => setCurrency('IDR')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${currency === 'IDR' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>IDR</button>
+                <button onClick={() => setCurrency('USD')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${currency === 'USD' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>USD</button>
               </div>
             </div>
             
@@ -97,12 +97,12 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
               </div>
               
               <div className="flex flex-row md:flex-col gap-3 w-full md:w-auto justify-center flex-wrap">
-                <button className="px-6 py-3 rounded-full bg-white/60 backdrop-blur border border-white text-slate-800 font-medium shadow-sm hover:bg-white transition text-sm">
+                <Link href="/admin/releases" className="px-6 py-3 rounded-full bg-white/60 backdrop-blur border border-white text-slate-800 font-medium shadow-sm hover:bg-white transition text-sm text-center">
                   Review Releases
-                </button>
-                <button className="px-6 py-3 rounded-full bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 transition text-sm">
+                </Link>
+                <Link href="/admin/withdrawals" className="px-6 py-3 rounded-full bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 transition text-sm text-center">
                   Process Withdrawals
-                </button>
+                </Link>
               </div>
             </div>
           </div>

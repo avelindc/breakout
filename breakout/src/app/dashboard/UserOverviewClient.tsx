@@ -75,8 +75,8 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
                 </h2>
               </div>
               <div className="flex bg-white/50 backdrop-blur-md rounded-full p-1 border border-white/60 shadow-sm">
-                <button className="px-4 py-1.5 rounded-full bg-white shadow-sm text-sm font-medium">IDR</button>
-                <button className="px-4 py-1.5 rounded-full text-slate-500 text-sm font-medium">USD</button>
+                <button onClick={() => setCurrency('IDR')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${currency === 'IDR' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>IDR</button>
+                <button onClick={() => setCurrency('USD')} className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${currency === 'USD' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>USD</button>
               </div>
             </div>
             
@@ -99,12 +99,12 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
               </div>
               
               <div className="flex flex-row md:flex-col gap-3 w-full md:w-auto justify-center flex-wrap">
-                <button className="px-6 py-3 rounded-full bg-white/60 backdrop-blur border border-white text-slate-800 font-medium shadow-sm hover:bg-white transition text-sm">
+                <Link href="/dashboard/upload" className="px-6 py-3 rounded-full bg-white/60 backdrop-blur border border-white text-slate-800 font-medium shadow-sm hover:bg-white transition text-sm text-center">
                   Upload Release
-                </button>
-                <button className="px-6 py-3 rounded-full bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 transition text-sm">
+                </Link>
+                <Link href="/dashboard/withdraw" className="px-6 py-3 rounded-full bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 transition text-sm text-center">
                   Withdraw Funds
-                </button>
+                </Link>
               </div>
             </div>
           </div>
