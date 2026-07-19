@@ -1,20 +1,20 @@
 import { PrismaClient } from "@prisma/client";
-import { ReviewList } from "./ReviewList";
+import { MyReleasesList } from "./MyReleasesList";
 
 const prisma = new PrismaClient();
 
-export default async function AdminReleasesPage() {
-  // Fetch pending releases only (Music Review)
-  const pendingReleases = await prisma.release.findMany({
-    where: { status: 'PENDING', isImported: false },
+export default async function AdminMyReleasesPage() {
+  // Fetch only approved (released/active catalog) releases
+  const approvedReleases = await prisma.release.findMany({
+    where: { status: 'APPROVED', isImported: false },
     include: { 
       artist: { include: { user: true } }, 
       tracks: true 
     },
-    orderBy: { createdAt: 'asc' }
+    orderBy: { updatedAt: 'desc' }
   });
 
-  const serializedReleases = pendingReleases.map(release => ({
+  const serializedReleases = approvedReleases.map(release => ({
     id: release.id,
     title: release.title,
     genre: release.genre,
@@ -42,20 +42,19 @@ export default async function AdminReleasesPage() {
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 md:px-0">
-      <div className="mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Music Review</h1>
-        <p className="text-gray-500 text-sm">Tinjau rilisan musik baru dari artis sebelum dipublikasikan ke publik.</p>
-        <div className="mt-4 bg-yellow-50 text-yellow-700 px-4 py-2.5 rounded-2xl text-xs font-semibold w-max border border-yellow-100">
-          ⚠️ {pendingReleases.length} rilisan menunggu persetujuan
+      <div className="mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Releases</h1>
+          <p className="text-gray-500 text-sm">Kelola katalog musik aktif yang sudah disetujui untuk didistribusikan.</p>
         </div>
       </div>
 
-      {pendingReleases.length === 0 ? (
+      {approvedReleases.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center text-gray-400 shadow-sm font-semibold">
-          Tidak ada rilisan baru yang perlu ditinjau.
+          Belum ada rilisan aktif yang disetujui.
         </div>
       ) : (
-        <ReviewList releases={serializedReleases} />
+        <MyReleasesList releases={serializedReleases} />
       )}
     </div>
   );
