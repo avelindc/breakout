@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowUpRight, Music, Clock, DollarSign, Search, Plus, MoreHorizontal, Users, Settings } from "lucide-react";
 
@@ -14,7 +15,17 @@ type OverviewData = {
 };
 
 export function UserOverviewClient({ data, user }: { data: OverviewData, user: any }) {
-  const [activeTab, setActiveTab] = useState("IDR");
+    const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
+  const exchangeRate = 16200;
+
+  const formatCurrency = (amount: number) => {
+    if (currency === "USD") {
+      return '$' + (amount / exchangeRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if (amount >= 1000000) return 'Rp ' + (amount / 1000000).toFixed(1) + 'M';
+    if (amount >= 1000) return 'Rp ' + (amount / 1000).toFixed(1) + 'K';
+    return 'Rp ' + amount.toLocaleString('id-ID');
+  };
 
   const revenueData = [
     { month: 'MAY', value: 200 },
@@ -59,8 +70,8 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
             <div className="flex justify-between items-start mb-6">
               <div>
                 <p className="text-slate-600 font-medium mb-1">Total artist balance</p>
-                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800">
-                  Rp {data.availableBalance >= 1000000 ? (data.availableBalance / 1000000).toFixed(1) + 'M' : data.availableBalance >= 1000 ? (data.availableBalance / 1000).toFixed(1) + 'K' : data.availableBalance}
+                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800 mt-2 pt-1">
+                  {formatCurrency(data.availableBalance || data.totalRevenue)}
                 </h2>
               </div>
               <div className="flex bg-white/50 backdrop-blur-md rounded-full p-1 border border-white/60 shadow-sm">
@@ -74,14 +85,14 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
                 {/* Circle 1 */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-white/80 backdrop-blur-lg flex flex-col items-center justify-center border border-white shadow-sm z-20 relative">
                   <span className="text-[11px] sm:text-sm md:text-lg font-bold">
-                    Rp {data.totalRevenue >= 1000000 ? (data.totalRevenue / 1000000).toFixed(1) + 'M' : data.totalRevenue.toLocaleString('id-ID')}
+                    {formatCurrency(data.totalRevenue)}
                   </span>
                   <span className="text-[9px] sm:text-xs text-slate-500 font-medium">Total Earned</span>
                 </div>
                 {/* Circle 2 (Main) */}
                 <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex flex-col items-center justify-center shadow-lg z-30 -ml-4 sm:-ml-6 md:-ml-10 relative">
                   <span className="text-[13px] sm:text-base md:text-xl font-bold text-white">
-                    Rp {data.availableBalance >= 1000000 ? (data.availableBalance / 1000000).toFixed(1) + 'M' : data.availableBalance.toLocaleString('id-ID')}
+                    {formatCurrency(data.availableBalance)}
                   </span>
                   <span className="text-[10px] sm:text-xs text-white/80 font-medium">Available</span>
                 </div>
@@ -213,7 +224,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
                   <span className="bg-blue-100 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
                     {wd.status === 'PENDING' ? 'Pending' : 'Done'}
                   </span>
-                  <span className="text-slate-800 font-semibold text-sm">Rp {(wd.amount / 1000).toFixed(0)}K</span>
+                  <span className="text-slate-800 font-semibold text-sm">{formatCurrency(wd.amount)}</span>
                 </div>
               </div>
             ))}
@@ -256,7 +267,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
             </div>
             
             <div className="flex justify-between items-end">
-              <h3 className="text-3xl font-semibold text-slate-800">Rp {(data.availableBalance / 1000).toFixed(0)}K</h3>
+              <h3 className="text-3xl font-semibold text-slate-800">{formatCurrency(data.availableBalance)}</h3>
               <button className="bg-slate-900 text-white font-medium px-6 py-2.5 rounded-full hover:bg-slate-800 transition shadow-lg">Send</button>
             </div>
           </div>

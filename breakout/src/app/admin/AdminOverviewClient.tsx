@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowUpRight, ArrowDownRight, Search, Plus, MoreHorizontal, Users, Music, Settings, DollarSign } from "lucide-react";
 
@@ -16,7 +17,17 @@ type OverviewData = {
 };
 
 export function AdminOverviewClient({ data }: { data: OverviewData }) {
-  const [activeTab, setActiveTab] = useState("EUR");
+    const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
+  const exchangeRate = 16200;
+
+  const formatCurrency = (amount: number) => {
+    if (currency === "USD") {
+      return '$' + (amount / exchangeRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if (amount >= 1000000) return 'Rp ' + (amount / 1000000).toFixed(1) + 'M';
+    if (amount >= 1000) return 'Rp ' + (amount / 1000).toFixed(1) + 'K';
+    return 'Rp ' + amount.toLocaleString('id-ID');
+  };
 
   const revenueData = [
     { month: 'MAY', value: 1200 },
@@ -58,7 +69,7 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <p className="text-slate-600 font-medium mb-1">Total platform revenue</p>
-                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800">Rp {(data.totalRevenue / 1000000).toFixed(1)}M</h2>
+                <h2 className="text-4xl md:text-5xl font-semibold text-slate-800">{formatCurrency(data.totalRevenue)}</h2>
               </div>
               <div className="flex bg-white/50 backdrop-blur-md rounded-full p-1 border border-white/60 shadow-sm">
                 <button className="px-4 py-1.5 rounded-full bg-white shadow-sm text-sm font-medium">IDR</button>
@@ -70,17 +81,17 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
               <div className="flex items-center">
                 {/* Circle 1 */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-white/80 backdrop-blur-lg flex flex-col items-center justify-center border border-white shadow-sm z-20 relative">
-                  <span className="text-[11px] sm:text-sm md:text-lg font-bold">Rp {((data.totalRevenue - data.pendingWithdrawals) / 1000000).toFixed(1)}M</span>
+                  <span className="text-[11px] sm:text-sm md:text-lg font-bold">{formatCurrency(data.totalRevenue - data.pendingWithdrawals)}</span>
                   <span className="text-[9px] sm:text-xs text-slate-500 font-medium">Available</span>
                 </div>
                 {/* Circle 2 (Main) */}
                 <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex flex-col items-center justify-center shadow-lg z-30 -ml-4 sm:-ml-6 md:-ml-10 relative">
-                  <span className="text-[13px] sm:text-base md:text-xl font-bold text-white">Rp {(data.totalRevenue / 1000000).toFixed(1)}M</span>
+                  <span className="text-[13px] sm:text-base md:text-xl font-bold text-white">{formatCurrency(data.totalRevenue)}</span>
                   <span className="text-[10px] sm:text-xs text-white/80 font-medium">Total</span>
                 </div>
                 {/* Circle 3 */}
                 <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full bg-white/80 backdrop-blur-lg flex flex-col items-center justify-center border border-white shadow-sm z-20 -ml-4 sm:-ml-6 md:-ml-10 relative">
-                  <span className="text-[11px] sm:text-sm md:text-lg font-bold text-slate-800">Rp {(data.pendingWithdrawals / 1000000).toFixed(1)}M</span>
+                  <span className="text-[11px] sm:text-sm md:text-lg font-bold text-slate-800">{formatCurrency(data.pendingWithdrawals)}</span>
                   <span className="text-[9px] sm:text-xs text-slate-500 font-medium">Pending WD</span>
                 </div>
               </div>
@@ -196,7 +207,7 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
                 <div className="flex items-center gap-4">
                   <span className="text-slate-400 text-xs w-12">Jul 15</span>
                   <span className="text-slate-500 text-sm w-24">Finance</span>
-                  <span className="font-semibold text-slate-800">Rp {(data.pendingWithdrawals / 1000000).toFixed(1)}M</span>
+                  <span className="font-semibold text-slate-800">{formatCurrency(data.pendingWithdrawals)}</span>
                 </div>
               </div>
             </div>
@@ -241,7 +252,7 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-slate-400 text-xs">Jun 14</span>
-                  <span className="text-slate-800 font-semibold text-sm">Rp {(wd.amount / 1000000).toFixed(1)}M</span>
+                  <span className="text-slate-800 font-semibold text-sm">{formatCurrency(wd.amount)}</span>
                 </div>
               </div>
             ))}
