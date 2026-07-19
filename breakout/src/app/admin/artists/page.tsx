@@ -22,10 +22,10 @@ export default async function AdminArtistsPage() {
 
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10">
-      <div className="mb-8 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Artist Approvals</h1>
-        <p className="text-gray-500 text-sm">{pendingUsers.length + approvedUsers.length} users found</p>
+    <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 sm:px-6 lg:px-8 w-full">
+      <div className="mb-8 bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-gray-100 w-full max-w-full overflow-hidden">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Artist Approvals</h1>
+        <p className="text-gray-500 text-xs sm:text-sm">{pendingUsers.length + approvedUsers.length} users found</p>
 
         <div className="flex items-center gap-6 mt-8 border-b border-gray-100 pb-4">
           <button className="text-gray-900 font-bold border-b-2 border-blue-600 pb-4 -mb-[18px]">Pending</button>

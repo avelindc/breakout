@@ -196,25 +196,25 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
           
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
               <Music className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-2xl font-bold text-white">{stats.totalTracks}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Songs</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={stats.totalTracks.toString()}>{stats.totalTracks}</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Songs</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
               <Disc className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-2xl font-bold text-white">{stats.totalReleases}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Releases</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={stats.totalReleases.toString()}>{stats.totalReleases}</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Releases</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
               <DollarSign className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-2xl font-bold text-white">{formatCurrency(stats.totalRoyalties)}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Royalties</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={formatCurrency(stats.totalRoyalties)}>{formatCurrency(stats.totalRoyalties)}</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Royalties</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
               <ArrowDownCircle className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-2xl font-bold text-white">{formatCurrency(stats.totalWithdrawals)}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Withdrawals</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={formatCurrency(stats.totalWithdrawals)}>{formatCurrency(stats.totalWithdrawals)}</div>
+              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Withdrawals</div>
             </div>
           </div>
 
