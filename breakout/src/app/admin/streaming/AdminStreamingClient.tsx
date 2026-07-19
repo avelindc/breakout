@@ -9,28 +9,10 @@ import {
   Disc, Award, BarChart2, Activity, Globe, CreditCard, Download, RefreshCw,
   ChevronRight, ChevronLeft, ChevronDown, Filter, MapPin, Play, Heart, BookOpen, Star, Sparkles, X as IconX, Search,
 } from "lucide-react";
-import type { ArtistData, TrackData, PlatformStreams17 } from "./page";
+import type { ArtistData, TrackData, any } from "./page";
 
 // ── Platform config ────────────────────────────────────────────────────────────
-const PLATFORM_CONFIG = [
-  { key: "spotify",   name: "Spotify",       color: "#1DB954" },
-  { key: "apple",     name: "Apple Music",   color: "#FC3C44" },
-  { key: "youtube",   name: "YouTube Music", color: "#FF0000" },
-  { key: "tiktok",    name: "TikTok",        color: "#010101" },
-  { key: "instagram", name: "Instagram",     color: "#E1306C" },
-  { key: "facebook",  name: "Facebook",      color: "#1877F2" },
-  { key: "amazon",    name: "Amazon Music",  color: "#00A8E1" },
-  { key: "boomplay",  name: "Boomplay",      color: "#E86200" },
-  { key: "joox",      name: "Joox",          color: "#1A8739" },
-  { key: "deezer",    name: "Deezer",        color: "#A238FF" },
-  { key: "tidal",     name: "Tidal",         color: "#000000" },
-  { key: "pandora",   name: "Pandora",       color: "#3668FF" },
-  { key: "audiomack", name: "Audiomack",     color: "#FFA500" },
-  { key: "napster",   name: "Napster",       color: "#00A0C6" },
-  { key: "kkbox",     name: "KKBOX",         color: "#009966" },
-  { key: "tencent",   name: "Tencent Music", color: "#0052D9" },
-  { key: "lainnya",   name: "Lainnya",       color: "#94A3B8" },
-] as const;
+const COLORS = ['#7000FF', '#00F0FF', '#FF0055', '#111111', '#AAAAAA', '#1DB954', '#FC3C44', '#FF0000', '#69C9D0', '#E1306C', '#1877F2', '#00A8E1'];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Props = {
@@ -41,7 +23,7 @@ type Props = {
       totalTracks: number; totalWithdrawals: number; pendingWithdraw: number; completedWithdraw: number;
       totalStreams: number; monthlyStreams: number; totalRevenue: number;
     };
-    globalPlatforms: PlatformStreams17;
+    globalPlatforms: any;
     monthlyRevenue: { month: string; revenue: number }[];
     monthlyStreams: { month: string; streams: number }[];
     globalDailyStreams: { date: string; streams: number }[];
@@ -143,11 +125,11 @@ export function AdminStreamingClient({ data }: Props) {
   const currentDaily = selectedTrack ? selectedTrack.dailyStreams : selectedArtist ? selectedArtist.dailyStreams : data.globalDailyStreams;
   
   const currentPlatformsObj = selectedTrack ? selectedTrack.platforms : selectedArtist ? selectedArtist.platforms : data.globalPlatforms;
-  const currentPlatformsArr = PLATFORM_CONFIG.map(p => ({
+  const currentPlatformsArr = (Array.isArray(currentPlatformsObj) ? currentPlatformsObj : []).map((p: any, i: number) => ({
     name: p.name,
-    color: p.color,
-    streams: (currentPlatformsObj as any)[p.key] || 0
-  })).filter(p => p.streams > 0).sort((a,b) => b.streams - a.streams);
+    color: COLORS[i % COLORS.length],
+    streams: p.value || p.streams || 0
+  })).sort((a,b) => b.streams - a.streams);
   
   const currentPlatTotal = currentPlatformsArr.reduce((s, p) => s + p.streams, 0) || 1;
 

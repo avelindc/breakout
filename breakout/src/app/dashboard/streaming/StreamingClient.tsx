@@ -13,14 +13,7 @@ import {
 import type { TrackData } from "./page";
 
 // ── Platform config (Strictly matching DB Royalty fields) ────────────────────────
-const PLATFORM_CONFIG = [
-  { key: "spotify",   name: "Spotify",       color: "#1DB954" },
-  { key: "apple",     name: "Apple Music",   color: "#FC3C44" },
-  { key: "youtube",   name: "YouTube Music", color: "#FF0000" },
-  { key: "tiktok",    name: "TikTok",        color: "#010101" },
-  { key: "amazon",    name: "Amazon Music",  color: "#00A8E1" },
-  { key: "other",     name: "Lainnya",       color: "#94A3B8" },
-] as const;
+const COLORS = ['#7000FF', '#00F0FF', '#FF0055', '#111111', '#AAAAAA', '#1DB954', '#FC3C44', '#FF0000', '#69C9D0', '#E1306C', '#1877F2', '#00A8E1'];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Props = {

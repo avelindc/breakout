@@ -197,7 +197,7 @@ export default async function StreamingPage() {
 
   // ── Global stats ───────────────────────────────────────────────────────────
   const globalStats = {
-    totalStreams:     hasRealData ? realTotal              : 856_421,
+    totalStreams: realTotal,
     monthlyListeners: hasRealData ? Math.round(realTotal * 0.15) : 128_742,
     followers:        Math.round((hasRealData ? realTotal : 856_421) * 0.029),
     saves:            Math.round((hasRealData ? realSpotify : 533_000) * 0.05),
