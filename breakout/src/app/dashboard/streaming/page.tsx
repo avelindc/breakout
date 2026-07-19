@@ -1,11 +1,11 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import { PrismaClient } from "@prisma/client";
+import { redirect } from "next/navigation";
 import { StreamingClient } from "./StreamingClient";
 
 const prisma = new PrismaClient();
 
-export default async function StreamingPage() {
+export default async function UserStreamingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -15,12 +15,7 @@ export default async function StreamingPage() {
       artists: {
         include: {
           releases: {
-            include: {
-              tracks: { select: { id: true, title: true, isrc: true } },
-            },
-            orderBy: { createdAt: "desc" },
-          },
-          royalties: {
+            include: { tracks: true },
             orderBy: { createdAt: "desc" },
           },
         },
@@ -29,77 +24,87 @@ export default async function StreamingPage() {
   });
 
   const artistIds = user?.artists.map((a) => a.id) || [];
+  const allRoyalties = artistIds.length > 0 ? await prisma.royalty.findMany({
+    where: { artistId: { in: artistIds } },
+  }) : [];
 
-  // ── Aggregate ALL royalties for global stats ────────────────────────────────
-  const allRoyalties = user?.artists.flatMap((a) => a.royalties) || [];
+  let realTotal = 0;
+  let realRevenue = 0;
+  const globalPlatformMap: Record<string, number> = {};
 
-  // These are the ONLY fields from DB — do not invent data for other platforms
-  const realSpotify  = allRoyalties.reduce((s, r) => s + r.spotifyStreams, 0);
-  const realApple    = allRoyalties.reduce((s, r) => s + r.appleMusicStreams, 0);
-  const realYoutube  = allRoyalties.reduce((s, r) => s + r.youtubeStreams, 0);
-  const realTiktok   = allRoyalties.reduce((s, r) => s + r.tiktokStreams, 0);
-  const realAmazon   = allRoyalties.reduce((s, r) => s + r.amazonStreams, 0);
-  const realOther    = allRoyalties.reduce((s, r) => s + r.otherStreams, 0);
-  const realRevenue  = allRoyalties.reduce((s, r) => s + r.totalRevenue, 0);
-  const realTotal    = realSpotify + realApple + realYoutube + realTiktok + realAmazon + realOther;
-  const hasRealData  = realTotal > 0;
+  allRoyalties.forEach((r) => {
+    realRevenue += r.totalRevenue;
+    if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+      for (const [p, s] of Object.entries(r.platformData)) {
+        let plat = p;
+        if (p.toLowerCase() === 'spotify') plat = 'Spotify';
+        if (p.toLowerCase() === 'apple music' || p.toLowerCase() === 'apple') plat = 'Apple Music';
+        if (p.toLowerCase() === 'youtube') plat = 'YouTube Music';
+        if (p.toLowerCase() === 'tiktok') plat = 'TikTok';
+        if (p.toLowerCase() === 'amazon' || p.toLowerCase() === 'amazon music') plat = 'Amazon Music';
+        globalPlatformMap[plat] = (globalPlatformMap[plat] || 0) + (s as number);
+        realTotal += (s as number);
+      }
+    } else {
+      globalPlatformMap['Spotify'] = (globalPlatformMap['Spotify'] || 0) + r.spotifyStreams;
+      globalPlatformMap['Apple Music'] = (globalPlatformMap['Apple Music'] || 0) + r.appleMusicStreams;
+      globalPlatformMap['YouTube Music'] = (globalPlatformMap['YouTube Music'] || 0) + r.youtubeStreams;
+      globalPlatformMap['TikTok'] = (globalPlatformMap['TikTok'] || 0) + r.tiktokStreams;
+      globalPlatformMap['Amazon Music'] = (globalPlatformMap['Amazon Music'] || 0) + r.amazonStreams;
+      globalPlatformMap['Lainnya'] = (globalPlatformMap['Lainnya'] || 0) + r.otherStreams;
+      realTotal += r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
+    }
+  });
+
+  const globalPlatforms = Object.entries(globalPlatformMap).map(([n, v]) => ({ name: n, value: v }));
 
   const approvedReleases = artistIds.length > 0
     ? await prisma.release.count({ where: { artistId: { in: artistIds }, status: "APPROVED" } })
     : 0;
 
-  // ── Royalties grouped per songName — real per-track data ───────────────────
-  const royaltyBySong: Record<string, {
-    spotify: number; apple: number; youtube: number; tiktok: number;
-    amazon: number; other: number; revenue: number;
-  }> = {};
+  const royaltyBySong: Record<string, { platforms: Record<string, number>; revenue: number; totalStreams: number }> = {};
+  const monthlyMap: Record<string, { label: string; streams: number; revenue: number }> = {};
 
   allRoyalties.forEach((r) => {
     const key = r.songName.trim().toLowerCase();
-    if (!royaltyBySong[key]) {
-      royaltyBySong[key] = { spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, other: 0, revenue: 0 };
+    if (!royaltyBySong[key]) royaltyBySong[key] = { platforms: {}, revenue: 0, totalStreams: 0 };
+    royaltyBySong[key].revenue += r.totalRevenue;
+    
+    let rowStr = 0;
+    if (r.platformData && typeof r.platformData === 'object' && Object.keys(r.platformData).length > 0) {
+      for (const [p, s] of Object.entries(r.platformData)) {
+        let plat = p;
+        if (p.toLowerCase() === 'spotify') plat = 'Spotify';
+        if (p.toLowerCase() === 'apple music' || p.toLowerCase() === 'apple') plat = 'Apple Music';
+        royaltyBySong[key].platforms[plat] = (royaltyBySong[key].platforms[plat] || 0) + (s as number);
+        rowStr += (s as number);
+      }
+    } else {
+      royaltyBySong[key].platforms['Spotify'] = (royaltyBySong[key].platforms['Spotify'] || 0) + r.spotifyStreams;
+      royaltyBySong[key].platforms['Apple Music'] = (royaltyBySong[key].platforms['Apple Music'] || 0) + r.appleMusicStreams;
+      royaltyBySong[key].platforms['YouTube Music'] = (royaltyBySong[key].platforms['YouTube Music'] || 0) + r.youtubeStreams;
+      royaltyBySong[key].platforms['TikTok'] = (royaltyBySong[key].platforms['TikTok'] || 0) + r.tiktokStreams;
+      royaltyBySong[key].platforms['Amazon Music'] = (royaltyBySong[key].platforms['Amazon Music'] || 0) + r.amazonStreams;
+      royaltyBySong[key].platforms['Lainnya'] = (royaltyBySong[key].platforms['Lainnya'] || 0) + r.otherStreams;
+      rowStr += r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
     }
-    royaltyBySong[key].spotify  += r.spotifyStreams;
-    royaltyBySong[key].apple    += r.appleMusicStreams;
-    royaltyBySong[key].youtube  += r.youtubeStreams;
-    royaltyBySong[key].tiktok   += r.tiktokStreams;
-    royaltyBySong[key].amazon   += r.amazonStreams;
-    royaltyBySong[key].other    += r.otherStreams;
-    royaltyBySong[key].revenue  += r.totalRevenue;
-  });
+    
+    royaltyBySong[key].totalStreams += rowStr;
 
-  // ── Monthly royalties (for monthly chart breakdown) ─────────────────────────
-  const monthlyMap: Record<string, { label: string; streams: number; revenue: number }> = {};
-  allRoyalties.forEach((r) => {
-    const key = `${r.year}-${String(r.month).padStart(2, "0")}`;
+    const mKey = `${r.year}-${String(r.month).padStart(2, "0")}`;
     const d = new Date(r.year, r.month - 1);
     const label = d.toLocaleString("id-ID", { month: "short", year: "2-digit" });
-    if (!monthlyMap[key]) monthlyMap[key] = { label, streams: 0, revenue: 0 };
-    const streams = r.spotifyStreams + r.appleMusicStreams + r.youtubeStreams + r.tiktokStreams + r.amazonStreams + r.otherStreams;
-    monthlyMap[key].streams  += streams;
-    monthlyMap[key].revenue  += r.totalRevenue;
+    if (!monthlyMap[mKey]) monthlyMap[mKey] = { label, streams: 0, revenue: 0 };
+    monthlyMap[mKey].streams  += rowStr;
+    monthlyMap[mKey].revenue  += r.totalRevenue;
   });
 
   const sortedMonthly = Object.entries(monthlyMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([, v]) => v);
 
-  // Build 30-point daily streams from monthly (distribute evenly per day)
-  const globalDailyStreams = buildDailyFromMonthly(sortedMonthly, hasRealData ? realTotal : 856_421);
+  const globalDailyStreams = buildDailyFromMonthly(sortedMonthly, realTotal);
 
-  // ── Build platform data — ONLY real DB fields, no fake platforms ───────────
-  //    "Lainnya" covers Amazon + Other (otherStreams from DB)
-  //    Instagram, Facebook, Boomplay, etc. are NOT in DB → shown as 0 / hidden
-  const globalPlatforms = [
-    { name: "Spotify",       streams: hasRealData ? realSpotify  : 533_000, color: "#1DB954", isReal: hasRealData },
-    { name: "Apple Music",   streams: hasRealData ? realApple    : 119_897, color: "#FC3C44", isReal: hasRealData },
-    { name: "YouTube Music", streams: hasRealData ? realYoutube  :  94_206, color: "#FF0000", isReal: hasRealData },
-    { name: "TikTok",        streams: hasRealData ? realTiktok   :  59_948, color: "#69C9D0", isReal: hasRealData },
-    { name: "Amazon Music",  streams: hasRealData ? realAmazon   :  28_642, color: "#00A8E1", isReal: hasRealData },
-    { name: "Lainnya",       streams: hasRealData ? realOther    :   6_100, color: "#94A3B8", isReal: hasRealData },
-  ].filter(p => p.streams > 0);
-
-  // ── Build all tracks from DB ────────────────────────────────────────────────
   const allTracks: TrackData[] = [];
   const now = new Date();
 
@@ -110,20 +115,14 @@ export default async function StreamingPage() {
       const releaseKey = release.title.trim().toLowerCase();
 
       if (release.tracks.length > 0) {
-        // Per-track data
         for (const track of release.tracks) {
           const trackKey = track.title.trim().toLowerCase();
-          // Try matching royalty by track title first, then by release title
           const roy = royaltyBySong[trackKey] || royaltyBySong[releaseKey] || null;
 
-          const spotify  = roy?.spotify  ?? 0;
-          const apple    = roy?.apple    ?? 0;
-          const youtube  = roy?.youtube  ?? 0;
-          const tiktok   = roy?.tiktok   ?? 0;
-          const amazon   = roy?.amazon   ?? 0;
-          const other    = roy?.other    ?? 0;
-          const revenue  = roy?.revenue  ?? 0;
-          const total    = spotify + apple + youtube + tiktok + amazon + other;
+          const total = roy?.totalStreams ?? 0;
+          const revenue = roy?.revenue ?? 0;
+          const spotify = roy?.platforms['Spotify'] ?? 0;
+          const apple = roy?.platforms['Apple Music'] ?? 0;
 
           allTracks.push({
             id:           track.id,
@@ -135,30 +134,25 @@ export default async function StreamingPage() {
             releaseDate:  relDate.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
             cover:        release.coverArtworkUrl,
             isNew:        daysSince <= 30,
-            isTrending:   false, // determined by rank/streams later
+            isTrending:   false,
             totalStreams: total,
             revenue,
             listeners:    Math.round((spotify + apple) * 0.7),
             saves:        Math.round(spotify * 0.05),
             hasRealData:  !!roy,
-            platforms:    { spotify, apple, youtube, tiktok, amazon, other },
+            platforms:    roy ? Object.entries(roy.platforms).map(([n,v]) => ({name: n, value: v})) : [],
             dailyStreams: buildDailyFromTotal(total, 30),
             countries:    buildCountries(total),
             cities:       buildCities(total),
           });
         }
       } else {
-        // Release without tracks — use release title to match royalty
         const roy = royaltyBySong[releaseKey] || null;
 
-        const spotify  = roy?.spotify  ?? 0;
-        const apple    = roy?.apple    ?? 0;
-        const youtube  = roy?.youtube  ?? 0;
-        const tiktok   = roy?.tiktok   ?? 0;
-        const amazon   = roy?.amazon   ?? 0;
-        const other    = roy?.other    ?? 0;
-        const revenue  = roy?.revenue  ?? 0;
-        const total    = spotify + apple + youtube + tiktok + amazon + other;
+        const total = roy?.totalStreams ?? 0;
+        const revenue = roy?.revenue ?? 0;
+        const spotify = roy?.platforms['Spotify'] ?? 0;
+        const apple = roy?.platforms['Apple Music'] ?? 0;
 
         allTracks.push({
           id:           release.id,
@@ -176,7 +170,7 @@ export default async function StreamingPage() {
           listeners:    Math.round((spotify + apple) * 0.7),
           saves:        Math.round(spotify * 0.05),
           hasRealData:  !!roy,
-          platforms:    { spotify, apple, youtube, tiktok, amazon, other },
+          platforms:    roy ? Object.entries(roy.platforms).map(([n,v]) => ({name: n, value: v})) : [],
           dailyStreams: buildDailyFromTotal(total, 30),
           countries:    buildCountries(total),
           cities:       buildCities(total),
@@ -185,26 +179,23 @@ export default async function StreamingPage() {
     }
   }
 
-  // Sort by streams desc, update rank & isTrending
   allTracks.sort((a, b) => b.totalStreams - a.totalStreams);
   allTracks.forEach((t, i) => {
     t.rank = i + 1;
     t.isTrending = i < 3 && t.totalStreams > 0;
   });
 
-  // Fallback dummy if no releases at all
-  const finalTracks = allTracks.length > 0 ? allTracks : DUMMY_TRACKS;
+  const finalTracks = allTracks;
 
-  // ── Global stats ───────────────────────────────────────────────────────────
   const globalStats = {
     totalStreams: realTotal,
-    monthlyListeners: hasRealData ? Math.round(realTotal * 0.15) : 128_742,
-    followers:        Math.round((hasRealData ? realTotal : 856_421) * 0.029),
-    saves:            Math.round((hasRealData ? realSpotify : 533_000) * 0.05),
-    revenue:          hasRealData ? realRevenue            : 56_800_000,
-    watchTimeHours:   Math.round((hasRealData ? realTotal : 856_421) * 0.00145),
-    totalPlaylists:   Math.max(1, approvedReleases * 3) || 89,
-    activeReleases:   approvedReleases || 12,
+    monthlyListeners: Math.round(realTotal * 0.15),
+    followers:        Math.round(realTotal * 0.029),
+    saves:            Math.round((globalPlatformMap['Spotify'] || 0) * 0.05),
+    revenue:          realRevenue,
+    watchTimeHours:   Math.round(realTotal * 0.00145),
+    totalPlaylists:   Math.max(1, approvedReleases * 3) || 0,
+    activeReleases:   approvedReleases || 0,
   };
 
   return (
@@ -213,33 +204,30 @@ export default async function StreamingPage() {
       globalStats={globalStats}
       globalDailyStreams={globalDailyStreams}
       globalPlatforms={globalPlatforms}
-      hasRealData={hasRealData}
+      hasRealData={realTotal > 0}
       userName={session.user.name || "Artist"}
     />
   );
 }
 
-// ── Types ────────────────────────────────────────────────────────────────────
-export type PlatformStreams = {
-  spotify: number; apple: number; youtube: number;
-  tiktok: number; amazon: number; other: number;
-};
-
+// ============================================================================
+// Types
+// ============================================================================
 export type TrackData = {
   id: string; rank: number; title: string; artist: string;
   isrc: string; album: string; releaseDate: string;
   cover: string | null; isNew: boolean; isTrending: boolean;
   totalStreams: number; revenue: number; listeners: number; saves: number;
   hasRealData: boolean;
-  platforms: PlatformStreams;
+  platforms: {name: string; value: number}[];
   dailyStreams: { date: string; streams: number }[];
   countries:   { name: string; flag: string; pct: number; streams: number }[];
   cities:      { name: string; country: string; streams: number }[];
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Build 30-day sparkline from total streams (uniform + noise) */
+// ============================================================================
+// Helpers
+// ============================================================================
 function buildDailyFromTotal(total: number, days: number) {
   if (total === 0) return Array.from({ length: days }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (days - 1 - i));
@@ -248,23 +236,19 @@ function buildDailyFromTotal(total: number, days: number) {
   const avg = Math.round(total / days);
   const result = [];
   const today = new Date();
-  // Use a simple but stable variation based on day index
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today); d.setDate(today.getDate() - i);
-    // Deterministic noise: sine wave to avoid totally flat line
     const noise = Math.sin((i * 17) % 10) * 0.3 + 1;
     result.push({ date: `${d.getDate()}/${d.getMonth() + 1}`, streams: Math.max(0, Math.round(avg * noise)) });
   }
   return result;
 }
 
-/** Build daily from monthly royalty records */
 function buildDailyFromMonthly(
   monthly: { label: string; streams: number }[],
   fallbackTotal: number,
 ): { date: string; streams: number }[] {
   if (monthly.length === 0) return buildDailyFromTotal(fallbackTotal, 30);
-  // Take last 30 days, distribute last month's streams
   const lastMonth = monthly[monthly.length - 1];
   return buildDailyFromTotal(lastMonth.streams, 30);
 }
@@ -310,50 +294,3 @@ function buildCities(total: number) {
     streams: Math.round(total * c.w),
   }));
 }
-
-// ── Dummy tracks (when no DB releases) ───────────────────────────────────────
-const DUMMY_PLATFORMS = (base: number): PlatformStreams => ({
-  spotify:  Math.round(base * 0.62),
-  apple:    Math.round(base * 0.067),
-  youtube:  Math.round(base * 0.059),
-  tiktok:   Math.round(base * 0.067),
-  amazon:   Math.round(base * 0.058),
-  other:    Math.round(base * 0.007),
-});
-
-const DUMMY_TRACKS: TrackData[] = [
-  { title: "Global Royalty",  isrc: "IDZ000000001", album: "Single",          releaseDate: "01 Jan 2024", isTrending: true,  isNew: false },
-  { title: "Midnight Drive",  isrc: "IDZ012345678", album: "City Lights EP",  releaseDate: "15 Apr 2024", isTrending: true,  isNew: false },
-  { title: "Echoes of You",   isrc: "IDZ012345679", album: "Reminiscence",    releaseDate: "05 May 2024", isTrending: true,  isNew: false },
-  { title: "Broken Dreams",   isrc: "IDZ012345680", album: "City Lights EP",  releaseDate: "15 Apr 2024", isTrending: false, isNew: false },
-  { title: "Lost in Space",   isrc: "IDZ012345681", album: "Cosmic Journey",  releaseDate: "10 Mar 2024", isTrending: false, isNew: false },
-  { title: "Sunset Paradise", isrc: "IDZ012345682", album: "Summer Vibes",    releaseDate: "22 Jun 2024", isTrending: false, isNew: false },
-  { title: "Dream Walker",    isrc: "IDZ012345683", album: "Dreamscape",      releaseDate: "08 Jul 2024", isTrending: false, isNew: true  },
-  { title: "Never Give Up",   isrc: "IDZ012345684", album: "Motivation",      releaseDate: "12 Feb 2024", isTrending: false, isNew: false },
-  { title: "Fire Inside",     isrc: "IDZ012345685", album: "Passion",         releaseDate: "30 Mar 2024", isTrending: false, isNew: false },
-  { title: "Ocean Lights",    isrc: "IDZ012345686", album: "Ambient",         releaseDate: "02 Aug 2024", isTrending: false, isNew: true  },
-].map((t, i) => {
-  const baseStreams = Math.round(856_421 * Math.pow(0.65, i));
-  const pl = DUMMY_PLATFORMS(baseStreams);
-  return {
-    id:           `dummy-${i}`,
-    rank:         i + 1,
-    title:        t.title,
-    artist:       "Breakout Artist",
-    isrc:         t.isrc,
-    album:        t.album,
-    releaseDate:  t.releaseDate,
-    cover:        null,
-    isNew:        t.isNew,
-    isTrending:   t.isTrending,
-    totalStreams: baseStreams,
-    revenue:      Math.round(baseStreams * 0.05),
-    listeners:    Math.round((pl.spotify + pl.apple) * 0.7),
-    saves:        Math.round(pl.spotify * 0.05),
-    hasRealData:  false,
-    platforms:    pl,
-    dailyStreams: buildDailyFromTotal(baseStreams, 30),
-    countries:    buildCountries(baseStreams),
-    cities:       buildCities(baseStreams),
-  };
-});

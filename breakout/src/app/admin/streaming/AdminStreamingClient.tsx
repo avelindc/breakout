@@ -9,7 +9,7 @@ import {
   Disc, Award, BarChart2, Activity, Globe, CreditCard, Download, RefreshCw,
   ChevronRight, ChevronLeft, ChevronDown, Filter, MapPin, Play, Heart, BookOpen, Star, Sparkles, X as IconX, Search,
 } from "lucide-react";
-import type { ArtistData, TrackData, any } from "./page";
+import type { ArtistData, TrackData } from "./page";
 
 // ── Platform config ────────────────────────────────────────────────────────────
 const COLORS = ['#7000FF', '#00F0FF', '#FF0055', '#111111', '#AAAAAA', '#1DB954', '#FC3C44', '#FF0000', '#69C9D0', '#E1306C', '#1877F2', '#00A8E1'];
