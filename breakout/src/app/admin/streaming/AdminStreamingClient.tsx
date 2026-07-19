@@ -7,7 +7,7 @@ import {
 import {
   Users, Music, CheckCircle, XCircle, Clock, DollarSign, TrendingUp, TrendingDown,
   Disc, Award, BarChart2, Activity, Globe, CreditCard, Download, RefreshCw,
-  ChevronRight, Filter, MapPin, Play, Heart, BookOpen, Star, Sparkles, X as IconX, Search,
+  ChevronRight, ChevronLeft, ChevronDown, Filter, MapPin, Play, Heart, BookOpen, Star, Sparkles, X as IconX, Search,
 } from "lucide-react";
 import type { ArtistData, TrackData, PlatformStreams17 } from "./page";
 
