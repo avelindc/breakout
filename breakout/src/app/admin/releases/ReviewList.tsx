@@ -239,7 +239,7 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                     <FileText className="w-4 h-4 text-gray-400" /> Lirik Lagu
                   </h4>
                   <pre className="text-xs text-gray-700 leading-relaxed font-sans whitespace-pre-wrap max-h-32 overflow-y-auto bg-white p-3.5 rounded-xl border border-gray-100">
-                    {selected.tracks?.[0].lyrics}
+                    {selected.tracks?.[0]?.lyrics}
                   </pre>
                 </div>
               )}

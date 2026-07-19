@@ -57,8 +57,8 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
   const startEditing = (rel: Release) => {
     setEditTitle(rel.title);
     setEditGenre(rel.genre);
-    setEditUpc(rel.tracks[0]?.upc || "");
-    setEditIsrc(rel.tracks[0]?.isrc || "");
+    setEditUpc(rel.tracks?.[0]?.upc || "");
+    setEditIsrc(rel.tracks?.[0]?.isrc || "");
     setIsEditing(true);
   };
 
@@ -306,7 +306,7 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
               )}
 
               {/* Audio Play preview inside modal */}
-              {!isEditing && selected.tracks && selected.tracks[0] && (
+              {!isEditing && selected.tracks && selected.tracks.length > 0 && selected.tracks[0] && (
                 <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <button
