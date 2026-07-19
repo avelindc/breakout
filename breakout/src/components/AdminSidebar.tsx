@@ -44,14 +44,14 @@ export function AdminSidebar({ artists = [], brandLogo = "/logo.png" }: { artist
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-[#f000ff] to-[#8a2be2] border-b border-white/10 flex items-center justify-between px-4 z-40 shadow-[0_4px_20px_rgba(240,0,255,0.3)]">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 fundflow-glass border-b border-white/20 flex items-center justify-between px-4 z-40">
         <div className="flex items-center gap-2">
           <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain" />
-          <span className="font-bold tracking-tighter text-white drop-shadow-md">BREAKOUT.ID Admin</span>
+          <span className="font-bold tracking-tighter text-gray-900 drop-shadow-sm">BREAKOUT.ID</span>
         </div>
         <button 
           onClick={() => setIsOpen(true)}
-          className="p-2 text-white/90 hover:text-white focus:outline-none"
+          className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -60,65 +60,50 @@ export function AdminSidebar({ artists = [], brandLogo = "/logo.png" }: { artist
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          className="md:hidden fixed inset-0 bg-black/20 z-40 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside 
-        className={`w-64 bg-blue-600 flex flex-col h-full fixed top-0 left-0 shadow-2xl z-50 rounded-br-3xl transition-transform duration-300 ease-in-out
+        className={`w-64 fundflow-glass flex flex-col h-full fixed top-0 left-0 z-50 transition-transform duration-300 ease-in-out border-r border-white/50
           ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <div className="h-20 flex items-center justify-between px-8">
+        <div className="h-24 flex items-center justify-between px-8">
           <Link href="/admin" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
             <img src={brandLogo} alt="Breakout Logo" className="w-8 h-8 object-contain" />
-            <span className="font-bold text-xl tracking-tighter text-white">BREAKOUT.ID</span>
+            <span className="font-bold text-xl tracking-tighter text-gray-900">BREAKOUT</span>
           </Link>
           <button 
-            className="md:hidden text-white/80 hover:text-white"
+            className="md:hidden text-gray-500 hover:text-gray-900"
             onClick={() => setIsOpen(false)}
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 pb-24 pl-4 flex flex-col gap-1 mt-4">
+        <div className="flex-1 overflow-y-auto py-6 pb-24 px-4 flex flex-col gap-2">
           {links.map((link, index) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
-            const scale = getScale(hoveredIndex, index);
 
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                style={{
-                  transform: `scale(${scale}) translateX(${(scale - 1) * 8}px)`,
-                  transition: "transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-                  transformOrigin: "left center",
-                  zIndex: scale > 1 ? 10 : 1,
-                }}
-                className={`flex items-center gap-3 pl-6 py-3.5 font-medium text-sm relative rounded-l-full ${
+                className={`flex items-center gap-3 px-4 py-3 font-medium text-sm rounded-2xl transition-all duration-200 ${
                   isActive 
-                    ? "bg-gray-50 text-blue-600" 
-                    : "text-blue-100 hover:text-white hover:bg-white/10"
+                    ? "bg-white/60 text-blue-700 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/80" 
+                    : "text-gray-500 hover:text-gray-900 hover:bg-white/30"
                 }`}
               >
-                <Icon className={`w-5 h-5 transition-all duration-200 ${scale > 1.1 ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]' : ''}`} />
+                <div className={`${isActive ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400'} p-1.5 rounded-xl transition-colors`}>
+                  <Icon className="w-4 h-4" />
+                </div>
                 {link.name}
-                
-                {/* Fake inner shadow elements to simulate the inverted border radius effect */}
-                {isActive && (
-                  <>
-                    <div className="absolute -top-4 right-0 w-4 h-4 bg-transparent shadow-[4px_4px_0_4px_#f9fafb] rounded-br-full pointer-events-none hidden md:block"></div>
-                    <div className="absolute -bottom-4 right-0 w-4 h-4 bg-transparent shadow-[4px_-4px_0_4px_#f9fafb] rounded-tr-full pointer-events-none hidden md:block"></div>
-                  </>
-                )}
               </Link>
             );
           })}
