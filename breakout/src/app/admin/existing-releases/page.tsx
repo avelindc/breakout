@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Plus, Music, ExternalLink, Disc } from "lucide-react";
 import Link from "next/link";
 import { ImportReleaseForm } from "./ImportReleaseForm";
+import DeleteExistingReleaseButton from "./DeleteExistingReleaseButton";
 
 const prisma = new PrismaClient();
 
@@ -195,6 +196,7 @@ export default async function ExistingReleasesPage({
                     {!release.spotifyUrl && !release.appleMusicUrl && (
                       <span className="text-xs text-gray-300">—</span>
                     )}
+                    <DeleteExistingReleaseButton releaseId={release.id} releaseTitle={release.title} />
                   </div>
                 </div>
               ))}

@@ -120,3 +120,15 @@ export async function resetArtistDataAction(artistId: string) {
     return { error: error.message || 'Failed to reset artist data' };
   }
 }
+
+export async function deleteExistingReleaseAction(releaseId: string) {
+  try {
+    await prisma.release.delete({
+      where: { id: releaseId }
+    });
+    revalidatePath("/admin/existing-releases");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Failed to delete release" };
+  }
+}
