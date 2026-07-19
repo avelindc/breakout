@@ -168,14 +168,17 @@ export async function getLandingPageCMS(): Promise<CMSData> {
   }
 }
 
-export async function saveLandingPageCMS(data: CMSData) {
+export async function saveLandingPageCMS(dataJson: string) {
   try {
+    // Validate JSON
+    const data = JSON.parse(dataJson);
+    
     await prisma.settings.upsert({
       where: { key: CMS_SETTING_KEY },
-      update: { value: JSON.stringify(data) },
+      update: { value: dataJson },
       create: { 
         key: CMS_SETTING_KEY, 
-        value: JSON.stringify(data), 
+        value: dataJson, 
         description: "Landing Page CMS Content" 
       }
     });
@@ -187,6 +190,6 @@ export async function saveLandingPageCMS(data: CMSData) {
     return { success: true };
   } catch (error: any) {
     console.error("Save CMS Error:", error);
-    return { error: error.message };
+    return { error: error.stack || error.message || String(error) };
   }
 }

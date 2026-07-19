@@ -22,7 +22,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     setIsSaving(true);
     setMessage(null);
     try {
-      const res = await saveLandingPageCMS(data);
+      const res = await saveLandingPageCMS(JSON.stringify(data));
       setIsSaving(false);
       
       if (res.error) {
