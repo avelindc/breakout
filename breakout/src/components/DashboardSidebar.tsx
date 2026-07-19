@@ -10,7 +10,7 @@ import {
 import { signOut } from "next-auth/react";
 
 const links = [
-  { name: "Streaming Analytics", href: "/dashboard", icon: BarChart2 },
+  { name: "Dasbor", href: "/dashboard", icon: BarChart2 },
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
