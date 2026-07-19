@@ -4,20 +4,14 @@ import { useState, useEffect } from "react";
 import { registerAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { AuroraBackground } from "@/components/AuroraBackground";
-import { Loader2, ArrowLeft, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import dynamic from "next/dynamic";
-
-const ContractStep = dynamic(() => import("./ContractStep"), { ssr: false });
+import { useRouter } from "next/navigation";
 
 export function RegisterClient() {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  
-  // State for Contract
-  const [savedFormData, setSavedFormData] = useState<FormData | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
 
   async function handleInitialSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -48,11 +42,8 @@ export function RegisterClient() {
       setError(res.error);
       setLoading(false);
     } else {
-      setUserId(res.userId || null);
-      setSavedFormData(formData);
-      setStep(2); // Go directly to contract signing
-      setLoading(false);
-      setError(null);
+      router.push(`/register/success?name=${encodeURIComponent(formData.get("name") as string)}&email=${encodeURIComponent(formData.get("email") as string)}&whatsapp=${encodeURIComponent(formData.get("whatsapp") as string)}`);
+      router.refresh();
     }
   }
 
@@ -61,9 +52,7 @@ export function RegisterClient() {
       <AuroraBackground>
         <div className="w-full max-w-md glass-card p-8 rounded-2xl animate-fade-in relative z-10 my-10">
           
-          {step === 1 ? (
-            <>
-              <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-8">
                 <div className="w-24 h-24 mb-4 relative">
                   <Image src="/logo.png" alt="Break Out Logo" fill className="object-contain" priority />
                 </div>
@@ -213,17 +202,6 @@ export function RegisterClient() {
                   Log in
                 </Link>
               </p>
-            </>
-          ) : step === 2 && userId && savedFormData ? (
-            <ContractStep 
-              userId={userId}
-              name={savedFormData.get("name") as string}
-              nik={savedFormData.get("nik") as string}
-              address={savedFormData.get("address") as string}
-              email={savedFormData.get("email") as string}
-              whatsapp={savedFormData.get("whatsapp") as string}
-            />
-          ) : null}
 
         </div>
       </AuroraBackground>
