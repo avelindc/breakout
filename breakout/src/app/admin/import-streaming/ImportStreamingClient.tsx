@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { UploadCloud, FileSpreadsheet, CheckCircle, AlertCircle, Trash2, RefreshCw, Database } from "lucide-react";
 import * as XLSX from "xlsx";
+import Papa from "papaparse";
 import { processImportStreamingBatch, deleteImportLog, ParsedRow } from "@/app/actions/importStreaming";
 import { useRouter } from "next/navigation";
 
@@ -41,14 +42,40 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
     setFile(f);
     setParsing(true);
     try {
-      const data = await f.arrayBuffer();
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      let json: any[][] = [];
+      let fileHeaders: string[] = [];
+      let rawData: any[] = [];
+
+      if (f.name.toLowerCase().endsWith(".csv")) {
+        const text = await f.text();
+        // Use papaparse for CSV to auto-detect delimiter (; or ,)
+        const result = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+        });
+        
+        if (result.data && result.data.length > 0) {
+          fileHeaders = result.meta.fields || [];
+          rawData = result.data;
+          // Papa.parse returns array of objects when header: true
+          // We can just use the keys of the first object if meta.fields is missing
+          if (fileHeaders.length === 0) {
+            fileHeaders = Object.keys(result.data[0] as object);
+          }
+        }
+      } else {
+        const data = await f.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        if (json.length > 0) {
+          fileHeaders = (json[0] || []).map((h: any) => String(h || "").trim());
+          rawData = XLSX.utils.sheet_to_json(worksheet) as any[];
+        }
+      }
       
-      if (json.length > 0) {
-        const fileHeaders = (json[0] || []).map((h: any) => String(h || "").trim());
+      if (fileHeaders.length > 0) {
         setHeaders(fileHeaders);
         
         // Auto map headers
@@ -68,7 +95,6 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
         setMapping(newMapping);
         
         // Preview top 5 rows
-        const rawData = XLSX.utils.sheet_to_json(worksheet) as any[];
         setPreviewData(rawData);
       }
     } catch (err) {

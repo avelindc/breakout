@@ -29,18 +29,34 @@ export async function processImportStreamingBatch(
     const unmatchedData: any[] = [];
     const matchedData: Record<string, any> = {};
 
-    // Collect all ISRCs to lookup
+    // Collect all ISRCs and UPCs to lookup
     const isrcs = Array.from(new Set(rows.map(r => r.isrc?.trim()).filter(Boolean) as string[]));
+    const upcs = Array.from(new Set(rows.map(r => r.upc?.trim()).filter(Boolean) as string[]));
     
+    console.log("[IMPORT DEBUG] Looking up ISRCs:", isrcs);
+    console.log("[IMPORT DEBUG] Looking up UPCs:", upcs);
+
     // Find tracks
     const tracks = await prisma.track.findMany({
-      where: { isrc: { in: isrcs } },
-      include: { release: { select: { artistId: true } } }
+      where: { 
+        OR: [
+          { isrc: { in: isrcs } },
+          { upc: { in: upcs } },
+          { release: { upc: { in: upcs } } }
+        ]
+      },
+      include: { release: { select: { artistId: true, upc: true } } }
     });
 
+    console.log(`[IMPORT DEBUG] Found ${tracks.length} tracks in database matching criteria.`);
+
     const trackByIsrc = new Map<string, typeof tracks[0]>();
+    const trackByUpc = new Map<string, typeof tracks[0]>();
+    
     tracks.forEach(t => {
       if (t.isrc) trackByIsrc.set(t.isrc, t);
+      if (t.upc) trackByUpc.set(t.upc, t);
+      if (t.release?.upc) trackByUpc.set(t.release.upc, t);
     });
 
     // Aggregate royalties in memory
@@ -60,23 +76,33 @@ export async function processImportStreamingBatch(
     }>();
 
     for (const row of rows) {
-      if (!row.isrc) {
+      const isrcRaw = row.isrc?.trim();
+      const upcRaw = row.upc?.trim();
+
+      if (!isrcRaw && !upcRaw) {
         failedCount++;
         unmatchedData.push({
-          isrc: "", upc: row.upc || "", title: row.title || "", artist: row.artist || "", reason: "ISRC Kosong"
+          isrc: "", upc: "", title: row.title || "", artist: row.artist || "", reason: "ISRC dan UPC Kosong"
         });
         continue;
       }
 
-      const track = trackByIsrc.get(row.isrc.trim());
+      // Try ISRC first, then UPC
+      let track = isrcRaw ? trackByIsrc.get(isrcRaw) : undefined;
+      if (!track && upcRaw) {
+        track = trackByUpc.get(upcRaw);
+      }
+
       if (!track) {
         failedCount++;
         unmatchedData.push({
-          isrc: row.isrc, upc: row.upc || "", title: row.title || "", artist: row.artist || "", reason: "ISRC Tidak Ditemukan di Database"
+          isrc: isrcRaw || "", upc: upcRaw || "", title: row.title || "", artist: row.artist || "", reason: "ISRC / UPC Tidak Ditemukan di Database"
         });
+        console.log(`[IMPORT DEBUG] Failed to match row - ISRC: ${isrcRaw}, UPC: ${upcRaw}, Title: ${row.title}`);
         continue;
       }
 
+      console.log(`[IMPORT DEBUG] Successfully matched row - ISRC: ${isrcRaw}, UPC: ${upcRaw} to Track: ${track.title}`);
       successCount++;
 
       // Parse Date to get month and year
