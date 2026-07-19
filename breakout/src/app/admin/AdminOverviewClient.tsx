@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowUpRight, ArrowDownRight, Search, Plus, MoreHorizontal } from "lucide-react";
 
 type OverviewData = {
@@ -110,7 +110,7 @@ export function AdminOverviewClient({ data }: { data: OverviewData }) {
                     <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none' }} />
                     <Bar dataKey="value" radius={[8, 8, 8, 8]} barSize={36}>
                       {revenueData.map((entry, index) => (
-                        <cell key={`cell-${index}`} fill={entry.selected ? 'url(#barGrad)' : 'rgba(255,255,255,0.6)'} />
+                        <Cell key={`cell-${index}`} fill={entry.selected ? 'url(#barGrad)' : 'rgba(255,255,255,0.6)'} />
                       ))}
                     </Bar>
                     <defs>

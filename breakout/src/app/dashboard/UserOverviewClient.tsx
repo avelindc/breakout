@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AreaChart, Area, BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowUpRight, Music, Clock, DollarSign, Search, Plus, MoreHorizontal } from "lucide-react";
 
 type OverviewData = {
@@ -112,7 +112,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
                     <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none' }} />
                     <Bar dataKey="value" radius={[8, 8, 8, 8]} barSize={36}>
                       {revenueData.map((entry, index) => (
-                        <cell key={`cell-${index}`} fill={entry.selected ? 'url(#barGrad2)' : 'rgba(255,255,255,0.6)'} />
+                        <Cell key={`cell-${index}`} fill={entry.selected ? 'url(#barGrad2)' : 'rgba(255,255,255,0.6)'} />
                       ))}
                     </Bar>
                     <defs>
