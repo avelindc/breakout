@@ -81,18 +81,6 @@ export function RegisterClient() {
                   />
                 </div>
                 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">NIK (Nomor Induk Kependudukan)</label>
-                  <input 
-                    name="nik" 
-                    type="text" 
-                    required
-                    minLength={16}
-                    maxLength={16}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
-                    placeholder="16 Digit NIK"
-                  />
-                </div>
 
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-gray-300">Alamat Lengkap (Sesuai KTP)</label>
