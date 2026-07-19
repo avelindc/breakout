@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { registerAction, sendOtpAction } from "@/app/actions/auth";
+import { registerAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
@@ -15,21 +15,9 @@ export function RegisterClient() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // State for OTP & Contract
+  // State for Contract
   const [savedFormData, setSavedFormData] = useState<FormData | null>(null);
-  const [emailForOtp, setEmailForOtp] = useState<string>("");
-  const [otpValue, setOtpValue] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
-
-  // Timer for resend OTP
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (resendCooldown > 0) {
-      timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [resendCooldown]);
 
   async function handleInitialSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,68 +42,18 @@ export function RegisterClient() {
       return;
     }
 
-    // Attempt to send OTP
-    const res = await sendOtpAction(email);
+    const res = await registerAction(formData);
     
-    if (res?.error) {
-      setError(res.error);
-      setLoading(false);
-    } else {
-      // Success sending OTP, move to step 2
-      setSavedFormData(formData);
-      setEmailForOtp(email);
-      setStep(2);
-      setResendCooldown(60); // 60 seconds cooldown
-      setLoading(false);
-      setError(null);
-    }
-  }
-
-  async function handleVerifySubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    if (!savedFormData) {
-      setError("Data pendaftaran hilang. Silakan muat ulang halaman.");
-      setLoading(false);
-      return;
-    }
-    
-    if (otpValue.length !== 6) {
-      setError("OTP harus 6 digit.");
-      setLoading(false);
-      return;
-    }
-
-    // Append OTP to the existing FormData
-    savedFormData.set("otp", otpValue);
-
-    const res = await registerAction(savedFormData);
-
     if (res?.error) {
       setError(res.error);
       setLoading(false);
     } else {
       setUserId(res.userId || null);
-      setStep(3); // Go to contract signing
+      setSavedFormData(formData);
+      setStep(2); // Go directly to contract signing
+      setLoading(false);
+      setError(null);
     }
-  }
-
-  async function handleResendOtp() {
-    if (resendCooldown > 0) return;
-    
-    setError(null);
-    setLoading(true);
-    
-    const res = await sendOtpAction(emailForOtp);
-    if (res?.error) {
-      setError(res.error);
-    } else {
-      setError("Kode OTP baru telah dikirim.");
-      setResendCooldown(60);
-    }
-    setLoading(false);
   }
 
   return (
@@ -276,71 +214,7 @@ export function RegisterClient() {
                 </Link>
               </p>
             </>
-          ) : step === 2 ? (
-            <>
-              <button 
-                onClick={() => setStep(1)} 
-                className="absolute top-6 left-6 text-gray-400 hover:text-white transition flex items-center gap-1 text-sm"
-              >
-                <ArrowLeft className="w-4 h-4" /> Kembali
-              </button>
-
-              <div className="flex flex-col items-center mb-8 mt-6">
-                <div className="w-16 h-16 rounded-full bg-[#00F0FF]/10 flex items-center justify-center mb-4 border border-[#00F0FF]/30 shadow-[0_0_15px_rgba(0,240,255,0.2)]">
-                  <Mail className="text-[#00F0FF] w-8 h-8" />
-                </div>
-                <h1 className="text-2xl font-bold">Verifikasi Email</h1>
-                <p className="text-gray-300 text-sm mt-3 text-center">
-                  Kode OTP 6-digit telah dikirim ke:<br/>
-                  <span className="font-semibold text-white">{emailForOtp}</span>
-                </p>
-              </div>
-
-              {error && (
-                <div className={`mb-6 p-3 ${error.includes("baru") ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'} border rounded-lg text-sm text-center`}>
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleVerifySubmit} className="flex flex-col gap-6">
-                <div className="space-y-1 flex flex-col items-center">
-                  <label className="text-sm font-medium text-gray-300 mb-2">Input 6 digit OTP</label>
-                  <input 
-                    name="otp" 
-                    type="text" 
-                    required
-                    maxLength={6}
-                    value={otpValue}
-                    onChange={(e) => setOtpValue(e.target.value.replace(/[^0-9]/g, ''))}
-                    className="w-full max-w-[200px] text-center text-2xl tracking-[0.5em] bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-600" 
-                    placeholder="000000"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <button 
-                    type="submit" 
-                    disabled={loading || otpValue.length !== 6}
-                    className="w-full bg-gradient-to-r from-[#7000FF] to-[#0047FF] hover:opacity-90 transition text-white font-semibold py-3 rounded-lg flex justify-center items-center gap-2 shadow-lg shadow-[#7000FF]/25 disabled:opacity-50"
-                  >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verifikasi"}
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={handleResendOtp}
-                    disabled={loading || resendCooldown > 0}
-                    className="w-full bg-transparent hover:bg-white/5 border border-white/10 transition text-gray-300 text-sm font-medium py-3 rounded-lg flex justify-center items-center gap-2 disabled:opacity-50"
-                  >
-                    {resendCooldown > 0 
-                      ? `Kirim Ulang OTP (${resendCooldown}s)` 
-                      : "Kirim Ulang OTP"
-                    }
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : step === 3 && userId && savedFormData ? (
+          ) : step === 2 && userId && savedFormData ? (
             <ContractStep 
               userId={userId}
               name={savedFormData.get("name") as string}

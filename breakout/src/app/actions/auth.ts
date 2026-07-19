@@ -96,14 +96,13 @@ export async function registerAction(formData: FormData) {
   const password = formData.get("password") as string;
   const whatsapp = formData.get("whatsapp") as string;
   const ktpFile = formData.get("ktp") as File | null;
-  const otp = formData.get("otp") as string;
   const youtubeUrl = formData.get("youtubeUrl") as string;
   const nik = formData.get("nik") as string;
   const address = formData.get("address") as string;
   const stageName = name; // Use Full Name as default Stage Name
 
-  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !otp || !youtubeUrl || !nik || !address) {
-    return { error: "All fields including KTP, NIK, Address, OTP, and YouTube URL are required" };
+  if (!name || !email || !password || !whatsapp || !ktpFile || ktpFile.size === 0 || !youtubeUrl || !nik || !address) {
+    return { error: "All fields including KTP, NIK, Address, and YouTube URL are required" };
   }
 
   try {
@@ -115,32 +114,7 @@ export async function registerAction(formData: FormData) {
       return { error: "Email already in use" };
     }
 
-    // Verify OTP
-    const tokenRecord = await prisma.verificationToken.findFirst({
-      where: { email },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    if (!tokenRecord) {
-      return { error: "Silakan minta kode OTP terlebih dahulu." };
-    }
-
-    if (tokenRecord.attempts >= 5) {
-      return { error: "Terlalu banyak percobaan yang salah. Silakan minta OTP baru." };
-    }
-
-    if (tokenRecord.expiresAt < new Date()) {
-      return { error: "Kode OTP telah kedaluwarsa. Silakan kirim ulang OTP." };
-    }
-
-    const isValidOtp = await bcrypt.compare(otp, tokenRecord.otp);
-    if (!isValidOtp) {
-      await prisma.verificationToken.update({
-        where: { id: tokenRecord.id },
-        data: { attempts: tokenRecord.attempts + 1 }
-      });
-      return { error: "Kode OTP salah." };
-    }
+    // Removed OTP Verification
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
