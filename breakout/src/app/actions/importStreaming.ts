@@ -30,8 +30,8 @@ export async function processImportStreamingBatch(
     const matchedData: Record<string, any> = {};
 
     // Collect all ISRCs and UPCs to lookup
-    const isrcs = Array.from(new Set(rows.map(r => r.isrc?.trim()).filter(Boolean) as string[]));
-    const upcs = Array.from(new Set(rows.map(r => r.upc?.trim()).filter(Boolean) as string[]));
+    const isrcs = Array.from(new Set(rows.map(r => r.isrc?.trim().toUpperCase()).filter(Boolean) as string[]));
+    const upcs = Array.from(new Set(rows.map(r => r.upc?.trim().toUpperCase()).filter(Boolean) as string[]));
     
     console.log("[IMPORT DEBUG] Looking up ISRCs:", isrcs);
     console.log("[IMPORT DEBUG] Looking up UPCs:", upcs);
@@ -54,9 +54,9 @@ export async function processImportStreamingBatch(
     const trackByUpc = new Map<string, typeof tracks[0]>();
     
     tracks.forEach(t => {
-      if (t.isrc) trackByIsrc.set(t.isrc, t);
-      if (t.upc) trackByUpc.set(t.upc, t);
-      if (t.release?.upc) trackByUpc.set(t.release.upc, t);
+      if (t.isrc) trackByIsrc.set(t.isrc.trim().toUpperCase(), t);
+      if (t.upc) trackByUpc.set(t.upc.trim().toUpperCase(), t);
+      if (t.release?.upc) trackByUpc.set(t.release.upc.trim().toUpperCase(), t);
     });
 
     // Aggregate royalties in memory
@@ -76,8 +76,8 @@ export async function processImportStreamingBatch(
     }>();
 
     for (const row of rows) {
-      const isrcRaw = row.isrc?.trim();
-      const upcRaw = row.upc?.trim();
+      const isrcRaw = row.isrc?.trim().toUpperCase();
+      const upcRaw = row.upc?.trim().toUpperCase();
 
       if (!isrcRaw && !upcRaw) {
         failedCount++;
@@ -89,8 +89,10 @@ export async function processImportStreamingBatch(
 
       // Try ISRC first, then UPC
       let track = isrcRaw ? trackByIsrc.get(isrcRaw) : undefined;
+      let matchedBy = isrcRaw ? 'ISRC' : '';
       if (!track && upcRaw) {
         track = trackByUpc.get(upcRaw);
+        matchedBy = 'UPC';
       }
 
       if (!track) {
@@ -98,11 +100,11 @@ export async function processImportStreamingBatch(
         unmatchedData.push({
           isrc: isrcRaw || "", upc: upcRaw || "", title: row.title || "", artist: row.artist || "", reason: "ISRC / UPC Tidak Ditemukan di Database"
         });
-        console.log(`[IMPORT DEBUG] Failed to match row - ISRC: ${isrcRaw}, UPC: ${upcRaw}, Title: ${row.title}`);
+        console.log(`[IMPORT DEBUG] Failed to match row. CSV ISRC: ${isrcRaw}, CSV UPC: ${upcRaw}, Title: ${row.title}, Artist: ${row.artist}`);
         continue;
       }
 
-      console.log(`[IMPORT DEBUG] Successfully matched row - ISRC: ${isrcRaw}, UPC: ${upcRaw} to Track: ${track.title}`);
+      console.log(`[IMPORT DEBUG] Successfully matched row by ${matchedBy} - CSV ISRC: ${isrcRaw}, CSV UPC: ${upcRaw} to DB Track ISRC: ${track.isrc}, UPC: ${track.upc}, Release UPC: ${track.release?.upc}, Title: ${track.title}`);
       successCount++;
 
       // Parse Date to get month and year
