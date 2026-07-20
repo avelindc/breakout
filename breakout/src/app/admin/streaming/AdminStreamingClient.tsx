@@ -295,28 +295,7 @@ export function AdminStreamingClient({ data }: Props) {
         {/* ── RIGHT MAIN DASHBOARD ─────────────────────────────────────────── */}
         <div className="flex-1 min-w-0">
 
-          {/* Breadcrumb Info Bar */}
-          <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-purple-200 mb-6 text-white">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-              <div className="flex items-center gap-2 font-medium text-sm">
-                <span className="text-white/80">Scope:</span>
-                {isGlobal && <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold">Global Data</span>}
-                {isArtist && <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold text-yellow-300">Artist: {selectedArtist.name}</span>}
-                {isTrack && (
-                  <>
-                    <span className="bg-white/20 px-2 py-0.5 rounded-md text-xs">{selectedArtist?.name}</span>
-                    <ChevronRight className="w-3 h-3 text-white/50" />
-                    <span className="bg-white/20 px-2 py-0.5 rounded-md font-bold text-yellow-300">Track: {selectedTrack.title}</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <div className="text-xs font-medium text-white/70 uppercase tracking-widest">Realtime Streams</div>
-              <div className="font-black text-2xl tracking-wide">{realtimeStreams.toLocaleString("id-ID")}</div>
-            </div>
-          </div>
+
 
           {/* KPI CARDS (Dynamic based on scope) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

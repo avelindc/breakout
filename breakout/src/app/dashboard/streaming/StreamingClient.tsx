@@ -343,17 +343,7 @@ export function StreamingClient({ allTracks, globalStats, globalDailyStreams, gl
         </div>
       </div>
 
-      {/* ── Realtime Counter ─────────────────────────────────────────────────── */}
-      <div className="mb-6 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 rounded-3xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg shadow-purple-200">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-          <span className="text-white/80 text-sm font-medium">
-            Realtime · {selectedTrack ? `"${selectedTrack.title}"` : "Semua Track"}
-          </span>
-        </div>
-        <div className="text-white font-bold text-2xl tracking-wide">{realtimeStreams.toLocaleString("id-ID")} streams</div>
-        <div className="text-white/60 text-xs">Update ~3 detik</div>
-      </div>
+
 
       {/* ── Main Layout: Track Panel (left) + Analytics (right) ────────────── */}
       <div className="flex gap-6">
