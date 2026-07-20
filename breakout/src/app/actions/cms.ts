@@ -124,6 +124,12 @@ export type CMSData = {
     totalStreams: number | null;
     autoFromDb: boolean;
   };
+  design: {
+    backgroundType: "aurora" | "color" | "image" | "video";
+    backgroundColor: string;
+    backgroundImage: string;
+    backgroundVideo: string;
+  };
 };
 
 const defaultCMSData: CMSData = {
@@ -131,6 +137,12 @@ const defaultCMSData: CMSData = {
     title: "Breakout Music Distribution",
     description: "Distribute your music worldwide to 150+ platforms.",
     keywords: "music, distribution, spotify, apple music, breakout",
+  },
+  design: {
+    backgroundType: "aurora",
+    backgroundColor: "#0B0F1A",
+    backgroundImage: "",
+    backgroundVideo: "",
   },
   hero: {
     badge: "The New Era of Music Distribution",
@@ -243,6 +255,7 @@ export async function getLandingPageCMS(): Promise<CMSData> {
       ...defaultCMSData,
       ...parsedData,
       seo: { ...defaultCMSData.seo, ...(parsedData.seo || {}) },
+      design: { ...defaultCMSData.design, ...(parsedData.design || {}) },
       hero: { ...defaultCMSData.hero, ...(parsedData.hero || {}) },
       about: { ...defaultCMSData.about, ...(parsedData.about || {}) },
       aboutLabel: { ...defaultCMSData.aboutLabel, ...(parsedData.aboutLabel || {}) },

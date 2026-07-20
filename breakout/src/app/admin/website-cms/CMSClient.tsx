@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
-type TabType = "seo" | "hero" | "about" | "features" | "pricing" | "faq" | "testimonials" | "partners" | "contact" | "footer" | "featuredReleases" | "featuredArtists" | "musicVideos" | "aboutLabel" | "socialMedia" | "stats";
+type TabType = "seo" | "design" | "hero" | "about" | "features" | "pricing" | "faq" | "testimonials" | "partners" | "contact" | "footer" | "featuredReleases" | "featuredArtists" | "musicVideos" | "aboutLabel" | "socialMedia" | "stats";
 
 export default function CMSClient({ initialData }: { initialData: CMSData }) {
   const [data, setData] = useState<CMSData>(initialData);
@@ -97,6 +97,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
 
   const tabs: { id: TabType, name: string, icon: any }[] = [
     { id: "seo", name: "SEO", icon: Settings },
+    { id: "design", name: "Design & BG", icon: LayoutTemplate },
     { id: "hero", name: "Hero", icon: LayoutTemplate },
     { id: "about", name: "About Us", icon: Info },
     { id: "features", name: "Features", icon: Star },
@@ -168,6 +169,60 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
                   <input type="text" value={data.seo.keywords} onChange={(e) => updateNestedField(['seo', 'keywords'], e.target.value)} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500" />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* DESIGN TAB */}
+          {activeTab === "design" && (
+            <div className="space-y-6 animate-fade-in">
+              <h2 className="text-xl font-bold text-gray-900">Design & Background</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Background Type</label>
+                  <select 
+                    value={data.design?.backgroundType || "aurora"} 
+                    onChange={(e) => updateNestedField(['design', 'backgroundType'], e.target.value)} 
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="aurora">Aurora (Default)</option>
+                    <option value="color">Solid Color</option>
+                    <option value="image">Image URL</option>
+                    <option value="video">Video URL (YouTube/MP4)</option>
+                  </select>
+                </div>
+                
+                {(data.design?.backgroundType === "color" || !data.design?.backgroundType) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+                    <div className="flex gap-2">
+                      <input type="color" value={data.design?.backgroundColor || "#0B0F1A"} onChange={(e) => updateNestedField(['design', 'backgroundColor'], e.target.value)} className="w-12 h-10 p-1 bg-white border border-gray-200 rounded-xl cursor-pointer" />
+                      <input type="text" value={data.design?.backgroundColor || "#0B0F1A"} onChange={(e) => updateNestedField(['design', 'backgroundColor'], e.target.value)} className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                    </div>
+                  </div>
+                )}
+                
+                {data.design?.backgroundType === "image" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Image URL</label>
+                    <div className="flex gap-2 items-center">
+                      <input type="text" value={data.design?.backgroundImage || ""} onChange={(e) => updateNestedField(['design', 'backgroundImage'], e.target.value)} placeholder="https://..." className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                      <div className="relative">
+                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, ['design', 'backgroundImage'], 'bgImageUpload')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        <button type="button" disabled={uploadingField === 'bgImageUpload'} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-xl font-medium flex items-center gap-2 whitespace-nowrap">
+                          {uploadingField === 'bgImageUpload' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />} Upload
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {data.design?.backgroundType === "video" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Video URL (YouTube / MP4)</label>
+                    <input type="text" value={data.design?.backgroundVideo || ""} onChange={(e) => updateNestedField(['design', 'backgroundVideo'], e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500" />
+                  </div>
+                )}
               </div>
             </div>
           )}

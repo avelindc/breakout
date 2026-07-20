@@ -32,13 +32,48 @@ export default async function LandingPage() {
   const totalReleases = cms.stats.autoFromDb ? dbStats.releaseCount : (cms.stats.totalReleases || 0);
   const totalStreams = cms.stats.autoFromDb ? dbStats.streamCount : (cms.stats.totalStreams || 0);
 
+  const bgStyle = cms.design?.backgroundType === "color" && cms.design.backgroundColor 
+    ? { backgroundColor: cms.design.backgroundColor } 
+    : {};
+  const bgClass = (!cms.design?.backgroundType || cms.design?.backgroundType === "aurora") ? "bg-[#0B0F1A]" : "bg-black/90";
+
+  function getYouTubeId(url: string) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url?.match(regExp);
+    return match && match[2].length === 11 ? match[2] : "";
+  }
+
+  const HeroWrapper = (!cms.design?.backgroundType || cms.design?.backgroundType === "aurora") ? AuroraBackground : "div";
+
   return (
-    <main className="min-h-screen bg-[#0B0F1A] text-white selection:bg-[#7000FF] selection:text-white pb-20">
+    <main className={`min-h-screen text-white selection:bg-[#7000FF] selection:text-white pb-20 relative overflow-hidden ${bgClass}`} style={bgStyle}>
       
+      {cms.design?.backgroundType === "image" && cms.design.backgroundImage && (
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <img src={cms.design.backgroundImage} className="w-full h-full object-cover opacity-40" alt="Background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
+        </div>
+      )}
+
+      {cms.design?.backgroundType === "video" && cms.design.backgroundVideo && (
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+          {cms.design.backgroundVideo.includes("youtube") || cms.design.backgroundVideo.includes("youtu.be") ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${getYouTubeId(cms.design.backgroundVideo)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(cms.design.backgroundVideo)}&controls=0&showinfo=0&rel=0`}
+              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover aspect-video opacity-30"
+              allow="autoplay; encrypted-media"
+            />
+          ) : (
+            <video src={cms.design.backgroundVideo} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-30" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
+        </div>
+      )}
+
       <Navbar cms={cms} />
 
       {/* Hero Section */}
-      <AuroraBackground>
+      <HeroWrapper className="relative z-10">
         <div className="max-w-7xl mx-auto px-6 pt-40 pb-20 flex flex-col md:flex-row items-center relative z-10 min-h-[90vh]">
           
           <div className="w-full md:w-1/2 md:pr-10 z-20">
@@ -99,7 +134,7 @@ export default async function LandingPage() {
           </div>
           
         </div>
-      </AuroraBackground>
+      </HeroWrapper>
 
       {/* Featured Releases Section */}
       {cms.featuredReleases.length > 0 && (
