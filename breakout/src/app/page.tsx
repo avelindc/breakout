@@ -6,6 +6,9 @@ import { getLandingStats } from "@/app/actions/landingStats";
 import { Metadata } from "next";
 import { AnimatedSection, AnimatedCounter, Navbar, FeaturedReleaseCard } from "./LandingClient";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Helper for dynamic icons
 const DynamicIcon = ({ name, className }: { name: string; className?: string }) => {
   const IconComponent = (LucideIcons as any)[name] || LucideIcons.Star;

@@ -53,12 +53,13 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     
     if (res.error) {
       alert("Upload failed: " + res.error);
-      return;
+      return null;
     }
     
-    if (res.url) {
+    if (path.length > 0) {
       updateNestedField(path, res.url);
     }
+    return res.url;
   };
 
   const updateNestedField = (path: string[], value: any) => {
@@ -556,7 +557,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                           <input type="text" value={item.coverUrl} onChange={(e) => updateArrayItem("featuredReleases", item.id, "coverUrl", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
                           <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
                             {uploadingField === `featuredReleases.${item.id}.coverUrl` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['featuredReleases'], `featuredReleases.${item.id}.coverUrl`).then(url => { if(url) updateArrayItem("featuredReleases", item.id, "coverUrl", url) })} />
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, [], `featuredReleases.${item.id}.coverUrl`).then(url => { if(url) updateArrayItem("featuredReleases", item.id, "coverUrl", url) })} />
                           </label>
                         </div>
                       </div>
@@ -596,7 +597,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                           <input type="text" value={item.photo} onChange={(e) => updateArrayItem("featuredArtists", item.id, "photo", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
                           <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
                             {uploadingField === `featuredArtists.${item.id}.photo` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['featuredArtists'], `featuredArtists.${item.id}.photo`).then(url => { if(url) updateArrayItem("featuredArtists", item.id, "photo", url) })} />
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, [], `featuredArtists.${item.id}.photo`).then(url => { if(url) updateArrayItem("featuredArtists", item.id, "photo", url) })} />
                           </label>
                         </div>
                       </div>
@@ -633,7 +634,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                           <input type="text" value={item.thumbnailUrl} onChange={(e) => updateArrayItem("musicVideos", item.id, "thumbnailUrl", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
                           <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
                             {uploadingField === `musicVideos.${item.id}.thumbnailUrl` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['musicVideos'], `musicVideos.${item.id}.thumbnailUrl`).then(url => { if(url) updateArrayItem("musicVideos", item.id, "thumbnailUrl", url) })} />
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, [], `musicVideos.${item.id}.thumbnailUrl`).then(url => { if(url) updateArrayItem("musicVideos", item.id, "thumbnailUrl", url) })} />
                           </label>
                         </div>
                       </div>
