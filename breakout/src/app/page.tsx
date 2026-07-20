@@ -239,6 +239,65 @@ export default async function LandingPage() {
         </section>
       )}
 
+      {/* Testimonials Section */}
+      {cms.testimonials && cms.testimonials.length > 0 && (
+        <section id="testimonials" className="py-24 px-6 bg-[#06080F] relative">
+          <div className="max-w-7xl mx-auto relative z-10">
+            <AnimatedSection>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">What They Say</h2>
+                <p className="text-gray-400 text-lg">Testimonials from our talented artists and partners.</p>
+              </div>
+            </AnimatedSection>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {cms.testimonials.map((testi, i) => (
+                <AnimatedSection key={testi.id} delay={i * 0.1}>
+                  <div className="glass-card rounded-3xl p-8 relative h-full">
+                    <LucideIcons.Quote className="absolute top-6 right-6 w-10 h-10 text-white/5" />
+                    <p className="text-gray-300 italic mb-6">"{testi.content}"</p>
+                    <div className="flex items-center gap-4 mt-auto">
+                      {testi.avatarUrl ? (
+                        <img src={testi.avatarUrl} alt={testi.name} className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                          <LucideIcons.User className="w-6 h-6 text-white/50" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-bold text-white">{testi.name}</h4>
+                        <p className="text-xs text-[#00F0FF]">{testi.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Partners Section */}
+      {cms.partners && cms.partners.length > 0 && (
+        <section id="partners" className="py-24 px-6 relative">
+          <div className="max-w-7xl mx-auto relative z-10">
+            <AnimatedSection>
+              <div className="text-center mb-12">
+                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Our Partners</h2>
+              </div>
+            </AnimatedSection>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70">
+              {cms.partners.map((partner, i) => (
+                <AnimatedSection key={partner.id} delay={i * 0.1}>
+                  <div className="w-32 md:w-48 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-500 opacity-70 hover:opacity-100">
+                    <img src={partner.logoUrl} alt={partner.name} className="max-w-full max-h-full object-contain" />
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Footer */}
       <footer className="mt-24 border-t border-white/10 pt-16 pb-8 px-6 bg-[#06080F]">
         <div className="max-w-7xl mx-auto">
