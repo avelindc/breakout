@@ -1,0 +1,26 @@
+
+> breakout@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 11388, using available port 3001 instead.
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.0.12:3001
+- Environments: .env
+✓ Ready in 792ms
+⚠ `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+⚠ Invalid next.config.ts options detected: 
+⚠     Unrecognized key(s) in object: 'eslint'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\avelin\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\avelin\Documents\nela-distribution\breakout\package-lock.json
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · proxyClientMaxBodySize: "100mb"
+  · serverActions
+
