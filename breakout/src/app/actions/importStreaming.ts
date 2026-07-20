@@ -134,15 +134,27 @@ export async function processImportStreamingBatch(
 
       const agg = royaltyAgg.get(key)!;
       const streams = row.streams || 0;
-      const revenue = row.revenue || 0;
+      let revenue = row.revenue || 0;
+      
+      // Auto Convert Currency to IDR
+      const currency = row.currency?.trim().toUpperCase() || "IDR";
+      let finalCurrency = currency;
+      
+      if (currency === "EUR" || currency === "EURO") {
+        revenue = revenue * 17500; // Estimasi kurs EUR ke IDR
+        finalCurrency = "IDR";
+      } else if (currency === "USD") {
+        revenue = revenue * 16000; // Estimasi kurs USD ke IDR
+        finalCurrency = "IDR";
+      }
+      
       agg.revenue += revenue;
       
       const originalPlatform = row.platform?.trim() || "Unknown";
       agg.platformData[originalPlatform] = (agg.platformData[originalPlatform] || 0) + streams;
       
-      const currency = row.currency?.trim().toUpperCase() || "USD";
       if (!agg.platformRevenue[originalPlatform]) {
-        agg.platformRevenue[originalPlatform] = { revenue: 0, currency };
+        agg.platformRevenue[originalPlatform] = { revenue: 0, currency: finalCurrency };
       }
       agg.platformRevenue[originalPlatform].revenue += revenue;
 
