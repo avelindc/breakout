@@ -284,7 +284,8 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
                   {importing ? "Mengimport..." : "Mulai Import & Sinkronisasi"}
                 </button>
               </div>
-              {!mapping["isrc"] && <p className="text-xs text-red-500 mt-2 text-right">⚠️ Kolom ISRC wajib dipetakan untuk auto-match.</p>}
+            </div>
+            {!mapping["isrc"] && <p className="text-xs text-red-500 mt-2 text-right">⚠️ Kolom ISRC wajib dipetakan untuk auto-match.</p>}
             </div>
           )}
         </div>
