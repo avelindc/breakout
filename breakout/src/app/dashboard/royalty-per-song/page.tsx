@@ -1,13 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import { UserRoyaltyPerSongClient } from "./UserRoyaltyPerSongClient";
 import { DollarSign } from "lucide-react";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth";
+import { auth } from "@/auth";
 
 const prisma = new PrismaClient();
 
 export default async function UserRoyaltyPerSongPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
