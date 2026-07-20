@@ -17,6 +17,7 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
   const [previewData, setPreviewData] = useState<ParsedRow[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [headers, setHeaders] = useState<string[]>([]);
+  const [adminCut, setAdminCut] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Expected standard columns
@@ -125,14 +126,17 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
     if (!file || previewData.length === 0) return;
     setImporting(true);
 
+    const factor = (100 - adminCut) / 100;
+
     const parsedRows: ParsedRow[] = previewData.map(row => {
+      const rawRevenue = parseFloat(row[mapping["revenue"]] || 0) || 0;
       return {
         isrc: row[mapping["isrc"]]?.toString(),
         upc: row[mapping["upc"]]?.toString(),
         title: row[mapping["title"]]?.toString(),
         artist: row[mapping["artist"]]?.toString(),
         streams: parseFloat(row[mapping["streams"]] || 0) || 0,
-        revenue: parseFloat(row[mapping["revenue"]] || 0) || 0,
+        revenue: rawRevenue * factor,
         platform: row[mapping["platform"]]?.toString(),
         country: row[mapping["country"]]?.toString(),
         date: row[mapping["date"]]?.toString(),
@@ -248,10 +252,29 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
                 </table>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setFile(null)} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition">
-                  Batal
-                </button>
+              <div className="mt-6 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+                <div className="flex flex-col items-start w-full md:w-auto">
+                  <label className="text-xs font-bold text-gray-700 mb-1">Potongan Admin (%)</label>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="100" 
+                      step="0.1"
+                      value={adminCut} 
+                      onChange={(e) => setAdminCut(parseFloat(e.target.value) || 0)}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24 outline-none focus:border-blue-500"
+                    />
+                    <span className="text-xs text-gray-500 max-w-[150px] leading-tight">
+                      Persentase revenue yang ditahan Admin (sisanya ke Artis).
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 w-full md:w-auto justify-end">
+                  <button onClick={() => setFile(null)} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition">
+                    Batal
+                  </button>
                 <button 
                   onClick={executeImport}
                   disabled={importing || !mapping["isrc"]}
