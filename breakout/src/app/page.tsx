@@ -280,7 +280,7 @@ export default async function LandingPage() {
 
       {/* Testimonials Section */}
       {cms.testimonials && cms.testimonials.length > 0 && (
-        <section id="testimonials" className="py-24 px-6 bg-[#06080F] relative">
+        <section id="testimonials" className="py-24 px-6 relative">
           <div className="max-w-7xl mx-auto relative z-10">
             <AnimatedSection>
               <div className="text-center mb-16">
@@ -338,7 +338,7 @@ export default async function LandingPage() {
       )}
 
       {/* Footer */}
-      <footer className="mt-24 border-t border-white/10 pt-16 pb-8 px-6 bg-[#06080F]">
+      <footer className="mt-24 border-t border-white/10 pt-16 pb-8 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="md:col-span-2">
