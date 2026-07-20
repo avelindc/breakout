@@ -26,6 +26,7 @@ export default async function AdminStreamingPage() {
     where: { status: "PAID" },
   });
 
+  console.time("fetchData");
   const dbArtists = await prisma.artist.findMany({
     include: {
       releases: {
@@ -38,7 +39,9 @@ export default async function AdminStreamingPage() {
       user: { select: { status: true } },
     },
   });
+  console.timeEnd("fetchData");
 
+  console.time("processGlobal");
   let realRevenue = 0;
   let realTotalStreams = 0;
   const globalPlatformMap: Record<string, number> = {};
@@ -83,7 +86,9 @@ export default async function AdminStreamingPage() {
     monthlyStreams: Math.round(realTotalStreams / 6),
     totalRevenue: realRevenue,
   };
+  console.timeEnd("processGlobal");
 
+  console.time("processArtistsAndTracks");
   const now = new Date();
   const allTracks: TrackData[] = [];
   const artists: ArtistData[] = [];
@@ -248,19 +253,33 @@ export default async function AdminStreamingPage() {
   }
 
   const globalDailyStreams = buildDailyFromTotal("global", realTotalStreams, 30);
+  
+  console.timeEnd("processArtistsAndTracks");
+
+  artists.sort((a, b) => b.totalStreams - a.totalStreams);
+  artists.forEach((a, i) => a.rank = i + 1);
+  const topArtists = artists.slice(0, 100);
+  
+  allTracks.sort((a, b) => b.totalStreams - a.totalStreams);
+  allTracks.forEach((t, i) => {
+    t.isTrending = i < 10 && t.totalStreams > 0;
+  });
+  const topTracks = allTracks.slice(0, 100);
 
   return (
-    <AdminStreamingClient
+    <div className="min-h-screen fundflow-bg">
+      <AdminStreamingClient
       data={{
         overview,
         globalPlatforms: globalPlatforms17,
         monthlyRevenue,
         monthlyStreams,
         globalDailyStreams,
-        artists: finalArtists,
-        allTracks: finalTracks,
+        artists: topArtists,
+        allTracks: topTracks,
       }}
     />
+    </div>
   );
 }
 
