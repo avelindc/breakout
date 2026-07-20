@@ -5,11 +5,12 @@ import { CMSData, saveLandingPageCMS } from "@/app/actions/cms";
 import { uploadCMSImageAction } from "@/app/actions/cmsUpload";
 import { 
   Save, Loader2, Image as ImageIcon, Plus, Trash2, 
-  Settings, LayoutTemplate, Info, Star, CreditCard, MessageCircle, Link as LinkIcon, Phone
+  Settings, LayoutTemplate, Info, Star, CreditCard, MessageCircle, Link as LinkIcon, Phone,
+  Disc, Users, Video, Share2, BarChart
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
-type TabType = "seo" | "hero" | "about" | "features" | "pricing" | "faq" | "testimonials" | "partners" | "contact" | "footer";
+type TabType = "seo" | "hero" | "about" | "features" | "pricing" | "faq" | "testimonials" | "partners" | "contact" | "footer" | "featuredReleases" | "featuredArtists" | "musicVideos" | "aboutLabel" | "socialMedia" | "stats";
 
 export default function CMSClient({ initialData }: { initialData: CMSData }) {
   const [data, setData] = useState<CMSData>(initialData);
@@ -102,6 +103,12 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     { id: "faq", name: "FAQ", icon: MessageCircle },
     { id: "testimonials", name: "Testimonials", icon: Star },
     { id: "partners", name: "Partners", icon: LinkIcon },
+    { id: "featuredReleases", name: "Releases", icon: Disc },
+    { id: "featuredArtists", name: "Artists", icon: Users },
+    { id: "musicVideos", name: "Videos", icon: Video },
+    { id: "aboutLabel", name: "About Label", icon: Info },
+    { id: "stats", name: "Statistics", icon: BarChart },
+    { id: "socialMedia", name: "Social Media", icon: Share2 },
     { id: "contact", name: "Contact", icon: Phone },
     { id: "footer", name: "Footer", icon: LayoutTemplate },
   ];
@@ -517,6 +524,184 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Copyright Text</label>
                   <input type="text" value={data.footer.copyright} onChange={(e) => updateNestedField(['footer', 'copyright'], e.target.value)} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500" />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* FEATURED RELEASES TAB */}
+          {activeTab === "featuredReleases" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">Featured Releases</h2>
+                <button onClick={() => addArrayItem("featuredReleases", { title: "", artist: "", coverUrl: "", releaseDate: "", playerType: "youtube", playerUrl: "", order: 0 })} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium">
+                  <Plus className="w-4 h-4" /> Tambah Rilis
+                </button>
+              </div>
+              <div className="space-y-4">
+                {data.featuredReleases?.map((item, idx) => (
+                  <div key={item.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex flex-col gap-4">
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Rilis #{idx + 1}</span>
+                      <button onClick={() => removeArrayItem("featuredReleases", item.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-xs mb-1">Title</label><input type="text" value={item.title} onChange={(e) => updateArrayItem("featuredReleases", item.id, "title", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Artist</label><input type="text" value={item.artist} onChange={(e) => updateArrayItem("featuredReleases", item.id, "artist", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Player Type</label><select value={item.playerType} onChange={(e) => updateArrayItem("featuredReleases", item.id, "playerType", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg"><option value="youtube">YouTube</option><option value="spotify">Spotify</option></select></div>
+                      <div><label className="block text-xs mb-1">Player URL</label><input type="text" value={item.playerUrl} onChange={(e) => updateArrayItem("featuredReleases", item.id, "playerUrl", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Order</label><input type="number" value={item.order} onChange={(e) => updateArrayItem("featuredReleases", item.id, "order", parseInt(e.target.value))} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div>
+                        <label className="block text-xs mb-1">Cover Image</label>
+                        <div className="flex gap-2">
+                          <input type="text" value={item.coverUrl} onChange={(e) => updateArrayItem("featuredReleases", item.id, "coverUrl", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
+                          <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
+                            {uploadingField === `featuredReleases.${item.id}.coverUrl` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['featuredReleases'], `featuredReleases.${item.id}.coverUrl`).then(url => { if(url) updateArrayItem("featuredReleases", item.id, "coverUrl", url) })} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* FEATURED ARTISTS TAB */}
+          {activeTab === "featuredArtists" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">Featured Artists</h2>
+                <button onClick={() => addArrayItem("featuredArtists", { name: "", photo: "", genre: "", bio: "", instagram: "", spotify: "", youtube: "", order: 0 })} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium">
+                  <Plus className="w-4 h-4" /> Tambah Artist
+                </button>
+              </div>
+              <div className="space-y-4">
+                {data.featuredArtists?.map((item, idx) => (
+                  <div key={item.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex flex-col gap-4">
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Artist #{idx + 1}</span>
+                      <button onClick={() => removeArrayItem("featuredArtists", item.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-xs mb-1">Name</label><input type="text" value={item.name} onChange={(e) => updateArrayItem("featuredArtists", item.id, "name", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Genre</label><input type="text" value={item.genre} onChange={(e) => updateArrayItem("featuredArtists", item.id, "genre", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div className="col-span-2"><label className="block text-xs mb-1">Bio</label><textarea rows={2} value={item.bio} onChange={(e) => updateArrayItem("featuredArtists", item.id, "bio", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Instagram</label><input type="text" value={item.instagram} onChange={(e) => updateArrayItem("featuredArtists", item.id, "instagram", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Spotify</label><input type="text" value={item.spotify} onChange={(e) => updateArrayItem("featuredArtists", item.id, "spotify", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">YouTube</label><input type="text" value={item.youtube} onChange={(e) => updateArrayItem("featuredArtists", item.id, "youtube", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div>
+                        <label className="block text-xs mb-1">Photo</label>
+                        <div className="flex gap-2">
+                          <input type="text" value={item.photo} onChange={(e) => updateArrayItem("featuredArtists", item.id, "photo", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
+                          <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
+                            {uploadingField === `featuredArtists.${item.id}.photo` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['featuredArtists'], `featuredArtists.${item.id}.photo`).then(url => { if(url) updateArrayItem("featuredArtists", item.id, "photo", url) })} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MUSIC VIDEOS TAB */}
+          {activeTab === "musicVideos" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-900">Music Videos</h2>
+                <button onClick={() => addArrayItem("musicVideos", { title: "", artist: "", thumbnailUrl: "", youtubeUrl: "", order: 0 })} className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium">
+                  <Plus className="w-4 h-4" /> Tambah Video
+                </button>
+              </div>
+              <div className="space-y-4">
+                {data.musicVideos?.map((item, idx) => (
+                  <div key={item.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex flex-col gap-4">
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Video #{idx + 1}</span>
+                      <button onClick={() => removeArrayItem("musicVideos", item.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-xs mb-1">Title</label><input type="text" value={item.title} onChange={(e) => updateArrayItem("musicVideos", item.id, "title", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">Artist</label><input type="text" value={item.artist} onChange={(e) => updateArrayItem("musicVideos", item.id, "artist", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div><label className="block text-xs mb-1">YouTube URL</label><input type="text" value={item.youtubeUrl} onChange={(e) => updateArrayItem("musicVideos", item.id, "youtubeUrl", e.target.value)} className="w-full px-3 py-1.5 border rounded-lg" /></div>
+                      <div>
+                        <label className="block text-xs mb-1">Thumbnail Image</label>
+                        <div className="flex gap-2">
+                          <input type="text" value={item.thumbnailUrl} onChange={(e) => updateArrayItem("musicVideos", item.id, "thumbnailUrl", e.target.value)} className="flex-1 px-3 py-1.5 border rounded-lg" />
+                          <label className="cursor-pointer bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg flex items-center">
+                            {uploadingField === `musicVideos.${item.id}.thumbnailUrl` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['musicVideos'], `musicVideos.${item.id}.thumbnailUrl`).then(url => { if(url) updateArrayItem("musicVideos", item.id, "thumbnailUrl", url) })} />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ABOUT LABEL TAB */}
+          {activeTab === "aboutLabel" && (
+            <div className="space-y-6 animate-fade-in">
+              <h2 className="text-xl font-bold text-gray-900">About Label Settings</h2>
+              <div className="space-y-4 max-w-xl">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={data.aboutLabel?.isActive ?? true} onChange={(e) => updateNestedField(['aboutLabel', 'isActive'], e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                  <span className="text-sm font-medium">Tampilkan Bagian About Label</span>
+                </label>
+                <div><label className="block text-sm font-medium mb-1">Title</label><input type="text" value={data.aboutLabel?.title} onChange={(e) => updateNestedField(['aboutLabel', 'title'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">Description</label><textarea rows={3} value={data.aboutLabel?.description} onChange={(e) => updateNestedField(['aboutLabel', 'description'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">Vision</label><textarea rows={2} value={data.aboutLabel?.vision} onChange={(e) => updateNestedField(['aboutLabel', 'vision'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">Mission</label><textarea rows={2} value={data.aboutLabel?.mission} onChange={(e) => updateNestedField(['aboutLabel', 'mission'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Image URL</label>
+                  <div className="flex gap-2">
+                    <input type="text" value={data.aboutLabel?.imageUrl} onChange={(e) => updateNestedField(['aboutLabel', 'imageUrl'], e.target.value)} className="flex-1 px-4 py-2 border rounded-xl" />
+                    <label className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-600 rounded-xl cursor-pointer">
+                      {uploadingField === 'aboutLabel.imageUrl' ? <Loader2 className="w-5 h-5 animate-spin" /> : "Upload"}
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['aboutLabel', 'imageUrl'], 'aboutLabel.imageUrl')} />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SOCIAL MEDIA TAB */}
+          {activeTab === "socialMedia" && (
+            <div className="space-y-6 animate-fade-in">
+              <h2 className="text-xl font-bold text-gray-900">Social Media Links</h2>
+              <div className="space-y-4 max-w-xl">
+                <div><label className="block text-sm font-medium mb-1">Instagram</label><input type="text" value={data.socialMedia?.instagram} onChange={(e) => updateNestedField(['socialMedia', 'instagram'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">TikTok</label><input type="text" value={data.socialMedia?.tiktok} onChange={(e) => updateNestedField(['socialMedia', 'tiktok'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">YouTube</label><input type="text" value={data.socialMedia?.youtube} onChange={(e) => updateNestedField(['socialMedia', 'youtube'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">Spotify</label><input type="text" value={data.socialMedia?.spotify} onChange={(e) => updateNestedField(['socialMedia', 'spotify'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">WhatsApp</label><input type="text" value={data.socialMedia?.whatsapp} onChange={(e) => updateNestedField(['socialMedia', 'whatsapp'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+                <div><label className="block text-sm font-medium mb-1">Email</label><input type="text" value={data.socialMedia?.email} onChange={(e) => updateNestedField(['socialMedia', 'email'], e.target.value)} className="w-full px-4 py-2 border rounded-xl" /></div>
+              </div>
+            </div>
+          )}
+
+          {/* STATS TAB */}
+          {activeTab === "stats" && (
+            <div className="space-y-6 animate-fade-in">
+              <h2 className="text-xl font-bold text-gray-900">Statistics Settings</h2>
+              <div className="space-y-4 max-w-xl">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={data.stats?.autoFromDb ?? true} onChange={(e) => updateNestedField(['stats', 'autoFromDb'], e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                  <span className="text-sm font-medium">Auto-pull stats from Database</span>
+                </label>
+                {!(data.stats?.autoFromDb ?? true) && (
+                  <>
+                    <div><label className="block text-sm font-medium mb-1">Total Artists</label><input type="number" value={data.stats?.totalArtists || 0} onChange={(e) => updateNestedField(['stats', 'totalArtists'], parseInt(e.target.value))} className="w-full px-4 py-2 border rounded-xl" /></div>
+                    <div><label className="block text-sm font-medium mb-1">Total Releases</label><input type="number" value={data.stats?.totalReleases || 0} onChange={(e) => updateNestedField(['stats', 'totalReleases'], parseInt(e.target.value))} className="w-full px-4 py-2 border rounded-xl" /></div>
+                    <div><label className="block text-sm font-medium mb-1">Total Streams</label><input type="number" value={data.stats?.totalStreams || 0} onChange={(e) => updateNestedField(['stats', 'totalStreams'], parseInt(e.target.value))} className="w-full px-4 py-2 border rounded-xl" /></div>
+                  </>
+                )}
               </div>
             </div>
           )}

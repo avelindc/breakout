@@ -30,6 +30,43 @@ export type CMSData = {
     imageUrl: string;
     isActive: boolean;
   };
+  aboutLabel: {
+    title: string;
+    description: string;
+    vision: string;
+    mission: string;
+    imageUrl: string;
+    isActive: boolean;
+  };
+  featuredReleases: {
+    id: string;
+    title: string;
+    artist: string;
+    coverUrl: string;
+    releaseDate: string;
+    playerType: "youtube" | "spotify";
+    playerUrl: string;
+    order: number;
+  }[];
+  featuredArtists: {
+    id: string;
+    name: string;
+    photo: string;
+    genre: string;
+    bio: string;
+    instagram: string;
+    spotify: string;
+    youtube: string;
+    order: number;
+  }[];
+  musicVideos: {
+    id: string;
+    title: string;
+    artist: string;
+    thumbnailUrl: string;
+    youtubeUrl: string;
+    order: number;
+  }[];
   features: {
     id: string;
     title: string;
@@ -73,6 +110,20 @@ export type CMSData = {
     aboutText: string;
     copyright: string;
   };
+  socialMedia: {
+    instagram: string;
+    tiktok: string;
+    youtube: string;
+    spotify: string;
+    whatsapp: string;
+    email: string;
+  };
+  stats: {
+    totalArtists: number | null;
+    totalReleases: number | null;
+    totalStreams: number | null;
+    autoFromDb: boolean;
+  };
 };
 
 const defaultCMSData: CMSData = {
@@ -98,6 +149,17 @@ const defaultCMSData: CMSData = {
     imageUrl: "",
     isActive: true,
   },
+  aboutLabel: {
+    title: "About Breakout Music Record",
+    description: "We are more than just a label. We are a movement dedicated to pushing the boundaries of sound and giving independent artists a global stage.",
+    vision: "To be the leading platform for independent artists globally, breaking barriers and redefining the music industry.",
+    mission: "Providing top-tier distribution, marketing, and support to artists so they can focus on what they do best: creating music.",
+    imageUrl: "",
+    isActive: true,
+  },
+  featuredReleases: [],
+  featuredArtists: [],
+  musicVideos: [],
   features: [
     {
       id: "1",
@@ -146,6 +208,20 @@ const defaultCMSData: CMSData = {
   footer: {
     aboutText: "Breakout Music Distribution. Empowering independent artists worldwide.",
     copyright: "© 2026 Breakout. All rights reserved."
+  },
+  socialMedia: {
+    instagram: "https://instagram.com/",
+    tiktok: "https://tiktok.com/",
+    youtube: "https://youtube.com/",
+    spotify: "https://spotify.com/",
+    whatsapp: "+6281234567890",
+    email: "support@breakoutmusic.online",
+  },
+  stats: {
+    totalArtists: null,
+    totalReleases: null,
+    totalStreams: null,
+    autoFromDb: true,
   }
 };
 
@@ -169,14 +245,20 @@ export async function getLandingPageCMS(): Promise<CMSData> {
       seo: { ...defaultCMSData.seo, ...(parsedData.seo || {}) },
       hero: { ...defaultCMSData.hero, ...(parsedData.hero || {}) },
       about: { ...defaultCMSData.about, ...(parsedData.about || {}) },
+      aboutLabel: { ...defaultCMSData.aboutLabel, ...(parsedData.aboutLabel || {}) },
       contact: { ...defaultCMSData.contact, ...(parsedData.contact || {}) },
       footer: { ...defaultCMSData.footer, ...(parsedData.footer || {}) },
+      socialMedia: { ...defaultCMSData.socialMedia, ...(parsedData.socialMedia || {}) },
+      stats: { ...defaultCMSData.stats, ...(parsedData.stats || {}) },
       // Arrays are replaced entirely if they exist in DB, otherwise use default
       features: parsedData.features || defaultCMSData.features,
       pricing: parsedData.pricing || defaultCMSData.pricing,
       faq: parsedData.faq || defaultCMSData.faq,
       testimonials: parsedData.testimonials || defaultCMSData.testimonials,
       partners: parsedData.partners || defaultCMSData.partners,
+      featuredReleases: parsedData.featuredReleases || defaultCMSData.featuredReleases,
+      featuredArtists: parsedData.featuredArtists || defaultCMSData.featuredArtists,
+      musicVideos: parsedData.musicVideos || defaultCMSData.musicVideos,
     };
   } catch (error) {
     console.error("Failed to parse CMS Data:", error);
