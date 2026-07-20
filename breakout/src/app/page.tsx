@@ -321,7 +321,7 @@ export default async function LandingPage() {
           <div className="max-w-7xl mx-auto relative z-10">
             <AnimatedSection>
               <div className="text-center mb-12">
-                <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Our Partners</h2>
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">Our Partners</h2>
               </div>
             </AnimatedSection>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70">
