@@ -2,6 +2,8 @@ import { PrismaClient } from "@prisma/client";
 import { Construction, Calendar, Clock, AlertCircle } from "lucide-react";
 import { MaintenanceClock } from "./MaintenanceClock";
 
+export const dynamic = "force-dynamic";
+
 const prisma = new PrismaClient();
 
 function getIndonesianType(type: string) {
