@@ -163,6 +163,38 @@ export default async function LandingPage() {
         </section>
       )}
 
+      {/* Music Videos Section */}
+      {cms.musicVideos.length > 0 && (
+        <section id="videos" className="py-24 px-6 relative">
+          <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-[#0047FF] rounded-full blur-[200px] opacity-10 pointer-events-none" />
+          <div className="max-w-7xl mx-auto relative z-10">
+            <AnimatedSection>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Latest Music Videos</h2>
+                <p className="text-gray-400 text-lg">Watch the visual experience of our releases.</p>
+              </div>
+            </AnimatedSection>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {cms.musicVideos.sort((a,b)=>a.order-b.order).map((video, i) => (
+                <AnimatedSection key={video.id} delay={i * 0.1}>
+                  <FeaturedReleaseCard 
+                    release={{
+                      id: video.id,
+                      title: video.title,
+                      artist: video.artist,
+                      coverUrl: video.thumbnailUrl,
+                      playerType: "youtube",
+                      playerUrl: video.youtubeUrl
+                    }} 
+                  />
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* About Section */}
       {cms.aboutLabel.isActive && (
         <section id="about" className="py-24 px-6 relative">
