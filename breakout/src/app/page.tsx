@@ -300,9 +300,8 @@ export default async function LandingPage() {
             </div>
           </div>
           
-          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="border-t border-white/5 pt-8 flex flex-col items-center justify-center text-center">
             <p className="text-gray-600 text-sm">{cms.footer.copyright}</p>
-            <p className="text-gray-600 text-sm">Powered by Nela Distribution</p>
           </div>
         </div>
       </footer>
