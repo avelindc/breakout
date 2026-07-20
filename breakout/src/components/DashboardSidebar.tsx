@@ -16,6 +16,7 @@ const links = [
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Katalog RPH", href: "/dashboard/catalog-rph", icon: Library },
+  { name: "Katalog Khana", href: "/dashboard/catalog-khana", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
