@@ -56,7 +56,12 @@ export default async function UserStreamingPage() {
     }
   });
 
-  const globalPlatforms = Object.entries(globalPlatformMap).map(([n, v]) => ({ name: n, value: v }));
+  const COLORS = ['#1DB954', '#FC3C44', '#FF0000', '#69C9D0', '#00A8E1', '#7000FF', '#00F0FF', '#FF0055'];
+  const globalPlatforms = Object.entries(globalPlatformMap).map(([n, v], i) => ({ 
+    name: n, 
+    streams: v,
+    color: COLORS[i % COLORS.length]
+  }));
 
   const approvedReleases = artistIds.length > 0
     ? await prisma.release.count({ where: { artistId: { in: artistIds }, status: "APPROVED" } })

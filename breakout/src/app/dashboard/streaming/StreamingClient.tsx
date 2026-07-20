@@ -231,10 +231,10 @@ export function StreamingClient({ allTracks, globalStats, globalDailyStreams, gl
   // Build platform data for selected track
   const currentPlatforms = useMemo(() => {
     if (!selectedTrack) return globalPlatforms;
-    return PLATFORM_CONFIG.map(p => ({
+    return selectedTrack.platforms.map((p, i) => ({
       name:    p.name,
-      streams: (selectedTrack.platforms as any)[p.key] || 0,
-      color:   p.color,
+      streams: p.value,
+      color:   COLORS[i % COLORS.length],
     })).filter(p => p.streams > 0);
   }, [selectedTrack, globalPlatforms]);
 
