@@ -13,10 +13,17 @@ const links = [
   { name: "Overview",           href: "/admin",            icon: LayoutDashboard },
   { name: "Streaming Analytics", href: "/admin/streaming",  icon: Activity },
   { name: "Website CMS",        href: "/admin/website-cms", icon: Globe },
-  { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
-  { name: "Katalog RPH", href: "/admin/catalog-rph", icon: Library },
-  { name: "Katalog Khana", href: "/admin/catalog-khana", icon: Library },
-  { name: "Katalog Halo", href: "/admin/catalog-halo", icon: Library },
+  { 
+    name: "Katalog Musik", 
+    href: "/admin/catalog", 
+    icon: Library,
+    subLinks: [
+      { name: "Master Katalog", href: "/admin/catalog" },
+      { name: "Katalog RPH", href: "/admin/catalog-rph" },
+      { name: "Katalog Khana", href: "/admin/catalog-khana" },
+      { name: "Katalog Halo", href: "/admin/catalog-halo" }
+    ]
+  },
   { name: "Publisher Catalog", href: "/admin/publisher-catalog", icon: BookOpen },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Identity Verif", href: "/admin/registrations", icon: CheckCircle },
@@ -91,8 +98,49 @@ export function AdminSidebar({ artists = [], brandLogo = "/logo.png" }: { artist
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 pb-24 px-4 flex flex-col gap-2">
-          {links.map((link, index) => {
+          {links.map((link) => {
             const Icon = link.icon;
+            
+            if (link.subLinks) {
+              const isActive = link.subLinks.some(sub => pathname === sub.href) || pathname === link.href;
+              const [isExpanded, setIsExpanded] = useState(isActive);
+              
+              return (
+                <div key={link.name} className="flex flex-col gap-1">
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className={`flex items-center justify-between px-4 py-3 font-medium text-sm rounded-2xl transition-all duration-200 ${
+                      isActive 
+                        ? "bg-white/60 text-blue-700 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/80" 
+                        : "text-gray-500 hover:text-gray-900 hover:bg-white/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`${isActive ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-400'} p-1.5 rounded-xl transition-colors`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      {link.name}
+                    </div>
+                    <svg className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </button>
+                  {isExpanded && (
+                    <div className="flex flex-col pl-12 pr-4 py-1 gap-1">
+                      {link.subLinks.map(sub => (
+                        <Link
+                          key={sub.name}
+                          href={sub.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`py-2 text-sm transition-colors ${pathname === sub.href ? "text-blue-700 font-bold" : "text-gray-500 hover:text-gray-900"}`}
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             const isActive = pathname === link.href;
 
             return (
