@@ -16,7 +16,7 @@ export async function uploadCMSImageAction(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -31,7 +31,7 @@ export async function uploadCMSImageAction(formData: FormData) {
     });
 
     const { error: uploadError } = await supabase.storage
-      .from("avatars") // Reusing 'avatars' bucket or any public bucket. Alternatively 'public-assets' if it exists. 
+      .from("assets") 
       .upload(fileName, buffer, {
         contentType: file.type,
         upsert: true
@@ -42,7 +42,7 @@ export async function uploadCMSImageAction(formData: FormData) {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from("avatars")
+      .from("assets")
       .getPublicUrl(fileName);
 
     return { url: publicUrl };
