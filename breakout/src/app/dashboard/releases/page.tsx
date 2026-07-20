@@ -50,7 +50,8 @@ export default async function MyReleasesPage() {
 
           {/* Rows / Cards */}
           {releases.map((release) => (
-            <div 
+            <Link 
+              href={`/dashboard/releases/${release.id}`}
               key={release.id} 
               className="flex flex-col md:flex-row md:items-center p-5 md:px-6 md:py-4 bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] transition hover:opacity-95 group cursor-pointer gap-5 md:gap-0 h-auto"
             >
@@ -166,7 +167,7 @@ export default async function MyReleasesPage() {
                   <Settings className="w-4 h-4 shrink-0" /> <span className="md:hidden">Settings</span>
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
