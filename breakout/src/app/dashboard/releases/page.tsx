@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
-import { Disc, Plus, Settings } from "lucide-react";
+import { Disc, Plus } from "lucide-react";
 import Link from "next/link";
+import { UserReleasesClient } from "./UserReleasesClient";
 
 const prisma = new PrismaClient();
 
@@ -37,138 +38,8 @@ export default async function MyReleasesPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-4 md:space-y-3">
-          {/* Table Header (Desktop Only) */}
-          <div className="hidden md:flex items-center px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <div className="w-20 shrink-0">Id</div>
-            <div className="flex-1 min-w-0 pr-4">Title</div>
-            <div className="w-32 lg:w-40 shrink-0">Type</div>
-            <div className="w-32 shrink-0">Release Date</div>
-            <div className="w-28 lg:w-32 shrink-0">Status</div>
-            <div className="w-20 shrink-0 flex justify-end">Action</div>
-          </div>
-
-          {/* Rows / Cards */}
-          {releases.map((release) => (
-            <Link 
-              href={`/dashboard/releases/${release.id}`}
-              key={release.id} 
-              className="flex flex-col md:flex-row md:items-center p-5 md:px-6 md:py-4 bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] transition hover:opacity-95 group cursor-pointer gap-5 md:gap-0 h-auto"
-            >
-              {/* Mobile View: Artwork + Title + Artist */}
-              <div className="flex items-start gap-4 md:hidden w-full">
-                <img src={release.coverArtworkUrl} alt={release.title} className="w-16 h-16 rounded-xl bg-white/10 object-cover shadow-sm shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-white transition text-lg leading-tight line-clamp-2">{release.title}</div>
-                  <div className="text-sm text-white/80 mt-1 truncate">
-                    {release.primaryArtist} {release.featuredArtist ? `ft. ${release.featuredArtist}` : ''}
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile View: Metadata (Type, Genre, Date, Status, ID) */}
-              <div className="flex flex-col gap-2.5 md:hidden w-full bg-white/10 rounded-xl p-4">
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-white/60 shrink-0">Type</span>
-                  <span className="text-sm font-bold text-white text-right break-words">{release.type}</span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-white/60 shrink-0">Genre</span>
-                  <span className="text-sm font-bold text-white text-right break-words">{release.genre}</span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-white/60 shrink-0">Release Date</span>
-                  <span className="text-sm font-bold text-white text-right shrink-0">
-                    {new Date(release.releaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-                <div className="flex justify-between items-start gap-2">
-                  <span className="text-sm font-semibold text-white/60 shrink-0">Status</span>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className={`w-2 h-2 rounded-full ${
-                      release.status === 'RELEASED' || release.status === 'APPROVED' ? 'bg-green-400' : 
-                      release.status === 'PENDING' ? 'bg-yellow-400' : 
-                      release.status === 'REVIEW' ? 'bg-blue-400' : 
-                      release.status === 'PROCESSING' ? 'bg-orange-400' : 
-                      'bg-red-400'
-                    }`}></span>
-                    <span className={`font-bold text-sm ${
-                      release.status === 'RELEASED' || release.status === 'APPROVED' ? 'text-green-300' : 
-                      release.status === 'PENDING' ? 'text-yellow-300' : 
-                      release.status === 'REVIEW' ? 'text-blue-300' : 
-                      release.status === 'PROCESSING' ? 'text-orange-300' : 
-                      'text-red-300'
-                    }`}>
-                      {release.status === 'RELEASED' || release.status === 'APPROVED' ? 'Released' : 
-                       release.status === 'PENDING' ? 'Pending' : 
-                       release.status === 'REVIEW' ? 'In Review' : 
-                       release.status === 'PROCESSING' ? 'Processing' : 'Rejected'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-start gap-2 pt-2.5 mt-0.5 border-t border-white/10">
-                  <span className="text-sm font-semibold text-white/60 shrink-0">ID Release</span>
-                  <span className="text-sm font-mono font-bold text-white shrink-0">#{release.id.slice(-6).toUpperCase()}</span>
-                </div>
-              </div>
-
-              {/* Desktop View: ID */}
-              <div className="hidden md:block w-20 text-white/80 font-bold text-sm font-mono shrink-0">
-                #{release.id.slice(-6).toUpperCase()}
-              </div>
-              
-              {/* Desktop View: Cover + Title + Artist */}
-              <div className="hidden md:flex flex-1 items-center gap-4 min-w-0 pr-4">
-                <img src={release.coverArtworkUrl} alt={release.title} className="w-12 h-12 rounded-xl bg-white/10 object-cover shadow-sm shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold text-white transition truncate text-base">{release.title}</div>
-                  <div className="text-xs font-medium text-white/80 mt-0.5 truncate">
-                    {release.primaryArtist} {release.featuredArtist ? `ft. ${release.featuredArtist}` : ''} • {release.genre}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Desktop View: Type */}
-              <div className="hidden md:block w-32 lg:w-40 text-white/90 font-semibold text-sm shrink-0">
-                {release.type}
-              </div>
-              
-              {/* Desktop View: Release Date */}
-              <div className="hidden md:block w-32 text-white/90 font-semibold text-sm shrink-0">
-                {new Date(release.releaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </div>
-              
-              {/* Desktop View: Status */}
-              <div className="hidden md:flex w-28 lg:w-32 items-center gap-2 shrink-0">
-                <span className={`w-2 h-2 rounded-full shrink-0 ${
-                  release.status === 'RELEASED' || release.status === 'APPROVED' ? 'bg-green-400' : 
-                  release.status === 'PENDING' ? 'bg-yellow-400' : 
-                  release.status === 'REVIEW' ? 'bg-blue-400' : 
-                  release.status === 'PROCESSING' ? 'bg-orange-400' : 
-                  'bg-red-400'
-                }`}></span>
-                <span className={`font-bold text-sm truncate ${
-                  release.status === 'RELEASED' || release.status === 'APPROVED' ? 'text-green-300' : 
-                  release.status === 'PENDING' ? 'text-yellow-300' : 
-                  release.status === 'REVIEW' ? 'text-blue-300' : 
-                  release.status === 'PROCESSING' ? 'text-orange-300' : 
-                  'text-red-300'
-                }`}>
-                  {release.status === 'RELEASED' || release.status === 'APPROVED' ? 'Released' : 
-                   release.status === 'PENDING' ? 'Pending' : 
-                   release.status === 'REVIEW' ? 'In Review' : 
-                   release.status === 'PROCESSING' ? 'Processing' : 'Rejected'}
-                </span>
-              </div>
-              
-              {/* Action Buttons (Mobile & Desktop) */}
-              <div className="flex md:w-20 justify-end gap-2 w-full shrink-0">
-                <button className="w-full md:w-10 h-11 md:h-10 flex items-center justify-center gap-2 rounded-xl bg-white/10 text-white hover:bg-white hover:text-[#8a2be2] transition font-bold text-sm">
-                  <Settings className="w-4 h-4 shrink-0" /> <span className="md:hidden">Settings</span>
-                </button>
-              </div>
-            </Link>
-          ))}
+        <div className="mt-8">
+          <UserReleasesClient releases={releases as any} />
         </div>
       )}
     </div>
