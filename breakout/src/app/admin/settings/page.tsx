@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { BrandSettingsForm } from "@/components/BrandSettingsForm";
 import { MaintenanceSettingsForm } from "@/components/MaintenanceSettingsForm";
+import { CatalogVisibilitySettings } from "@/components/CatalogVisibilitySettings";
 import { getMaintenanceData } from "@/lib/maintenance";
 import { PrismaClient } from "@prisma/client";
 
@@ -15,12 +16,22 @@ export default async function AdminSettingsPage() {
   });
   const brandLogo = brandSetting?.value || "/logo.png";
 
+  const rphSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_rph' } });
+  const khanaSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_khana' } });
+  const haloSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_halo' } });
+
+  const initialRph = rphSetting?.value !== "false";
+  const initialKhana = khanaSetting?.value !== "false";
+  const initialHalo = haloSetting?.value !== "false";
+
   return (
     <div className="animate-fade-in max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Platform Settings</h1>
         <p className="text-gray-500">Configure global platform rules and your admin profile.</p>
       </div>
+
+      <CatalogVisibilitySettings initialRph={initialRph} initialKhana={initialKhana} initialHalo={initialHalo} />
 
       <MaintenanceSettingsForm initialData={maintenanceData as any} brandLogo={brandLogo} />
 

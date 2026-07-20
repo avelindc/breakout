@@ -39,10 +39,27 @@ function getScale(hoveredIndex: number | null, currentIndex: number): number {
   return 1;
 }
 
-export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: string }) {
+export function DashboardSidebar({ 
+  brandLogo = "/logo.png",
+  enableRph = true,
+  enableKhana = true,
+  enableHalo = true
+}: { 
+  brandLogo?: string;
+  enableRph?: boolean;
+  enableKhana?: boolean;
+  enableHalo?: boolean;
+}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const filteredLinks = links.filter(link => {
+    if (link.href === "/dashboard/catalog-rph") return enableRph;
+    if (link.href === "/dashboard/catalog-khana") return enableKhana;
+    if (link.href === "/dashboard/catalog-halo") return enableHalo;
+    return true;
+  });
 
   return (
     <>
@@ -88,7 +105,7 @@ export function DashboardSidebar({ brandLogo = "/logo.png" }: { brandLogo?: stri
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
-          {links.map((link, index) => {
+          {filteredLinks.map((link, index) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
 

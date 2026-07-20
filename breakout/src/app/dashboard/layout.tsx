@@ -34,10 +34,23 @@ export default async function DashboardLayout({
   });
   const brandLogo = brandSetting?.value || "/logo.png";
 
+  const rphSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_rph' } });
+  const khanaSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_khana' } });
+  const haloSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_halo' } });
+
+  const enableRph = rphSetting?.value !== "false";
+  const enableKhana = khanaSetting?.value !== "false";
+  const enableHalo = haloSetting?.value !== "false";
+
   return (
     <div className="min-h-screen fundflow-bg text-gray-900 flex">
       <MaintenancePoller />
-      <DashboardSidebar brandLogo={brandLogo} />
+      <DashboardSidebar 
+        brandLogo={brandLogo} 
+        enableRph={enableRph} 
+        enableKhana={enableKhana} 
+        enableHalo={enableHalo} 
+      />
       <div className="flex-1 md:ml-64 p-4 pt-20 md:p-8 overflow-y-auto min-h-screen w-full relative z-10">
         <div className="max-w-7xl mx-auto">
           {children}

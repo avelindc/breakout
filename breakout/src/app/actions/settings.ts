@@ -65,3 +65,33 @@ export async function uploadBrandLogoAction(formData: FormData) {
     return { error: error.message || "Failed to upload brand logo" };
   }
 }
+
+export async function updateCatalogVisibility(data: { rph: boolean; khana: boolean; halo: boolean }) {
+  const session = await auth();
+  // @ts-ignore
+  if (session?.user?.role !== 'ADMIN') return { error: "Unauthorized" };
+
+  try {
+    await prisma.settings.upsert({
+      where: { key: 'enable_catalog_rph' },
+      update: { value: data.rph ? "true" : "false" },
+      create: { key: 'enable_catalog_rph', value: data.rph ? "true" : "false", description: 'Show RPH catalog to users' }
+    });
+    await prisma.settings.upsert({
+      where: { key: 'enable_catalog_khana' },
+      update: { value: data.khana ? "true" : "false" },
+      create: { key: 'enable_catalog_khana', value: data.khana ? "true" : "false", description: 'Show Khana catalog to users' }
+    });
+    await prisma.settings.upsert({
+      where: { key: 'enable_catalog_halo' },
+      update: { value: data.halo ? "true" : "false" },
+      create: { key: 'enable_catalog_halo', value: data.halo ? "true" : "false", description: 'Show Halo catalog to users' }
+    });
+
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { error: "Gagal menyimpan pengaturan" };
+  }
+}
