@@ -11,7 +11,7 @@ export default async function MyReleasesPage() {
   
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
-    include: { artists: { include: { releases: { orderBy: { createdAt: 'desc' } } } } }
+    include: { artists: { include: { releases: { orderBy: { createdAt: 'desc' }, include: { tracks: true } } } } }
   });
 
   const releases = user?.artists?.flatMap(a => a.releases).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
