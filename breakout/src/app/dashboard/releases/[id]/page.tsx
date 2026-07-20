@@ -6,12 +6,13 @@ import { ArrowLeft, Disc, Music, User, Calendar, Tag, Hash, FileAudio, Settings 
 
 const prisma = new PrismaClient();
 
-export default async function ReleaseDetailPage({ params }: { params: { id: string } }) {
+export default async function ReleaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
   const release = await prisma.release.findUnique({
-    where: { id: params.id },
+    where: { id: id },
     include: {
       artist: true,
       tracks: true,
@@ -64,7 +65,7 @@ export default async function ReleaseDetailPage({ params }: { params: { id: stri
             </div>
             <div>
               <div className="text-white/50 text-xs mb-1 uppercase tracking-wider">Release Date</div>
-              <div className="flex items-center gap-1.5 truncate"><Calendar className="w-4 h-4 shrink-0" /> {new Date(release.releaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+              <div className="flex items-center gap-1.5 truncate"><Calendar className="w-4 h-4 shrink-0" /> {new Date(release.releaseDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}</div>
             </div>
             <div>
               <div className="text-white/50 text-xs mb-1 uppercase tracking-wider">ID Release</div>
@@ -148,12 +149,12 @@ export default async function ReleaseDetailPage({ params }: { params: { id: stri
               
               <div>
                 <div className="text-gray-500 text-xs uppercase tracking-wider font-bold mb-1">Created At</div>
-                <div className="font-semibold text-gray-900">{release.createdAt.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                <div className="font-semibold text-gray-900">{release.createdAt.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC</div>
               </div>
 
               <div>
                 <div className="text-gray-500 text-xs uppercase tracking-wider font-bold mb-1">Last Updated</div>
-                <div className="font-semibold text-gray-900">{release.updatedAt.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                <div className="font-semibold text-gray-900">{release.updatedAt.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })} UTC</div>
               </div>
             </div>
           </div>
