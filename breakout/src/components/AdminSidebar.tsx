@@ -14,6 +14,7 @@ const links = [
   { name: "Streaming Analytics", href: "/admin/streaming",  icon: Activity },
   { name: "Website CMS",        href: "/admin/website-cms", icon: Globe },
   { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
+  { name: "Katalog RPH", href: "/admin/catalog-rph", icon: Library },
   { name: "Publisher Catalog", href: "/admin/publisher-catalog", icon: BookOpen },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Identity Verif", href: "/admin/registrations", icon: CheckCircle },

@@ -370,3 +370,15 @@ model UnmatchedSong {
   importLog   ImportLog  @relation(fields: [importLogId], references: [id], onDelete: Cascade)
   createdAt   DateTime   @default(now())
 }
+
+model CatalogRph {
+  id         String   @id @default(cuid())
+  title      String
+  singer     String
+  composer   String
+  youtubeUrl String?
+  coverUrl   String?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
