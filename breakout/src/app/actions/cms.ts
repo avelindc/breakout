@@ -83,10 +83,22 @@ export type CMSData = {
     ctaText: string;
     ctaLink: string;
   }[];
-  faq: {
+  faqSection: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    isActive: boolean;
+  };
+  faqGroups: {
     id: string;
-    question: string;
-    answer: string;
+    title: string;
+    colorClass: "orange" | "green" | "blue" | "purple";
+    order: number;
+    questions: {
+      id: string;
+      question: string;
+      answer: string;
+    }[];
   }[];
   testimonials: {
     id: string;
@@ -204,8 +216,44 @@ const defaultCMSData: CMSData = {
       ctaLink: "/register"
     }
   ],
-  faq: [
-    { id: "1", question: "Berapa lama proses rilis?", answer: "Biasanya membutuhkan waktu 1-3 hari kerja untuk masuk ke Spotify dan Apple Music." }
+  faqSection: {
+    badge: "FAQ Creates",
+    title: "Pertanyaan yang sering ditanyakan",
+    subtitle: "Jawaban singkat tentang akun Creates, layanan Cover to Master, dan distribusi musik digital.",
+    isActive: true,
+  },
+  faqGroups: [
+    {
+      id: "1",
+      title: "FAQ Umum",
+      colorClass: "orange",
+      order: 1,
+      questions: [
+        { id: "1-1", question: "Apa itu Creates?", answer: "Platform distribusi musik indie." },
+        { id: "1-2", question: "Apakah daftar di Creates berbayar?", answer: "Gratis untuk pendaftaran awal." },
+        { id: "1-3", question: "Bagaimana cara menggunakan layanan Creates?", answer: "Buat akun, upload rilis, dan distribusikan." },
+      ]
+    },
+    {
+      id: "2",
+      title: "FAQ CTM",
+      colorClass: "green",
+      order: 2,
+      questions: [
+        { id: "2-1", question: "Apa itu CTM?", answer: "Cover to Master adalah layanan legalisasi cover lagu." },
+        { id: "2-2", question: "Kenapa cover saya kena copyright claim?", answer: "Karena belum ada lisensi resmi." },
+      ]
+    },
+    {
+      id: "3",
+      title: "FAQ DMD",
+      colorClass: "blue",
+      order: 3,
+      questions: [
+        { id: "3-1", question: "Apa itu DMD?", answer: "Digital Music Distribution." },
+        { id: "3-2", question: "Apakah karya original saya terlindungi?", answer: "Ya, kami menjaga hak cipta kreator." },
+      ]
+    }
   ],
   testimonials: [
     { id: "1", name: "John Doe", role: "Indie Artist", content: "Breakout sangat membantu karir musik saya!", avatarUrl: "" }
@@ -263,10 +311,11 @@ export async function getLandingPageCMS(): Promise<CMSData> {
       footer: { ...defaultCMSData.footer, ...(parsedData.footer || {}) },
       socialMedia: { ...defaultCMSData.socialMedia, ...(parsedData.socialMedia || {}) },
       stats: { ...defaultCMSData.stats, ...(parsedData.stats || {}) },
+      faqSection: { ...defaultCMSData.faqSection, ...(parsedData.faqSection || {}) },
+      faqGroups: parsedData.faqGroups || defaultCMSData.faqGroups,
       // Arrays are replaced entirely if they exist in DB, otherwise use default
       features: parsedData.features || defaultCMSData.features,
       pricing: parsedData.pricing || defaultCMSData.pricing,
-      faq: parsedData.faq || defaultCMSData.faq,
       testimonials: parsedData.testimonials || defaultCMSData.testimonials,
       partners: parsedData.partners || defaultCMSData.partners,
       featuredReleases: parsedData.featuredReleases || defaultCMSData.featuredReleases,

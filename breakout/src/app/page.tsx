@@ -5,6 +5,7 @@ import { getLandingPageCMS } from "@/app/actions/cms";
 import { getLandingStats } from "@/app/actions/landingStats";
 import { Metadata } from "next";
 import { AnimatedSection, AnimatedCounter, Navbar, FeaturedReleaseCard } from "./LandingClient";
+import FAQSection from "@/components/FAQSection";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -273,6 +274,9 @@ export default async function LandingPage() {
           </div>
         </section>
       )}
+
+      {/* FAQ Section */}
+      <FAQSection section={cms.faqSection} groups={cms.faqGroups} />
 
       {/* Testimonials Section */}
       {cms.testimonials && cms.testimonials.length > 0 && (

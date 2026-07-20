@@ -406,28 +406,89 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
           {activeTab === "faq" && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">FAQ</h2>
-                <button onClick={() => addArrayItem('faq', { question: 'Pertanyaan baru?', answer: 'Jawaban' })} className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl text-sm font-bold transition">
-                  <Plus className="w-4 h-4" /> Tambah FAQ
+                <h2 className="text-xl font-bold text-gray-900">FAQ Section</h2>
+                <button 
+                  onClick={() => {
+                    setData((prev: any) => ({
+                      ...prev,
+                      faqGroups: [...prev.faqGroups, { id: uuidv4(), title: 'Grup Baru', colorClass: 'orange', order: prev.faqGroups.length + 1, questions: [] }]
+                    }));
+                  }} 
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl text-sm font-bold transition">
+                  <Plus className="w-4 h-4" /> Tambah Grup Kategori
                 </button>
               </div>
+
+              {/* Section Details */}
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Badge</label>
+                    <input type="text" value={data.faqSection?.badge || ''} onChange={(e) => updateNestedField(['faqSection', 'badge'], e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500" />
+                  </div>
+                  <div className="flex-[2]">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Judul Utama</label>
+                    <input type="text" value={data.faqSection?.title || ''} onChange={(e) => updateNestedField(['faqSection', 'title'], e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Sub Judul</label>
+                  <textarea rows={2} value={data.faqSection?.subtitle || ''} onChange={(e) => updateNestedField(['faqSection', 'subtitle'], e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
+                </div>
+              </div>
               
-              <div className="space-y-4">
-                {data.faq.map((item, i) => (
-                  <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative group">
-                    <button onClick={() => removeArrayItem('faq', item.id)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+              {/* Groups */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(data.faqGroups || []).map((group: any) => (
+                  <div key={group.id} className={`p-4 border rounded-2xl relative ${group.colorClass === 'orange' ? 'bg-orange-50/50 border-orange-100' : group.colorClass === 'green' ? 'bg-green-50/50 border-green-100' : 'bg-blue-50/50 border-blue-100'}`}>
+                    <button onClick={() => removeArrayItem('faqGroups', group.id)} className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="space-y-3 pr-12">
+                    
+                    <div className="space-y-3 pr-10 mb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Pertanyaan</label>
-                        <input type="text" value={item.question} onChange={(e) => updateArrayItem('faq', item.id, 'question', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 font-medium" />
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Nama Kategori</label>
+                        <input type="text" value={group.title} onChange={(e) => updateArrayItem('faqGroups', group.id, 'title', e.target.value)} className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none text-sm font-bold" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Jawaban</label>
-                        <textarea rows={2} value={item.answer} onChange={(e) => updateArrayItem('faq', item.id, 'answer', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Warna Kolom</label>
+                        <select value={group.colorClass} onChange={(e) => updateArrayItem('faqGroups', group.id, 'colorClass', e.target.value)} className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none text-sm">
+                          <option value="orange">Orange</option>
+                          <option value="green">Hijau</option>
+                          <option value="blue">Biru</option>
+                        </select>
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-gray-700 flex justify-between items-center border-b pb-1">
+                        Daftar Pertanyaan
+                        <button onClick={() => {
+                          const newQ = { id: uuidv4(), question: 'Pertanyaan?', answer: 'Jawaban' };
+                          const newGroups = data.faqGroups.map((g: any) => g.id === group.id ? { ...g, questions: [...g.questions, newQ] } : g);
+                          setData((prev: any) => ({ ...prev, faqGroups: newGroups }));
+                        }} className="text-blue-500 hover:text-blue-700 p-1"><Plus className="w-3 h-3" /></button>
+                      </h4>
+                      {group.questions.map((q: any) => (
+                        <div key={q.id} className="bg-white p-3 rounded-xl border border-gray-100 relative group">
+                          <button onClick={() => {
+                            const newGroups = data.faqGroups.map((g: any) => g.id === group.id ? { ...g, questions: g.questions.filter((qq:any) => qq.id !== q.id) } : g);
+                            setData((prev: any) => ({ ...prev, faqGroups: newGroups }));
+                          }} className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-500 rounded transition hidden group-hover:block"><Trash2 className="w-3 h-3" /></button>
+                          
+                          <input type="text" value={q.question} onChange={(e) => {
+                            const newGroups = data.faqGroups.map((g: any) => g.id === group.id ? { ...g, questions: g.questions.map((qq:any) => qq.id === q.id ? { ...qq, question: e.target.value } : qq) } : g);
+                            setData((prev: any) => ({ ...prev, faqGroups: newGroups }));
+                          }} placeholder="Pertanyaan..." className="w-full text-xs font-semibold mb-2 bg-transparent outline-none pr-6" />
+                          
+                          <textarea rows={2} value={q.answer} onChange={(e) => {
+                            const newGroups = data.faqGroups.map((g: any) => g.id === group.id ? { ...g, questions: g.questions.map((qq:any) => qq.id === q.id ? { ...qq, answer: e.target.value } : qq) } : g);
+                            setData((prev: any) => ({ ...prev, faqGroups: newGroups }));
+                          }} placeholder="Jawaban..." className="w-full text-[10px] text-gray-500 bg-transparent outline-none" />
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
                 ))}
               </div>
