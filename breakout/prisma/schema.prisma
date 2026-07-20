@@ -396,3 +396,17 @@ model CatalogKhana {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+model CatalogHalo {
+  id         String   @id @default(cuid())
+  songId     String?
+  title      String
+  composer   String
+  publisher  String?
+  performer  String
+  youtubeUrl String?
+  coverUrl   String?
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

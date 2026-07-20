@@ -17,6 +17,7 @@ const links = [
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Katalog RPH", href: "/dashboard/catalog-rph", icon: Library },
   { name: "Katalog Khana", href: "/dashboard/catalog-khana", icon: Library },
+  { name: "Katalog Halo", href: "/dashboard/catalog-halo", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
