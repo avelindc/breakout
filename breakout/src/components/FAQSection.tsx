@@ -34,11 +34,11 @@ export default function FAQSection({ section, groups }: FAQSectionProps) {
 
   const getColorClasses = (color: string) => {
     switch (color) {
-      case "orange": return "bg-[#FFF4ED] border-[#FFE4D6] text-[#E85D04]";
-      case "green": return "bg-[#F2FCEE] border-[#E2F7DA] text-[#2D6A4F]";
-      case "blue": return "bg-[#F0F4FF] border-[#DCE4FF] text-[#1E3A8A]";
-      case "purple": return "bg-[#F5F3FF] border-[#EDE9FE] text-[#6D28D9]";
-      default: return "bg-gray-50 border-gray-100 text-gray-700";
+      case "orange": return "bg-[#FFF4ED]/10 border-[#FFE4D6]/20 text-[#FFD1B3]";
+      case "green": return "bg-[#F2FCEE]/10 border-[#E2F7DA]/20 text-[#C6F6D5]";
+      case "blue": return "bg-[#F0F4FF]/10 border-[#DCE4FF]/20 text-[#BFDBFE]";
+      case "purple": return "bg-[#F5F3FF]/10 border-[#EDE9FE]/20 text-[#DDD6FE]";
+      default: return "bg-white/5 border-white/10 text-gray-300";
     }
   };
 
@@ -52,7 +52,7 @@ export default function FAQSection({ section, groups }: FAQSectionProps) {
   };
 
   return (
-    <section id="faq" className="py-24 px-6 bg-white relative font-sans text-gray-900">
+    <section id="faq" className="py-24 px-6 relative font-sans text-white">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -62,10 +62,10 @@ export default function FAQSection({ section, groups }: FAQSectionProps) {
               {section.badge}
             </div>
           )}
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 leading-tight text-white">
             {section.title}
           </h2>
-          <p className="text-gray-500 text-lg md:text-xl">
+          <p className="text-gray-300 text-lg md:text-xl">
             {section.subtitle}
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function FAQSection({ section, groups }: FAQSectionProps) {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${badgeStyle}`}>
                     {String(index + 1).padStart(2, '0')}
                   </div>
-                  <h3 className="text-lg font-medium tracking-tight text-gray-900">
+                  <h3 className="text-lg font-medium tracking-tight text-white">
                     {group.title}
                   </h3>
                 </div>
@@ -94,20 +94,20 @@ export default function FAQSection({ section, groups }: FAQSectionProps) {
                   {group.questions.map((q) => {
                     const isOpen = openIds[q.id];
                     return (
-                      <div key={q.id} className="bg-white rounded-2xl border border-white overflow-hidden shadow-sm transition-all hover:shadow-md">
+                      <div key={q.id} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-sm transition-all hover:bg-white/20">
                         <button 
                           onClick={() => toggle(q.id)}
                           className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 focus:outline-none"
                         >
-                          <span className="font-semibold text-[13px] leading-snug text-gray-800">{q.question}</span>
-                          <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border transition-colors ${isOpen ? 'bg-gray-100 border-gray-200' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
-                            {isOpen ? <Minus className="w-3.5 h-3.5 text-gray-600" /> : <Plus className="w-3.5 h-3.5 text-gray-600" />}
+                          <span className="font-semibold text-[13px] leading-snug text-white">{q.question}</span>
+                          <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center border transition-colors ${isOpen ? 'bg-white/20 border-white/30' : 'bg-white/5 border-white/10 hover:bg-white/20'}`}>
+                            {isOpen ? <Minus className="w-3.5 h-3.5 text-white" /> : <Plus className="w-3.5 h-3.5 text-white" />}
                           </div>
                         </button>
                         <div 
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                         >
-                          <div className="px-5 pb-5 pt-0 text-[13px] text-gray-500 leading-relaxed">
+                          <div className="px-5 pb-5 pt-0 text-[13px] text-gray-300 leading-relaxed">
                             {q.answer}
                           </div>
                         </div>
