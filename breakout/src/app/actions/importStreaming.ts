@@ -15,6 +15,7 @@ export type ParsedRow = {
   platform?: string;
   country?: string;
   date?: string;
+  currency?: string;
 };
 
 export async function processImportStreamingBatch(
@@ -74,6 +75,7 @@ export async function processImportStreamingBatch(
       other: number;
       revenue: number;
       platformData: Record<string, number>;
+      platformRevenue: Record<string, { revenue: number, currency: string }>;
     }>();
 
     for (const row of rows) {
@@ -125,7 +127,8 @@ export async function processImportStreamingBatch(
           month,
           year,
           spotify: 0, apple: 0, youtube: 0, tiktok: 0, amazon: 0, other: 0, revenue: 0,
-          platformData: {}
+          platformData: {},
+          platformRevenue: {}
         });
       }
 
@@ -136,6 +139,12 @@ export async function processImportStreamingBatch(
       
       const originalPlatform = row.platform?.trim() || "Unknown";
       agg.platformData[originalPlatform] = (agg.platformData[originalPlatform] || 0) + streams;
+      
+      const currency = row.currency?.trim().toUpperCase() || "USD";
+      if (!agg.platformRevenue[originalPlatform]) {
+        agg.platformRevenue[originalPlatform] = { revenue: 0, currency };
+      }
+      agg.platformRevenue[originalPlatform].revenue += revenue;
 
       const p = originalPlatform.toLowerCase();
       if (p.includes("spotify")) agg.spotify += streams;
@@ -197,6 +206,51 @@ export async function processImportStreamingBatch(
             platformData: agg.platformData
           }
         });
+      }      // Upsert RoyaltyPerSong for each platform
+      for (const [plat, data] of Object.entries(agg.platformRevenue)) {
+        if (data.revenue > 0) {
+          const existingPerSong = await prisma.royaltyPerSong.findFirst({
+            where: {
+              artistId: agg.artistId,
+              songName: agg.songName,
+              platform: plat,
+              month: agg.month,
+              year: agg.year,
+            }
+          });
+          
+          if (existingPerSong) {
+            await prisma.royaltyPerSong.update({
+              where: { id: existingPerSong.id },
+              data: {
+                revenue: existingPerSong.revenue + data.revenue,
+                currency: data.currency
+              }
+            });
+          } else {
+            // Find trackId if possible
+            const track = await prisma.track.findFirst({
+              where: {
+                release: { artistId: agg.artistId },
+                title: agg.songName
+              }
+            });
+            
+            await prisma.royaltyPerSong.create({
+              data: {
+                artistId: agg.artistId,
+                trackId: track?.id,
+                songName: agg.songName,
+                platform: plat,
+                revenue: data.revenue,
+                currency: data.currency,
+                month: agg.month,
+                year: agg.year,
+                status: "PAID"
+              }
+            });
+          }
+        }
       }
     }
 

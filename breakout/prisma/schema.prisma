@@ -69,6 +69,7 @@ model Artist {
   
   releases  Release[]
   royalties Royalty[]
+  royaltyPerSongs RoyaltyPerSong[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -135,6 +136,7 @@ model Track {
   tiktokClipStart String? // e.g. "00:30" or "01:15"
   
   streams     Streaming[]
+  royaltyPerSongs RoyaltyPerSong[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -410,3 +412,26 @@ model CatalogHalo {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+model RoyaltyPerSong {
+  id          String   @id @default(cuid())
+  
+  artistId    String
+  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  trackId     String?
+  track       Track?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  
+  songName    String
+  platform    String
+  revenue     Float
+  currency    String   @default("IDR")
+  
+  month       Int
+  year        Int
+  status      String   @default("PAID")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

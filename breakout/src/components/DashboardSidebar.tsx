@@ -22,6 +22,7 @@ const links = [
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
   { name: "Royalties", href: "/dashboard/royalties", icon: DollarSign },
+  { name: "Royalty Per Song", href: "/dashboard/royalty-per-song", icon: DollarSign },
   { name: "Withdraw", href: "/dashboard/withdraw", icon: CreditCard },
   { name: "Kontrak Saya", href: "/dashboard/contracts", icon: FileText },
   { name: "Notifications", href: "/dashboard/notifications", icon: Bell },

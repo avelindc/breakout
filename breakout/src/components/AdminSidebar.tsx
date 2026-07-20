@@ -26,6 +26,7 @@ const links = [
   { name: "Artists", href: "/admin/all-artists", icon: Users },
   { name: "Import Streaming", href: "/admin/import-streaming", icon: Upload },
   { name: "Royalties", href: "/admin/royalties", icon: DollarSign },
+  { name: "Royalty Per Song", href: "/admin/royalty-per-song", icon: DollarSign },
   { name: "Withdrawals", href: "/admin/withdrawals", icon: DollarSign },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart },
   { name: "Settings", href: "/admin/settings", icon: Settings },
