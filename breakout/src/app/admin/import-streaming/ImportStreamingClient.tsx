@@ -106,8 +106,9 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
           else if (lower.includes("stream") || lower.includes("quantity") || lower.includes("count")) newMapping["streams"] = h;
           else if (lower.includes("revenue") || lower.includes("earning") || lower.includes("net") || lower.includes("amount")) newMapping["revenue"] = h;
           else if (lower.includes("platform") || lower.includes("store") || lower.includes("service")) newMapping["platform"] = h;
-          else if (lower.includes("country") || lower.includes("territory")) newMapping["country"] = h;
-          else if (lower.includes("date") || lower.includes("period")) newMapping["date"] = h;
+          else if (lower.includes("country") || lower.includes("territory") || lower.includes("region")) newMapping["country"] = h;
+          else if (lower.includes("date") || lower.includes("period") || lower.includes("month")) newMapping["date"] = h;
+          else if (lower.includes("currency")) newMapping["currency"] = h;
         });
         setMapping(newMapping);
         
@@ -135,6 +136,7 @@ export default function ImportStreamingClient({ initialLogs }: { initialLogs: an
         platform: row[mapping["platform"]]?.toString(),
         country: row[mapping["country"]]?.toString(),
         date: row[mapping["date"]]?.toString(),
+        currency: row[mapping["currency"]]?.toString(),
       };
     });
 
