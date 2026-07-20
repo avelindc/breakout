@@ -449,21 +449,16 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-300">Pilih Mulai Klip</label>
-                  <select
+                  <label className="text-xs font-semibold text-gray-300">Mulai Klip TikTok (Menit:Detik)</label>
+                  <input
+                    type="text"
                     value={tiktokClipStart}
                     onChange={e => setTiktokClipStart(e.target.value)}
-                    className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white font-medium cursor-pointer"
-                  >
-                    <option value="00:00">Mulai dari awal (00:00)</option>
-                    <option value="00:15">Detik 15 (00:15)</option>
-                    <option value="00:30">Detik 30 (00:30)</option>
-                    <option value="00:45">Detik 45 (00:45)</option>
-                    <option value="01:00">Menit 1 (01:00)</option>
-                    <option value="01:15">Menit 1:15 (01:15)</option>
-                    <option value="01:30">Menit 1:30 (01:30)</option>
-                    <option value="02:00">Menit 2 (02:00)</option>
-                  </select>
+                    placeholder="Contoh: 00:30 atau 01:15"
+                    pattern="[0-9]{1,2}:[0-9]{2}"
+                    title="Format harus Menit:Detik, contoh: 00:30"
+                    className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white font-medium"
+                  />
                 </div>
                 <div className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col justify-center">
                   <p className="text-[11px] text-gray-400">Rekomendasi:</p>
