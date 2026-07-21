@@ -97,7 +97,7 @@ export default function AdminAnalyticsClient({ data }: { data: AnalyticsData }) 
           </div>
           <div>
             <p className="text-gray-500 font-medium mb-1">Gross Revenue</p>
-            <h3 className="text-2xl font-extrabold text-gray-900">Rp {totalRevenue.toLocaleString('id-ID')}</h3>
+            <h3 className="text-2xl font-extrabold text-gray-900">Rp {Math.round(totalRevenue).toLocaleString('id-ID')}</h3>
             <p className="text-gray-400 text-xs font-medium mt-2">Bulan ini</p>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function AdminAnalyticsClient({ data }: { data: AnalyticsData }) 
                 <Tooltip 
                   cursor={{ fill: 'transparent' }}
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px 20px', fontWeight: 'bold' }}
-                  formatter={(value: any) => [`Rp ${Number(value).toLocaleString('id-ID')}`, 'Revenue']}
+                  formatter={(value: any) => [`Rp ${Math.round(Number(value)).toLocaleString('id-ID')}`, 'Revenue']}
                   labelStyle={{ color: '#71717A', marginBottom: '4px' }}
                 />
                 <Bar 
