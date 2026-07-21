@@ -56,9 +56,15 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
         </div>
       </div>
 
-      <div className="space-y-1 pt-2">
-        <label className="text-sm font-bold text-gray-900">Total Revenue (IDR) *</label>
-        <input required name="totalRevenue" type="number" step="1" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1 pt-2">
+          <label className="text-sm font-bold text-gray-900">Total Revenue (IDR) *</label>
+          <input required name="totalRevenue" type="number" step="1" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
+        </div>
+        <div className="space-y-1 pt-2">
+          <label className="text-sm font-bold text-gray-900">Potongan / Cut (%)</label>
+          <input name="cutPercentage" type="number" step="0.1" min="0" max="100" defaultValue="0" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
+        </div>
       </div>
 
       <div className="pt-4 border-t border-gray-100">
@@ -79,6 +85,14 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
           <div>
             <label className="text-xs text-gray-500">TikTok</label>
             <input name="tiktokStreams" type="number" defaultValue={0} className="w-full border border-gray-200 rounded px-2 py-1 outline-none" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500">Facebook</label>
+            <input name="facebookStreams" type="number" defaultValue={0} className="w-full border border-gray-200 rounded px-2 py-1 outline-none" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500">Instagram</label>
+            <input name="instagramStreams" type="number" defaultValue={0} className="w-full border border-gray-200 rounded px-2 py-1 outline-none" />
           </div>
           <div>
             <label className="text-xs text-gray-500">Amazon</label>

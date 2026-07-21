@@ -18,14 +18,25 @@ export async function addRoyaltyAction(formData: FormData) {
   const songName = (formData.get("songName") as string) || "Global Royalty";
   const month = parseInt(formData.get("month") as string);
   const year = parseInt(formData.get("year") as string);
-  const totalRevenue = parseFloat(formData.get("totalRevenue") as string);
+  const rawTotalRevenue = parseFloat(formData.get("totalRevenue") as string);
+  const cutPercentage = parseFloat(formData.get("cutPercentage") as string) || 0;
+  
+  // Apply cut percentage automatically
+  const totalRevenue = rawTotalRevenue * (1 - (cutPercentage / 100));
   
   const spotifyStreams = parseInt(formData.get("spotifyStreams") as string) || 0;
   const appleMusicStreams = parseInt(formData.get("appleMusicStreams") as string) || 0;
   const youtubeStreams = parseInt(formData.get("youtubeStreams") as string) || 0;
   const tiktokStreams = parseInt(formData.get("tiktokStreams") as string) || 0;
   const amazonStreams = parseInt(formData.get("amazonStreams") as string) || 0;
+  const facebookStreams = parseInt(formData.get("facebookStreams") as string) || 0;
+  const instagramStreams = parseInt(formData.get("instagramStreams") as string) || 0;
   const otherStreams = parseInt(formData.get("otherStreams") as string) || 0;
+
+  const platformData = {
+    facebook: facebookStreams,
+    instagram: instagramStreams
+  };
 
   if (!artistId || !month || !year || isNaN(totalRevenue)) {
     return { error: "Missing required fields" };
@@ -44,7 +55,8 @@ export async function addRoyaltyAction(formData: FormData) {
         youtubeStreams,
         tiktokStreams,
         amazonStreams,
-        otherStreams
+        otherStreams,
+        platformData
       }
     });
 
