@@ -38,9 +38,8 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
 
   const primaryArtist = user.artists[0] || {};
   
-  // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(amount));
   };
 
   // Filter tracks
@@ -123,14 +122,14 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
   };
 
   return (
-    <div className="bg-[#09090B] text-gray-200 pb-20 font-sans animate-fade-in w-full h-full">
+    <div className="text-gray-700 pb-20 font-sans animate-fade-in w-full h-full max-w-7xl mx-auto">
       <audio ref={audioRef} onEnded={() => setPlayingTrack(null)} />
       
       {/* Header & Back Button */}
       <div className="flex items-center justify-between mb-8">
-        <Link href="/admin/all-artists" className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition">
+        <Link href="/admin/all-artists" className="flex items-center gap-2 text-gray-500 hover:text-purple-600 transition">
           <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Artists</span>
+          <span className="font-bold">Back to Artists</span>
         </Link>
         <div className="flex items-center gap-3">
           <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
@@ -155,33 +154,33 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
         {/* Left Column: Profile & Actions */}
         <div className="lg:col-span-1 space-y-6">
           {/* Profile Card */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center shadow-lg">
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
             <img 
               src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
               alt="Profile" 
-              className="w-32 h-32 rounded-full object-cover border-4 border-[#09090B] shadow-[0_0_0_2px_rgba(34,197,94,0.5)] mb-4"
+              className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mb-4"
             />
-            <h2 className="text-xl font-bold text-white">{primaryArtist.stageName || user.name}</h2>
-            <p className="text-sm text-gray-400 mb-4">{user.name}</p>
+            <h2 className="text-xl font-bold text-gray-900">{primaryArtist.stageName || user.name}</h2>
+            <p className="text-sm text-gray-500 mb-4">{user.name}</p>
             
-            <div className="w-full space-y-3 text-sm text-left border-t border-white/10 pt-4">
+            <div className="w-full space-y-3 text-sm text-left border-t border-gray-100 pt-4">
               <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">Email</span>
-                <span className="text-gray-300 truncate">{user.email}</span>
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Email</span>
+                <span className="text-gray-800 font-medium truncate">{user.email}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">WhatsApp</span>
-                <span className="text-gray-300">{user.whatsapp || '-'}</span>
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">WhatsApp</span>
+                <span className="text-gray-800 font-medium">{user.whatsapp || '-'}</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-gray-500 text-xs">Joined</span>
-                <span className="text-gray-300">{new Date(user.createdAt).toLocaleDateString()}</span>
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Joined</span>
+                <span className="text-gray-800 font-medium">{new Date(user.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
 
           {/* Admin Actions */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 shadow-sm">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Admin Actions</h3>
             <div className="space-y-3">
               {user.status !== 'APPROVED' && (
@@ -205,19 +204,19 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
               
               <button 
                 onClick={() => setShowPasswordModal(true)}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl transition font-bold shadow-sm"
               >
                 <Key className="w-4 h-4" /> Reset Password
               </button>
               
               <a 
                 href={`mailto:${user.email}`}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 rounded-xl transition font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl transition font-bold shadow-sm"
               >
                 <Mail className="w-4 h-4" /> Send Message
               </a>
 
-              <div className="pt-4 border-t border-white/10 mt-4 space-y-3">
+              <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">
                 <button 
                   onClick={handleResetData}
                   disabled={isProcessing || !primaryArtist.id}
@@ -243,32 +242,34 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
           
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
-              <Music className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={stats.totalTracks.toString()}>{stats.totalTracks}</div>
-              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Songs</div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <Music className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate w-full px-1" title={stats.totalTracks.toString()}>{stats.totalTracks}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Songs</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
-              <Disc className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={stats.totalReleases.toString()}>{stats.totalReleases}</div>
-              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Releases</div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <Disc className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate w-full px-1" title={stats.totalReleases.toString()}>{stats.totalReleases}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Releases</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
-              <DollarSign className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={formatCurrency(stats.totalRoyalties)}>{formatCurrency(stats.totalRoyalties)}</div>
-              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Royalties</div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <DollarSign className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-xl font-extrabold text-gray-900 truncate w-full px-1" title={formatCurrency(stats.totalRoyalties)}>{formatCurrency(stats.totalRoyalties)}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Royalties</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition shadow-lg overflow-hidden">
-              <ArrowDownCircle className="w-6 h-6 text-green-400 mb-2 group-hover:scale-110 transition-transform" />
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white truncate w-full px-1" title={formatCurrency(stats.totalWithdrawals)}>{formatCurrency(stats.totalWithdrawals)}</div>
-              <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider mt-1">Total Withdrawals</div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <ArrowDownCircle className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-xl font-extrabold text-gray-900 truncate w-full px-1" title={formatCurrency(stats.totalWithdrawals)}>{formatCurrency(stats.totalWithdrawals)}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Withdrawals</div>
             </div>
           </div>
 
           {/* Songs List Section */}
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 shadow-lg">
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-              <h2 className="text-xl font-bold text-white">Artist Tracks</h2>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Music className="w-5 h-5 text-purple-500" /> Artist Tracks
+              </h2>
               
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -278,14 +279,14 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
                     placeholder="Search songs..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-[#09090B] border border-white/10 text-sm text-white rounded-full pl-9 pr-4 py-2 w-full md:w-64 focus:border-green-500 focus:outline-none transition"
+                    className="bg-white border border-gray-200 text-sm font-medium text-gray-800 rounded-full pl-9 pr-4 py-2 w-full md:w-64 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition"
                   />
                 </div>
                 
                 <select 
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-[#09090B] border border-white/10 text-sm text-white rounded-full px-4 py-2 focus:border-green-500 focus:outline-none transition cursor-pointer appearance-none"
+                  className="bg-white border border-gray-200 text-sm font-medium text-gray-800 rounded-full px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition cursor-pointer appearance-none shadow-sm"
                 >
                   <option value="ALL">All Status</option>
                   <option value="APPROVED">Approved</option>
@@ -297,15 +298,15 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
 
             <div className="space-y-4">
               {filteredTracks.map((track) => (
-                <div key={track.id} className="flex flex-col md:flex-row items-center gap-4 bg-[#09090B] border border-white/5 p-4 rounded-2xl hover:border-green-500/30 transition group">
+                <div key={track.id} className="flex flex-col md:flex-row items-center gap-4 bg-white border border-gray-100 p-4 rounded-2xl hover:border-purple-300 hover:shadow-md transition shadow-sm group">
                   
                   {/* Play Button & Cover */}
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 group/cover">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 group/cover border border-gray-100">
                     <img src={track.release.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition">
                       <button 
                         onClick={() => handlePlay(track.id, track.audioUrl)}
-                        className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-black hover:scale-110 transition"
+                        className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-600 hover:scale-110 transition shadow-lg"
                       >
                         {playingTrack === track.id ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-1" />}
                       </button>
@@ -314,9 +315,9 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
 
                   {/* Track Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-white text-lg truncate group-hover:text-green-400 transition">{track.title}</h3>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                      <span className="bg-white/10 text-gray-300 px-2 py-0.5 rounded-md">{track.release.type}</span>
+                    <h3 className="font-bold text-gray-900 text-lg truncate group-hover:text-purple-600 transition">{track.title}</h3>
+                    <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mt-1">
+                      <span className="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-md">{track.release.type}</span>
                       <span>•</span>
                       <span>{track.release.genre}</span>
                       <span>•</span>
@@ -327,12 +328,12 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
                   {/* Additional Info (ISRC/UPC/Status) */}
                   <div className="flex-1 min-w-0 text-sm space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">ISRC:</span>
-                      <span className="text-gray-300 font-mono text-xs">{track.isrc || '-'}</span>
+                      <span className="text-gray-400 font-medium text-xs">ISRC:</span>
+                      <span className="text-gray-600 font-mono text-xs bg-gray-50 px-2 py-0.5 rounded">{track.isrc || '-'}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">UPC:</span>
-                      <span className="text-gray-300 font-mono text-xs">{track.upc || '-'}</span>
+                      <span className="text-gray-400 font-medium text-xs">UPC:</span>
+                      <span className="text-gray-600 font-mono text-xs bg-gray-50 px-2 py-0.5 rounded">{track.upc || '-'}</span>
                     </div>
                   </div>
 
@@ -349,7 +350,7 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={() => handlePlay(track.id, track.audioUrl)}
-                        className="p-2 bg-white/5 hover:bg-green-500/20 hover:text-green-400 rounded-lg transition text-gray-400 flex items-center justify-center" 
+                        className={`p-2 rounded-lg transition flex items-center justify-center shadow-sm ${playingTrack === track.id ? 'bg-purple-100 text-purple-600' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}
                         title={playingTrack === track.id ? "Pause" : "Play"}
                       >
                         {playingTrack === track.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -373,9 +374,9 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
       {/* Password Reset Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-[#18181b] border border-white/10 p-6 rounded-2xl w-full max-w-sm">
-            <h3 className="text-lg font-bold text-white mb-2">Reset Password</h3>
-            <p className="text-sm text-gray-400 mb-6">Enter a new password for {user.name}.</p>
+          <div className="bg-white border border-gray-100 p-8 rounded-3xl w-full max-w-sm shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2"><Key className="w-5 h-5 text-purple-500"/> Reset Password</h3>
+            <p className="text-sm font-medium text-gray-500 mb-6">Enter a new password for {user.name}.</p>
             
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div>
@@ -386,21 +387,21 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
                   placeholder="New password..."
                   required
                   minLength={8}
-                  className="w-full bg-[#09090B] border border-white/10 rounded-xl px-4 py-3 text-white focus:border-green-500 outline-none transition"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition font-medium"
                 />
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button 
                   type="button" 
                   onClick={() => setShowPasswordModal(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition"
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={isProcessing}
-                  className="px-4 py-2 rounded-xl text-sm font-bold bg-green-500 hover:bg-green-400 text-black transition"
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20 transition"
                 >
                   Save Password
                 </button>
