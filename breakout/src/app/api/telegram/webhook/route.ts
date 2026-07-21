@@ -21,27 +21,27 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       }
 
-      const action = data.substring(0, 4); // "take" or "rej_"
-      const releaseId = data.substring(5);
-
-      // Get bot token from settings to send replies
-      const tokenSetting = await prisma.settings.findUnique({
-        where: { key: 'telegram_bot_token' }
-      });
-      const botToken = tokenSetting?.value;
-
+      let releaseId = "";
       let newStatus = "";
       let statusText = "";
 
-      if (action === "take") {
+      if (data.startsWith("take_")) {
+        releaseId = data.substring(5);
         newStatus = "APPROVED"; // Approved
         statusText = "✅ Disetujui (APPROVED)";
-      } else if (action === "rej_") {
+      } else if (data.startsWith("rej_")) {
+        releaseId = data.substring(4);
         newStatus = "REJECTED"; // Rejected
         statusText = "❌ Ditolak (REJECTED)";
       }
 
       if (newStatus && releaseId) {
+        // Get bot token from settings to send replies
+        const tokenSetting = await prisma.settings.findUnique({
+          where: { key: 'telegram_bot_token' }
+        });
+        const botToken = tokenSetting?.value;
+
         // Update release status in DB
         await prisma.release.update({
           where: { id: releaseId },
