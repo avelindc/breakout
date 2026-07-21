@@ -255,6 +255,8 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                 <SpecItem label="Artis Terdaftar" value={selected.artistName} icon={<User className="w-4 h-4 text-purple-600" />} />
                 <SpecItem label="ISRC" value={selected.tracks?.[0]?.isrc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
                 <SpecItem label="UPC" value={selected.tracks?.[0]?.upc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
+                <SpecItem label="Composer" value={selected.tracks?.[0]?.composer || "-"} icon={<User className="w-4 h-4 text-purple-600" />} />
+                <SpecItem label="Producer" value={selected.tracks?.[0]?.producer || "-"} icon={<User className="w-4 h-4 text-purple-600" />} />
               </div>
 
               {/* Lyrics Panel */}
