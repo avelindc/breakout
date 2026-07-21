@@ -13,17 +13,7 @@ const links = [
   { name: "Overview",           href: "/admin",            icon: LayoutDashboard },
   { name: "Streaming Analytics", href: "/admin/streaming",  icon: Activity },
   { name: "Website CMS",        href: "/admin/website-cms", icon: Globe },
-  { 
-    name: "Katalog Musik", 
-    href: "/admin/catalog", 
-    icon: Library,
-    subLinks: [
-      { name: "Master Katalog", href: "/admin/catalog" },
-      { name: "Katalog RPH", href: "/admin/catalog-rph" },
-      { name: "Katalog Khana", href: "/admin/catalog-khana" },
-      { name: "Katalog Halo", href: "/admin/catalog-halo" }
-    ]
-  },
+  { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/admin/publisher-catalog", icon: BookOpen },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
   { name: "Identity Verif", href: "/admin/registrations", icon: CheckCircle },

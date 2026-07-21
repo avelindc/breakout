@@ -15,9 +15,6 @@ const links = [
   { name: "Analytics",             href: "/dashboard/analytics",  icon: LineChart  },
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
-  { name: "Katalog RPH", href: "/dashboard/catalog-rph", icon: Library },
-  { name: "Katalog Khana", href: "/dashboard/catalog-khana", icon: Library },
-  { name: "Katalog Halo", href: "/dashboard/catalog-halo", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
@@ -54,12 +51,7 @@ export function DashboardSidebar({
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const filteredLinks = links.filter(link => {
-    if (link.href === "/dashboard/catalog-rph") return enableRph;
-    if (link.href === "/dashboard/catalog-khana") return enableKhana;
-    if (link.href === "/dashboard/catalog-halo") return enableHalo;
-    return true;
-  });
+  const filteredLinks = links;
 
   return (
     <>
