@@ -192,6 +192,8 @@ export function UserReleasesClient({ releases }: { releases: Release[] }) {
                 <SpecItem label="Artis Terdaftar" value={selected.primaryArtist} icon={<User className="w-4 h-4 text-[#10b981]" />} />
                 <SpecItem label="ISRC" value={selected.tracks?.[0]?.isrc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
                 <SpecItem label="UPC" value={selected.tracks?.[0]?.upc || "-"} icon={<Tag className="w-4 h-4 text-[#10b981]" />} />
+                <SpecItem label="Composer" value={selected.tracks?.[0]?.composer || "-"} icon={<User className="w-4 h-4 text-[#10b981]" />} />
+                <SpecItem label="Producer" value={selected.tracks?.[0]?.producer || "-"} icon={<User className="w-4 h-4 text-[#10b981]" />} />
               </div>
 
               {/* Audio Play preview inside modal */}
