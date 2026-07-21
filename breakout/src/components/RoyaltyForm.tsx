@@ -17,12 +17,26 @@ function SubmitButton() {
 
 export function RoyaltyForm({ artists }: { artists: any[] }) {
   const [selectedArtistId, setSelectedArtistId] = useState("");
+  const [revenue, setRevenue] = useState<number | "">("");
+  const [cut, setCut] = useState<number | "">(0);
   
+  const [monthYear, setMonthYear] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+
   const selectedArtist = artists.find(a => a.id === selectedArtistId);
   const availableSongs = selectedArtist?.releases || [];
 
+  const finalRevenue = typeof revenue === "number" && typeof cut === "number" ? revenue * (1 - cut / 100) : 0;
+  
+  const selectedMonth = monthYear ? parseInt(monthYear.split("-")[1]) : "";
+  const selectedYear = monthYear ? parseInt(monthYear.split("-")[0]) : "";
+
   return (
     <form action={async (formData) => { await addRoyaltyAction(formData); }} className="space-y-4">
+      <input type="hidden" name="month" value={selectedMonth} />
+      <input type="hidden" name="year" value={selectedYear} />
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700">Artist *</label>
         <select 
@@ -45,27 +59,36 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
       </div>
 
 
-      <div className="grid grid-cols-2 gap-4">
+      <div>
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Month (1-12) *</label>
-          <input required name="month" type="number" min="1" max="12" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition" />
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Year *</label>
-          <input required name="year" type="number" min="2020" max="2100" defaultValue={new Date().getFullYear()} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition" />
+          <label className="text-sm font-medium text-gray-700">Period (Month/Year) *</label>
+          <input 
+            required 
+            type="month" 
+            value={monthYear} 
+            onChange={(e) => setMonthYear(e.target.value)} 
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition" 
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1 pt-2">
           <label className="text-sm font-bold text-gray-900">Total Revenue (IDR) *</label>
-          <input required name="totalRevenue" type="number" step="1" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
+          <input required name="totalRevenue" type="number" step="1" value={revenue} onChange={(e) => setRevenue(e.target.value ? Number(e.target.value) : "")} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
         </div>
         <div className="space-y-1 pt-2">
           <label className="text-sm font-bold text-gray-900">Potongan / Cut (%)</label>
-          <input name="cutPercentage" type="number" step="0.1" min="0" max="100" defaultValue="0" className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
+          <input name="cutPercentage" type="number" step="0.1" min="0" max="100" value={cut} onChange={(e) => setCut(e.target.value ? Number(e.target.value) : "")} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-blue-500 transition font-bold" placeholder="0" />
         </div>
       </div>
+
+      {typeof revenue === "number" && revenue > 0 && (
+        <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+          <span className="text-sm font-bold text-blue-800">Sisa Bersih (Yang Masuk Database):</span>
+          <span className="text-xl font-black text-blue-700">Rp {Math.round(finalRevenue).toLocaleString('id-ID')}</span>
+        </div>
+      )}
 
       <div className="pt-4 border-t border-gray-100">
         <h3 className="text-sm font-bold text-gray-900 mb-3">Stream Counts (Optional)</h3>
