@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { addRoyaltyAction } from "@/app/actions/royalties";
 import { DollarSign, Save } from "lucide-react";
 import { RoyaltyForm } from "@/components/RoyaltyForm";
+import { DownloadCsvButton } from "@/components/DownloadCsvButton";
 
 const prisma = new PrismaClient();
 
@@ -99,8 +100,11 @@ export default async function AdminRoyaltiesPage() {
               </h2>
               <p className="text-gray-500 text-sm mt-1.5 ml-5">Detailed breakdown of streams and revenue across all platforms.</p>
             </div>
-            <div className="text-xs font-bold text-gray-600 bg-white px-4 py-2 rounded-xl border border-gray-200 uppercase tracking-widest shadow-sm">
-              {allRoyalties.length} Entries
+            <div className="flex items-center gap-3">
+              <DownloadCsvButton data={allRoyalties} />
+              <div className="text-xs font-bold text-gray-600 bg-white px-4 py-2 rounded-xl border border-gray-200 uppercase tracking-widest shadow-sm">
+                {allRoyalties.length} Entries
+              </div>
             </div>
           </div>
           
@@ -120,6 +124,7 @@ export default async function AdminRoyaltiesPage() {
                     <th className="p-5 text-right">Apple</th>
                     <th className="p-5 text-right">YouTube</th>
                     <th className="p-5 text-right">TikTok</th>
+                    <th className="p-5 text-right">Cut (%)</th>
                     <th className="p-5 pr-8 text-right">Net Revenue</th>
                   </tr>
                 </thead>
@@ -148,6 +153,13 @@ export default async function AdminRoyaltiesPage() {
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.appleMusicStreams.toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.youtubeStreams.toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.tiktokStreams.toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-bold text-sm">
+                          {(r.platformData as any)?.cutPercentage ? (
+                            <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md">
+                              {(r.platformData as any).cutPercentage}%
+                            </span>
+                          ) : "-"}
+                        </td>
                         <td className="p-5 pr-8 text-right">
                           <span className="inline-block bg-purple-50 border border-purple-100 text-purple-700 font-bold px-3 py-1.5 rounded-lg text-sm shadow-sm group-hover:bg-purple-100 transition-all">
                             Rp {Math.round(r.totalRevenue).toLocaleString('id-ID')}

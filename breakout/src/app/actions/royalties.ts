@@ -35,7 +35,9 @@ export async function addRoyaltyAction(formData: FormData) {
 
   const platformData = {
     facebook: facebookStreams,
-    instagram: instagramStreams
+    instagram: instagramStreams,
+    cutPercentage,
+    rawTotalRevenue
   };
 
   if (!artistId || !month || !year || isNaN(totalRevenue)) {
