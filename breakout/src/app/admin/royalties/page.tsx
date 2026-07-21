@@ -35,8 +35,9 @@ export default async function AdminRoyaltiesPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 lg:p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 relative z-10">
             <DollarSign className="w-5 h-5 text-green-600" />
             Add Royalty Data
           </h2>
