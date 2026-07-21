@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { DollarSign, DownloadCloud, Activity, Music, Smartphone, MonitorPlay, Headset } from "lucide-react";
 import { RoyaltyBarChart, RoyaltyDonutChart } from "@/components/RoyaltyCharts";
+import { DownloadCsvButton } from "@/components/DownloadCsvButton";
 
 const prisma = new PrismaClient();
 
@@ -65,9 +66,6 @@ export default async function UserRoyaltiesPage() {
             </h1>
             <p className="text-gray-400 font-medium">Track your global streams and revenue data.</p>
           </div>
-          <button className="self-start sm:self-auto px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 hover:border-[#f000ff]/50 hover:shadow-[0_0_15px_rgba(240,0,255,0.3)] transition-all duration-300 flex items-center gap-2 shrink-0">
-            <DownloadCloud className="w-4 h-4" /> Export CSV
-          </button>
         </div>
       </div>
 
@@ -141,60 +139,93 @@ export default async function UserRoyaltiesPage() {
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden border-[#f000ff]/20">
-        <div className="p-5 border-b border-white/5 bg-white/5 flex items-center justify-between">
-          <h3 className="font-bold text-white tracking-wide">Detailed Royalty Reports</h3>
-          <div className="text-xs font-medium text-gray-400 bg-black/40 px-3 py-1.5 rounded-full border border-white/10">
-            {royalties.length} Entries
+      <div className="mt-16 bg-white/60 backdrop-blur-md rounded-[2rem] relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+        <div className="relative z-10 overflow-hidden">
+          <div className="p-6 sm:p-8 border-b border-gray-100 bg-white/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-wide flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.5)] animate-pulse" />
+                Detailed Analytics
+              </h2>
+              <p className="text-gray-500 text-sm mt-1.5 ml-5">Detailed breakdown of streams and revenue across all platforms.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <DownloadCsvButton data={royalties} />
+              <div className="text-xs font-bold text-gray-600 bg-white px-4 py-2 rounded-xl border border-gray-200 uppercase tracking-widest shadow-sm">
+                {royalties.length} Entries
+              </div>
+            </div>
           </div>
-        </div>
-        
-        {royalties.length === 0 ? (
-          <div className="p-16 text-center text-gray-400">
-            <DollarSign className="w-16 h-16 mx-auto mb-4 text-[#f000ff]/40" />
-            <p className="text-lg">No royalty statements available yet.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[900px]">
-              <thead>
-                <tr className="bg-black/20 border-b border-white/5 text-[11px] uppercase tracking-wider text-gray-400 font-bold">
-                  <th className="p-4 pl-6">Period</th>
-                  <th className="p-4">Track Details</th>
-                  <th className="p-4 text-right">Spotify</th>
-                  <th className="p-4 text-right">Apple</th>
-                  <th className="p-4 text-right">YouTube</th>
-                  <th className="p-4 text-right">TikTok</th>
-                  <th className="p-4 pr-6 text-right">Net Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {royalties.map(r => (
-                  <tr key={r.id} className="border-b border-white/5 last:border-0 hover:bg-[#f000ff]/5 transition-colors group">
-                    <td className="p-4 pl-6">
-                      <span className="bg-white/10 text-gray-300 font-bold px-2.5 py-1 rounded-md text-xs border border-white/5 group-hover:border-[#f000ff]/30 transition-colors">
-                        {new Date(r.year, r.month - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-bold text-white text-sm group-hover:text-[#f000ff] transition-colors">{r.songName}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{r.artist.stageName}</p>
-                    </td>
-                    <td className="p-4 text-right text-gray-400 font-mono text-sm">{r.spotifyStreams.toLocaleString()}</td>
-                    <td className="p-4 text-right text-gray-400 font-mono text-sm">{r.appleMusicStreams.toLocaleString()}</td>
-                    <td className="p-4 text-right text-gray-400 font-mono text-sm">{r.youtubeStreams.toLocaleString()}</td>
-                    <td className="p-4 text-right text-gray-400 font-mono text-sm">{r.tiktokStreams.toLocaleString()}</td>
-                    <td className="p-4 pr-6 text-right">
-                      <span className="inline-block bg-gradient-to-r from-[#f000ff]/20 to-[#00f0ff]/20 border border-[#f000ff]/30 text-white font-bold px-3 py-1.5 rounded-lg text-sm shadow-[0_0_10px_rgba(240,0,255,0.1)] group-hover:shadow-[0_0_15px_rgba(240,0,255,0.3)] transition-all">
-                        Rp {r.totalRevenue.toLocaleString('id-ID')}
-                      </span>
-                    </td>
+          
+          {royalties.length === 0 ? (
+            <div className="p-20 text-center text-gray-400">
+              <DollarSign className="w-16 h-16 mx-auto mb-4 text-purple-200" />
+              <p className="text-lg">No royalty data available.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase tracking-wider text-gray-500 font-bold">
+                    <th className="p-5 pl-8">Period</th>
+                    <th className="p-5">Artist & Track</th>
+                    <th className="p-5 text-right">Spotify</th>
+                    <th className="p-5 text-right">Apple</th>
+                    <th className="p-5 text-right">YouTube</th>
+                    <th className="p-5 text-right">TikTok</th>
+                    <th className="p-5 text-right">Facebook</th>
+                    <th className="p-5 text-right">Instagram</th>
+                    <th className="p-5 text-right">Cut</th>
+                    <th className="p-5 pr-8 text-right">Net Revenue</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {royalties.map(r => {
+                    const profileImage = r.artist.avatarUrl || r.artist.user?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`;
+                    return (
+                      <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-purple-50/50 transition-colors group">
+                        <td className="p-5 pl-8">
+                          <span className="bg-white text-gray-600 font-bold px-3 py-1.5 rounded-md text-xs border border-gray-200 group-hover:border-purple-200 transition-colors shadow-sm">
+                            {new Date(r.year, r.month - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+                          </span>
+                        </td>
+                        <td className="p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white group-hover:border-purple-200 transition-colors shrink-0 shadow-sm">
+                              <img src={profileImage} alt={r.artist.stageName} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm group-hover:text-purple-600 transition-colors">{r.songName}</p>
+                              <p className="text-xs font-medium text-gray-500 mt-1">{r.artist.stageName}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.spotifyStreams.toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.appleMusicStreams.toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.youtubeStreams.toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.tiktokStreams.toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.facebook || 0).toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.instagram || 0).toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-bold text-sm whitespace-nowrap">
+                          {(r.platformData as any)?.cutPercentage ? (
+                            <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md">
+                              - Rp {Math.round(((r.platformData as any).rawTotalRevenue || 0) * ((r.platformData as any).cutPercentage / 100)).toLocaleString('id-ID')}
+                            </span>
+                          ) : "-"}
+                        </td>
+                        <td className="p-5 pr-8 text-right">
+                          <span className="inline-block bg-purple-50 border border-purple-100 text-purple-700 font-bold px-3 py-1.5 rounded-lg text-sm shadow-sm group-hover:bg-purple-100 transition-all">
+                            Rp {Math.round(r.totalRevenue).toLocaleString('id-ID')}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
