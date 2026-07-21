@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { isMaintenanceActive } from "@/lib/maintenance";
+import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
 
 const prisma = new PrismaClient();
 
@@ -136,6 +137,19 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/releases");
     revalidatePath("/admin/releases");
+
+    // Send Telegram Notification (Non-blocking)
+    sendTelegramReleaseNotification(
+      release.id,
+      primaryArtist,
+      title,
+      session.user.email || "Unknown",
+      releaseDateStr,
+      coverArtworkUrl,
+      audioUrl,
+      upc || "",
+      isrc || ""
+    ).catch(e => console.error("Telegram notify err:", e));
 
     return { success: true, releaseId: release.id };
   } catch (error: any) {

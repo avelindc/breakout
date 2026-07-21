@@ -2,8 +2,10 @@ import { auth } from "@/auth";
 import { BrandSettingsForm } from "@/components/BrandSettingsForm";
 import { MaintenanceSettingsForm } from "@/components/MaintenanceSettingsForm";
 import { CatalogVisibilitySettings } from "@/components/CatalogVisibilitySettings";
+import { TelegramSettingsForm } from "@/components/TelegramSettingsForm";
 import { getMaintenanceData } from "@/lib/maintenance";
 import { PrismaClient } from "@prisma/client";
+import { getTelegramSettingsAction } from "@/app/actions/telegram";
 
 const prisma = new PrismaClient();
 
@@ -24,6 +26,9 @@ export default async function AdminSettingsPage() {
   const initialKhana = khanaSetting?.value !== "false";
   const initialHalo = haloSetting?.value !== "false";
 
+  const telegramSettings = await getTelegramSettingsAction();
+  const telegramData = telegramSettings.data || { enabled: false, botToken: "", chatId: "" };
+
   return (
     <div className="animate-fade-in max-w-4xl mx-auto">
       <div className="mb-8">
@@ -34,6 +39,8 @@ export default async function AdminSettingsPage() {
       <CatalogVisibilitySettings initialRph={initialRph} initialKhana={initialKhana} initialHalo={initialHalo} />
 
       <MaintenanceSettingsForm initialData={maintenanceData as any} brandLogo={brandLogo} />
+
+      <TelegramSettingsForm initialData={telegramData} />
 
       <BrandSettingsForm />
 
