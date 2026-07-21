@@ -124,7 +124,9 @@ export default async function AdminRoyaltiesPage() {
                     <th className="p-5 text-right">Apple</th>
                     <th className="p-5 text-right">YouTube</th>
                     <th className="p-5 text-right">TikTok</th>
-                    <th className="p-5 text-right">Cut (%)</th>
+                    <th className="p-5 text-right">Facebook</th>
+                    <th className="p-5 text-right">Instagram</th>
+                    <th className="p-5 text-right">Cut</th>
                     <th className="p-5 pr-8 text-right">Net Revenue</th>
                   </tr>
                 </thead>
@@ -153,10 +155,12 @@ export default async function AdminRoyaltiesPage() {
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.appleMusicStreams.toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.youtubeStreams.toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.tiktokStreams.toLocaleString()}</td>
-                        <td className="p-5 text-right text-gray-500 font-bold text-sm">
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.facebook || 0).toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.instagram || 0).toLocaleString()}</td>
+                        <td className="p-5 text-right text-gray-500 font-bold text-sm whitespace-nowrap">
                           {(r.platformData as any)?.cutPercentage ? (
                             <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md">
-                              {(r.platformData as any).cutPercentage}%
+                              - Rp {Math.round(((r.platformData as any).rawTotalRevenue || 0) * ((r.platformData as any).cutPercentage / 100)).toLocaleString('id-ID')}
                             </span>
                           ) : "-"}
                         </td>
