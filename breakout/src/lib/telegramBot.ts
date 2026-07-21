@@ -11,7 +11,8 @@ export async function sendTelegramReleaseNotification(
   coverUrl: string,
   audioUrl: string,
   upc: string,
-  isrc: string
+  isrc: string,
+  composer?: string
 ) {
   try {
     const settings = await prisma.settings.findMany({
@@ -34,7 +35,7 @@ export async function sendTelegramReleaseNotification(
       return; // Telegram not enabled or configured properly
     }
 
-    const message = `🎵 *New Release Submitted!*\n\n*Artist:* ${artistName}\n*Title:* ${title}\n*Submitter:* ${userEmail}\n*Release Date:* ${releaseDateStr}\n*UPC:* ${upc || '-'}\n*ISRC:* ${isrc || '-'}\n\n[🎧 Download Audio](${audioUrl})`;
+    const message = `🎵 *New Release Submitted!*\n\n*Artist:* ${artistName}\n*Title:* ${title}\n*Composer:* ${composer || '-'}\n*Submitter:* ${userEmail}\n*Release Date:* ${releaseDateStr}\n*UPC:* ${upc || '-'}\n*ISRC:* ${isrc || '-'}\n\n[🎧 Download Audio](${audioUrl})`;
 
     // Get the base URL from the environment or default to something generic for the Admin link
     const baseUrl = process.env.NEXTAUTH_URL || (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : 'https://mmemusic.com');

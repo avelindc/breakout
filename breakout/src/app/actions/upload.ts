@@ -148,7 +148,8 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       coverArtworkUrl,
       audioUrl,
       upc || "",
-      isrc || ""
+      isrc || "",
+      composer || ""
     ).catch(e => console.error("Telegram notify err:", e));
 
     return { success: true, releaseId: release.id };
