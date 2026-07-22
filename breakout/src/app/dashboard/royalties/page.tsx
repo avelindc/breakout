@@ -21,8 +21,10 @@ export default async function UserRoyaltiesPage() {
   const totalApple = royalties.reduce((acc, curr) => acc + curr.appleMusicStreams, 0);
   const totalYoutube = royalties.reduce((acc, curr) => acc + curr.youtubeStreams, 0);
   const totalTiktok = royalties.reduce((acc, curr) => acc + curr.tiktokStreams, 0);
+  const totalFacebook = royalties.reduce((acc, curr) => acc + (((curr.platformData as any)?.facebook) || 0), 0);
+  const totalInstagram = royalties.reduce((acc, curr) => acc + (((curr.platformData as any)?.instagram) || 0), 0);
   
-  const totalStreams = totalSpotify + totalApple + totalYoutube + totalTiktok + royalties.reduce((acc, curr) => acc + curr.amazonStreams + curr.otherStreams, 0);
+  const totalStreams = totalSpotify + totalApple + totalYoutube + totalTiktok + totalFacebook + totalInstagram + royalties.reduce((acc, curr) => acc + curr.amazonStreams + curr.otherStreams, 0);
 
   const getPercent = (value: number) => {
     if (totalStreams === 0) return 0;
@@ -51,6 +53,8 @@ export default async function UserRoyaltiesPage() {
     { name: 'Apple', value: totalApple, color: '#ef4444' },
     { name: 'YouTube', value: totalYoutube, color: '#dc2626' },
     { name: 'TikTok', value: totalTiktok, color: '#3b82f6' },
+    { name: 'Facebook', value: totalFacebook, color: '#1d4ed8' },
+    { name: 'Instagram', value: totalInstagram, color: '#ec4899' },
   ];
 
   return (
@@ -130,6 +134,16 @@ export default async function UserRoyaltiesPage() {
                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_5px_#3b82f6]" />
                    <span className="text-xs text-gray-300">TikTok</span>
                    <span className="text-xs font-bold text-white ml-auto">{getPercent(totalTiktok)}%</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-blue-700 shadow-[0_0_5px_#1d4ed8]" />
+                   <span className="text-xs text-gray-300">Facebook</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalFacebook)}%</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_5px_#ec4899]" />
+                   <span className="text-xs text-gray-300">Instagram</span>
+                   <span className="text-xs font-bold text-white ml-auto">{getPercent(totalInstagram)}%</span>
                  </div>
                </div>
                
