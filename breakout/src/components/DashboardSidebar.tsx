@@ -22,7 +22,6 @@ const links = [
   { name: "Royalty Per Song", href: "/dashboard/royalty-per-song", icon: DollarSign },
   { name: "Withdraw", href: "/dashboard/withdraw", icon: CreditCard },
   { name: "Kontrak Saya", href: "/dashboard/contracts", icon: FileText },
-  { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
