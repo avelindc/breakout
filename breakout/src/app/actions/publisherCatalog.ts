@@ -254,6 +254,23 @@ export async function deleteAllPublisherCatalogAction() {
   }
 }
 
+export async function deletePublisherCatalogByPublisherAction(publisherName: string) {
+  try {
+    await requireAdmin();
+    if (!publisherName) return { error: "Nama publisher harus diisi" };
+    
+    await prisma.publisherCatalogSong.deleteMany({
+      where: { publisher: publisherName }
+    });
+    
+    revalidatePath("/admin/publisher-catalog");
+    revalidatePath("/dashboard/publisher-catalog");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message || "Gagal menghapus data publisher" };
+  }
+}
+
 // ─── READ ──────────────────────────────────────────────────────────────────────
 export async function getPublisherCatalogAction({
   page = 1,

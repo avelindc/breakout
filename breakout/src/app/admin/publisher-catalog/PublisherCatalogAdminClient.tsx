@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   getPublisherCatalogAction,
+  getPublisherCatalogFiltersAction,
   importPublisherCatalogExcelAction,
   importPublisherCatalogPdfAction,
   createPublisherCatalogSongAction,
   updatePublisherCatalogSongAction,
   deletePublisherCatalogSongAction,
   deleteAllPublisherCatalogAction,
+  deletePublisherCatalogByPublisherAction,
 } from "@/app/actions/publisherCatalog";
 import {
   Loader2, RefreshCw, Trash2, Search, Plus, Edit, X,
@@ -56,7 +58,19 @@ export function PublisherCatalogAdminClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [isClearing, setIsClearing] = useState(false);
 
+  const [publishers, setPublishers] = useState<string[]>([]);
+  const [deleteSelection, setDeleteSelection] = useState<string>("");
+
   const LIMIT = 20;
+
+  const fetchPublishers = useCallback(async () => {
+    const res = await getPublisherCatalogFiltersAction();
+    if (res.success) setPublishers(res.publishers || []);
+  }, []);
+
+  useEffect(() => {
+    fetchPublishers();
+  }, [fetchPublishers]);
 
   const fetchSongs = useCallback(async (pageNum: number, isNewSearch = false) => {
     if (isNewSearch) setLoading(true);
@@ -115,13 +129,35 @@ export function PublisherCatalogAdminClient() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleClearAll = async () => {
-    if (!confirm("Yakin hapus SEMUA data Publisher Catalog? Tindakan ini tidak dapat dibatalkan.")) return;
-    setIsClearing(true);
-    const res = await deleteAllPublisherCatalogAction();
-    setIsClearing(false);
-    if (res.success) { setSongs([]); setTotal(0); router.refresh(); }
-    else alert(res.error);
+  const handleClearDatabase = async () => {
+    if (!deleteSelection) {
+      alert("Pilih data yang ingin dihapus terlebih dahulu.");
+      return;
+    }
+    
+    if (deleteSelection === "ALL") {
+      if (!confirm("YAKIN HAPUS SEMUA DATA PUBLISHER CATALOG? Tindakan ini tidak dapat dibatalkan.")) return;
+      setIsClearing(true);
+      const res = await deleteAllPublisherCatalogAction();
+      setIsClearing(false);
+      if (res.success) { 
+        setSongs([]); setTotal(0); fetchPublishers(); router.refresh(); 
+        setDeleteSelection("");
+      } else {
+        alert(res.error);
+      }
+    } else {
+      if (!confirm(`Yakin hapus data untuk publisher: ${deleteSelection}?`)) return;
+      setIsClearing(true);
+      const res = await deletePublisherCatalogByPublisherAction(deleteSelection);
+      setIsClearing(false);
+      if (res.success) { 
+        setPage(1); fetchSongs(1, true); fetchPublishers(); router.refresh(); 
+        setDeleteSelection("");
+      } else {
+        alert(res.error);
+      }
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -179,19 +215,32 @@ export function PublisherCatalogAdminClient() {
           </div>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white flex flex-col justify-between shadow-md">
-          <div>
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white flex flex-col shadow-md">
+          <div className="mb-4">
             <h3 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-1">
               <AlertCircle className="w-5 h-5 text-red-500" /> Zona Bahaya
             </h3>
-            <p className="text-sm text-gray-500 font-medium">Tindakan ini tidak bisa dikembalikan.</p>
+            <p className="text-sm text-gray-500 font-medium">Hapus data berdasarkan publisher atau semuanya.</p>
           </div>
+          
+          <select
+            value={deleteSelection}
+            onChange={(e) => setDeleteSelection(e.target.value)}
+            className="w-full bg-white border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-500/10 transition-all font-medium mb-3 text-sm cursor-pointer"
+          >
+            <option value="">-- Pilih Data yang Dihapus --</option>
+            {publishers.map((p) => (
+              <option key={p} value={p}>Hapus Publisher: {p}</option>
+            ))}
+            <option value="ALL" className="text-red-600 font-bold">⚠️ HAPUS SELURUH DATABASE</option>
+          </select>
+          
           <button
-            onClick={handleClearAll} disabled={isClearing || total === 0}
-            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border border-red-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={handleClearDatabase} disabled={isClearing || !deleteSelection}
+            className="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border border-red-200 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
           >
             {isClearing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-            Hapus Seluruh Database
+            {deleteSelection === "ALL" ? "Hapus Semua Data" : deleteSelection ? "Hapus Publisher" : "Hapus Data"}
           </button>
         </div>
       </div>
