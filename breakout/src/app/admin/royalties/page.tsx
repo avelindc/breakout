@@ -29,7 +29,7 @@ export default async function AdminRoyaltiesPage() {
   });
 
   return (
-    <div className="animate-fade-in max-w-6xl mx-auto">
+    <div className="animate-fade-in w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Royalty Management</h1>
         <p className="text-gray-500">Input stream counts and revenue for artists.</p>
