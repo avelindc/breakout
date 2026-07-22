@@ -14,7 +14,7 @@ import {
 } from "@/app/actions/publisherCatalog";
 import {
   Loader2, RefreshCw, Trash2, Search, Plus, Edit, X,
-  Upload, Database, LayoutList, CheckCircle2, AlertCircle, PlayCircle, Settings
+  Upload, Database, LayoutList, CheckCircle2, AlertCircle, PlayCircle, Settings, ChevronLeft, ChevronRight, Library
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { VirtuosoGrid } from "react-virtuoso";
@@ -81,13 +81,11 @@ export function PublisherCatalogAdminClient() {
     });
     
     if (res.success && res.songs) {
-      setSongs(prev => isNewSearch ? res.songs : [...prev, ...res.songs]);
+      setSongs(res.songs);
       setTotal(res.total || 0);
-      setHasMore(res.songs.length === LIMIT);
     }
     
     setLoading(false);
-    setLoadingMore(false);
   }, [search, filterPublisher, filterArtist]);
 
   useEffect(() => {
@@ -98,13 +96,27 @@ export function PublisherCatalogAdminClient() {
     return () => clearTimeout(t);
   }, [search, filterPublisher, filterArtist, fetchSongs]);
 
-  const loadMore = useCallback(() => {
-    if (!loading && !loadingMore && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchSongs(nextPage, false);
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    fetchSongs(newPage, true);
+  };
+
+  const totalPages = Math.ceil(total / LIMIT) || 1;
+  const startItem = (page - 1) * LIMIT + 1;
+  const endItem = Math.min(page * LIMIT, total);
+
+  const getPaginationNumbers = () => {
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-  }, [loading, loadingMore, hasMore, page, fetchSongs]);
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) pages.push(i);
+    return pages;
+  };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -294,94 +306,139 @@ export function PublisherCatalogAdminClient() {
         </div>
       </div>
 
-      {/* Premium Virtualized Grid */}
-      <div className="transform-gpu">
-        {loading && songs.length === 0 ? (
-           <div className="py-24 flex justify-center"><Loader2 className="w-10 h-10 text-blue-400 animate-spin" /></div>
-        ) : songs.length === 0 ? (
-           <div className="py-24 text-center text-blue-300 font-medium">Belum ada data. Import Excel atau tambah manual.</div>
-        ) : (
-          <div className="bg-transparent border-none shadow-none pb-10">
-            <VirtuosoGrid
-              useWindowScroll
-              data={songs}
-              endReached={loadMore}
-              overscan={200}
-              listClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-              itemClassName="w-full"
-              itemContent={(index, song) => {
-                const ytLink = getYoutubeLink(song);
-                return (
-                  <div className="bg-white/60 backdrop-blur-xl border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900 rounded-[2rem] hover:-translate-y-1 hover:shadow-xl transition-all p-5 sm:p-6 group flex flex-col h-full">
-                    <div className="flex gap-4 items-start mb-5">
-                      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-sm border border-gray-200">
-                        <img src="/images/music-default.jpg" alt="Cover" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      </div>
-                      <div className="min-w-0 flex-1 pt-0.5">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-purple-600 transition-colors">
-                          {song.title || "-"}
-                        </h3>
-                        <p className="text-sm font-medium text-gray-500 truncate mt-1 uppercase tracking-wider">{getCleanText(song.artist)}</p>
-                      </div>
-                    </div>
+      <div className="flex justify-between items-center text-xs text-gray-500 font-medium px-2">
+        <div>{total > 0 ? `${startItem}-${endItem} dari ${total.toLocaleString("id-ID")} lagu` : "Tidak ada data"}</div>
+      </div>
 
-                    <div className="flex flex-col gap-3 flex-1 mb-5">
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-400">Composer</span>
-                        <span className="text-sm font-bold text-gray-700 truncate max-w-[60%] text-right">{getCleanText(song.composer)}</span>
-                      </div>
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-400">Publisher</span>
-                        <span className="text-sm font-black text-gray-800 truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
-                      </div>
+      {/* Premium Table */}
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-6 transform-gpu">
+        <div className="overflow-x-auto rounded-3xl border border-gray-100 bg-white">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="bg-gray-50/50 text-gray-500 text-[10px] uppercase tracking-wider border-b border-gray-100">
+                <th className="p-4 font-bold pl-6">SONG ID</th>
+                <th className="p-4 font-bold">JUDUL LAGU</th>
+                <th className="p-4 font-bold">KOMPOSER</th>
+                <th className="p-4 font-bold">PUBLISHER</th>
+                <th className="p-4 font-bold">PERFORMER</th>
+                <th className="p-4 font-bold text-center pr-6">AKSI</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading && songs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-16 text-center">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : songs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-16 text-center text-gray-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <Library className="w-12 h-12 text-gray-200 mb-3" />
+                      <p className="font-bold text-gray-900">Belum ada lagu</p>
+                      <p className="text-sm">Import Excel atau tambah manual.</p>
                     </div>
-
-                    <div className="mt-auto pt-4 border-t border-gray-100 flex items-center gap-3">
-                      {ytLink ? (
-                        <a 
-                          href={ytLink} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-purple-100"
-                          title="Buka di YouTube"
-                        >
-                          <PlayCircle className="w-5 h-5" />
-                        </a>
-                      ) : (
-                        <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center shrink-0 border border-gray-100 cursor-not-allowed">
-                          <PlayCircle className="w-5 h-5" />
+                  </td>
+                </tr>
+              ) : (
+                songs.map((song, i) => {
+                  const displayId = song.isrc || `SNG${(startItem + i).toString().padStart(6, '0')}`;
+                  const ytLink = getYoutubeLink(song);
+                  
+                  return (
+                    <tr key={song.id} className="hover:bg-gray-50/80 transition group">
+                      <td className="p-4 pl-6">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#cdff9c] text-green-900 whitespace-nowrap shadow-sm">
+                          {displayId}
+                        </span>
+                      </td>
+                      <td className="p-4 font-bold text-gray-800 text-sm">
+                        {song.title || "-"}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {getCleanText(song.composer)}
+                      </td>
+                      <td className="p-4 text-xs text-gray-600 uppercase font-medium">
+                        {song.publisher || "-"}
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">
+                        {getCleanText(song.artist)}
+                      </td>
+                      <td className="p-4 pr-6">
+                        <div className="flex items-center justify-center gap-2">
+                          {ytLink ? (
+                            <a href={ytLink} target="_blank" rel="noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition" title="YouTube">
+                              <PlayCircle className="w-4 h-4" />
+                            </a>
+                          ) : (
+                            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 text-gray-300 cursor-not-allowed">
+                              <PlayCircle className="w-4 h-4" />
+                            </div>
+                          )}
+                          <button onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
+                            <Settings className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete(song.id)} className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition" title="Hapus">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      )}
-                      
-                      <button 
-                        onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }}
-                        className="flex-1 h-12 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-bold flex items-center justify-center gap-2 transition-colors border border-blue-100"
-                      >
-                        <Settings className="w-4 h-4" /> Buka Detail
-                      </button>
-                      
-                      <button 
-                        onClick={() => handleDelete(song.id)}
-                        className="w-12 h-12 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-red-100"
-                        title="Hapus"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              }}
-              components={{
-                Footer: () => (
-                  loadingMore ? (
-                    <div className="col-span-full py-8 flex justify-center">
-                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-                    </div>
-                  ) : null
-                )
-              }}
-            />
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        {total > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 border-t border-gray-100 pt-6 px-2">
+            <div className="text-sm text-gray-500 font-medium">
+              Halaman {page} dari {totalPages}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button 
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {page > 3 && (
+                <>
+                  <button onClick={() => handlePageChange(1)} className="w-8 h-8 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-50">1</button>
+                  {page > 4 && <span className="w-8 h-8 flex items-center justify-center text-gray-400">...</span>}
+                </>
+              )}
+
+              {getPaginationNumbers().map(num => (
+                <button
+                  key={num}
+                  onClick={() => handlePageChange(num)}
+                  className={`w-8 h-8 rounded-full text-sm font-medium transition ${page === num ? 'bg-[#cdff9c] text-green-900 border border-[#b8ff75] font-bold' : 'text-gray-600 hover:bg-gray-50 border border-transparent'}`}
+                >
+                  {num}
+                </button>
+              ))}
+
+              {page < totalPages - 2 && (
+                <>
+                  {page < totalPages - 3 && <span className="w-8 h-8 flex items-center justify-center text-gray-400">...</span>}
+                  <button onClick={() => handlePageChange(totalPages)} className="w-8 h-8 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-50">{totalPages}</button>
+                </>
+              )}
+
+              <button 
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
