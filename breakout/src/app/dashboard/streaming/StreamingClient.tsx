@@ -331,15 +331,7 @@ export function StreamingClient({ allTracks, globalStats, globalDailyStreams, gl
             ))}
           </div>
 
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:border-purple-300 hover:text-purple-600 transition shadow-sm">
-            <Download className="w-3.5 h-3.5" /> Export CSV
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:border-purple-300 hover:text-purple-600 transition shadow-sm">
-            <Download className="w-3.5 h-3.5" /> Export PDF
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 border border-purple-200 rounded-xl text-xs font-semibold text-purple-600 hover:bg-purple-100 transition shadow-sm">
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </button>
+
         </div>
       </div>
 
