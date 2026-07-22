@@ -3,6 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { sendAccountApprovedEmail, sendAccountRejectedEmail, sendReleaseApprovedEmail, sendReleaseRejectedEmail } from "@/lib/email";
+import { updateTelegramReleaseMessage } from "@/lib/telegramBot";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -87,7 +88,7 @@ export async function updateReleaseStatusAction(
   title: string,
   reason: string = ""
 ) {
-  await prisma.release.update({
+  const updatedRelease = await prisma.release.update({
     where: { id: releaseId },
     data: { status }
   });
@@ -104,6 +105,10 @@ export async function updateReleaseStatusAction(
     await sendReleaseApprovedEmail(userEmail, userName, title);
   } else if (status === "REJECTED") {
     await sendReleaseRejectedEmail(userEmail, userName, title, reason);
+  }
+
+  if (updatedRelease.telegramMessageId) {
+    updateTelegramReleaseMessage(updatedRelease.telegramMessageId, status, "Web Admin").catch(e => console.error("Sync TG err:", e));
   }
 
   revalidatePath("/admin/releases");

@@ -99,6 +99,7 @@ model Release {
   appleMusicUrl   String?
   youtubeMusicUrl String?
   tiktokUrl       String?
+  telegramMessageId String?
   
   tracks         Track[]
   

@@ -138,8 +138,8 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
     revalidatePath("/dashboard/releases");
     revalidatePath("/admin/releases");
 
-    // Send Telegram Notification (Non-blocking)
-    sendTelegramReleaseNotification(
+    // Send Telegram Notification and save message ID
+    const telegramMessageId = await sendTelegramReleaseNotification(
       release.id,
       primaryArtist,
       title,
@@ -150,7 +150,17 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       upc || "",
       isrc || "",
       composer || ""
-    ).catch(e => console.error("Telegram notify err:", e));
+    ).catch(e => {
+      console.error("Telegram notify err:", e);
+      return null;
+    });
+
+    if (telegramMessageId) {
+      await prisma.release.update({
+        where: { id: release.id },
+        data: { telegramMessageId: telegramMessageId.toString() }
+      });
+    }
 
     return { success: true, releaseId: release.id };
   } catch (error: any) {

@@ -66,8 +66,63 @@ export async function sendTelegramReleaseNotification(
     const data = await res.json();
     if (!data.ok) {
       console.error("Failed to send Telegram notification:", data);
+      return null;
     }
+
+    return data.result?.message_id;
   } catch (error) {
     console.error("Error sending Telegram notification:", error);
+    return null;
+  }
+}
+
+export async function updateTelegramReleaseMessage(
+  telegramMessageId: string,
+  newStatus: "APPROVED" | "REJECTED",
+  adminName: string = "Web Admin"
+) {
+  try {
+    const settings = await prisma.settings.findMany({
+      where: {
+        key: { in: ['telegram_enabled', 'telegram_bot_token', 'telegram_chat_id'] }
+      }
+    });
+
+    let enabled = false;
+    let botToken = "";
+    let chatId = "";
+
+    settings.forEach(s => {
+      if (s.key === 'telegram_enabled') enabled = s.value === 'true';
+      if (s.key === 'telegram_bot_token') botToken = s.value;
+      if (s.key === 'telegram_chat_id') chatId = s.value;
+    });
+
+    if (!enabled || !botToken || !chatId) {
+      return;
+    }
+
+    // When status is updated, we remove the inline keyboard entirely
+    // We only update the reply markup to be empty
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/editMessageReplyMarkup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: parseInt(telegramMessageId),
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: newStatus === "APPROVED" ? `✅ Approved by ${adminName}` : `❌ Rejected by ${adminName}`, callback_data: "ignore" }]
+          ]
+        }
+      })
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+      console.error("Failed to update Telegram message:", data);
+    }
+  } catch (error) {
+    console.error("Error updating Telegram message:", error);
   }
 }
