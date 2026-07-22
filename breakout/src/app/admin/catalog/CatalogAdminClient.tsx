@@ -410,11 +410,10 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-gray-700">File MP3 {editingSong ? '' : '*'}</label>
+                <label className="text-sm font-bold text-gray-700">Link YouTube / Google Drive *</label>
                 <div className="relative">
-                  <input type="file" name="audioFile" accept="audio/*" className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 border border-gray-300 rounded-lg bg-white cursor-pointer" />
+                  <input type="url" required name="driveLink" defaultValue={editingSong?.driveLink} className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" placeholder="https://..." />
                 </div>
-                {editingSong?.audioUrl && <p className="text-xs text-green-600 mt-1">File MP3 sudah ada (Upload baru untuk mengganti).</p>}
               </div>
 
               <div className="flex items-center gap-6 pt-2">

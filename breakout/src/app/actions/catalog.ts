@@ -61,8 +61,10 @@ export async function createCatalogSongAction(formData: FormData) {
     if (!title || !artist) {
       return { error: "Judul dan Artis wajib diisi" };
     }
-    if (!audioFile || audioFile.size === 0) {
-      return { error: "File MP3 wajib diupload untuk lagu baru." };
+    
+    // audioFile is no longer required, as we rely on driveLink
+    if (!driveLink && (!audioFile || audioFile.size === 0)) {
+      return { error: "Link Drive/YT atau File MP3 wajib diisi." };
     }
 
     let coverUrl = null;
