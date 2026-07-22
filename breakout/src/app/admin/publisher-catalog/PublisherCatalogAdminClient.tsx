@@ -149,14 +149,14 @@ export function PublisherCatalogAdminClient() {
       
       {/* Header Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 transform-gpu">
-        <div className="lg:col-span-2 bg-gradient-to-br from-blue-900/60 to-blue-800/20 backdrop-blur-md md:backdrop-blur-xl rounded-[2rem] p-6 border border-white/10 shadow-lg flex flex-wrap gap-4 items-center justify-between">
+        <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white shadow-md flex flex-wrap gap-4 items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-400/30">
-              <Database className="w-6 h-6 text-blue-300" />
+            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center border border-purple-200">
+              <Database className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Database Publisher</h2>
-              <p className="text-blue-200/70 text-sm font-medium">{total.toLocaleString("id-ID")} lagu terdaftar di sistem</p>
+              <h2 className="text-xl font-bold text-gray-900">Database Publisher</h2>
+              <p className="text-gray-500 text-sm font-medium">{total.toLocaleString("id-ID")} lagu terdaftar di sistem</p>
             </div>
           </div>
           
@@ -165,30 +165,30 @@ export function PublisherCatalogAdminClient() {
             
             <button
               onClick={() => fileInputRef.current?.click()} disabled={isImporting}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 border border-blue-400/50"
+              className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50 border border-purple-500"
             >
               {isImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {isImporting ? "Proses..." : "Smart Import"}
             </button>
             <button
               onClick={() => { setEditingSong(null); setErrorMsg(""); setIsModalOpen(true); }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20 transition-all border border-white/10"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border border-gray-200"
             >
               <Plus className="w-4 h-4" /> Tambah Manual
             </button>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-red-900/40 to-red-800/10 backdrop-blur-md md:backdrop-blur-xl rounded-[2rem] p-6 border border-red-500/20 flex flex-col justify-between shadow-lg">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white flex flex-col justify-between shadow-md">
           <div>
-            <h3 className="text-lg font-bold text-red-100 flex items-center gap-2 mb-1">
-              <AlertCircle className="w-5 h-5 text-red-400" /> Zona Bahaya
+            <h3 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-1">
+              <AlertCircle className="w-5 h-5 text-red-500" /> Zona Bahaya
             </h3>
-            <p className="text-sm text-red-200/70 font-medium">Tindakan ini tidak bisa dikembalikan.</p>
+            <p className="text-sm text-gray-500 font-medium">Tindakan ini tidak bisa dikembalikan.</p>
           </div>
           <button
             onClick={handleClearAll} disabled={isClearing || total === 0}
-            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 bg-red-500/20 text-red-300 rounded-xl font-bold hover:bg-red-500/40 transition-all border border-red-400/30 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border border-red-200 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {isClearing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             Hapus Seluruh Database
@@ -213,34 +213,34 @@ export function PublisherCatalogAdminClient() {
       )}
 
       {/* Advanced Filters */}
-      <div className="bg-white/5 backdrop-blur-md md:backdrop-blur-xl rounded-[2rem] p-5 md:p-6 border border-white/10 shadow-lg transform-gpu">
+      <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-5 md:p-6 border border-white shadow-md transform-gpu">
         <div className="flex items-center gap-3 mb-5">
-          <LayoutList className="w-5 h-5 text-blue-300" />
-          <h3 className="text-lg font-bold text-white">Filter & Cari Data</h3>
+          <LayoutList className="w-5 h-5 text-purple-600" />
+          <h3 className="text-lg font-bold text-gray-900">Filter & Cari Data</h3>
           
-          <button onClick={() => { setPage(1); fetchSongs(1, true); }} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 text-blue-200 rounded-lg text-sm font-bold hover:bg-blue-500/40 transition-all border border-blue-400/20">
+          <button onClick={() => { setPage(1); fetchSongs(1, true); }} className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-100 transition-all border border-purple-200">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <Search className="w-4 h-4 text-blue-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-purple-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text" placeholder="Cari judul, ISRC..." value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-11 pr-4 py-3.5 w-full bg-black/20 border border-white/10 text-white placeholder-blue-200/50 rounded-xl outline-none focus:border-blue-400/50 focus:bg-black/40 transition-all font-medium"
+              className="pl-11 pr-4 py-3.5 w-full bg-white/80 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl outline-none focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10 transition-all font-medium"
             />
           </div>
           <input
             type="text" placeholder="Filter Publisher..." value={filterPublisher}
             onChange={(e) => setFilterPublisher(e.target.value)}
-            className="px-5 py-3.5 w-full bg-black/20 border border-white/10 text-white placeholder-blue-200/50 rounded-xl outline-none focus:border-blue-400/50 focus:bg-black/40 transition-all font-medium"
+            className="px-5 py-3.5 w-full bg-white/80 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl outline-none focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10 transition-all font-medium"
           />
           <input
             type="text" placeholder="Filter Artis..." value={filterArtist}
             onChange={(e) => setFilterArtist(e.target.value)}
-            className="px-5 py-3.5 w-full bg-black/20 border border-white/10 text-white placeholder-blue-200/50 rounded-xl outline-none focus:border-blue-400/50 focus:bg-black/40 transition-all font-medium"
+            className="px-5 py-3.5 w-full bg-white/80 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl outline-none focus:border-purple-400 focus:bg-white focus:ring-4 focus:ring-purple-500/10 transition-all font-medium"
           />
         </div>
       </div>
