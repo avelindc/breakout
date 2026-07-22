@@ -126,6 +126,7 @@ export default async function AdminRoyaltiesPage() {
                     <th className="p-5 text-right">TikTok</th>
                     <th className="p-5 text-right">Facebook</th>
                     <th className="p-5 text-right">Instagram</th>
+                    <th className="p-5 text-right">Gross Revenue</th>
                     <th className="p-5 text-right">Cut</th>
                     <th className="p-5 pr-8 text-right">Net Revenue</th>
                   </tr>
@@ -157,6 +158,11 @@ export default async function AdminRoyaltiesPage() {
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{r.tiktokStreams.toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.facebook || 0).toLocaleString()}</td>
                         <td className="p-5 text-right text-gray-500 font-mono text-sm group-hover:text-gray-900 transition-colors">{((r.platformData as any)?.instagram || 0).toLocaleString()}</td>
+                        <td className="p-5 text-right">
+                          <span className="inline-block bg-gray-50 border border-gray-200 text-gray-600 font-bold px-3 py-1.5 rounded-lg text-sm shadow-sm transition-all group-hover:bg-white">
+                            Rp {Math.round((r.platformData as any)?.rawTotalRevenue || r.totalRevenue).toLocaleString('id-ID')}
+                          </span>
+                        </td>
                         <td className="p-5 text-right text-gray-500 font-bold text-sm whitespace-nowrap">
                           {(r.platformData as any)?.cutPercentage ? (
                             <span className="text-red-500 bg-red-50 px-2 py-1 rounded-md">
