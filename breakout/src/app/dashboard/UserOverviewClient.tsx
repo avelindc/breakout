@@ -45,13 +45,11 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
   ];
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10">
+    <div className="animate-fade-in w-full pb-10">
       <div className="flex flex-col lg:flex-row gap-6">
         
         {/* Left Column */}
         <div className="w-full lg:w-2/3 flex flex-col gap-6">
-          
-          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-medium text-slate-800">ArtistFlow</h1>

@@ -19,7 +19,7 @@ export function CatalogHaloClient({ data }: { data: CatalogHalo[] }) {
   const displayedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10">
+    <div className="animate-fade-in w-full pb-10">
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight flex items-center gap-3">
           <FileAudio className="w-8 h-8 text-blue-600" /> Katalog Halo

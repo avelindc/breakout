@@ -58,7 +58,7 @@ export default async function UserRoyaltiesPage() {
   ];
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10">
+    <div className="animate-fade-in w-full pb-10">
       <div className="mb-10 relative">
         <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#f000ff]/20 rounded-full blur-[60px] pointer-events-none" />
         <div className="absolute top-10 right-10 w-40 h-40 bg-[#0047FF]/20 rounded-full blur-[60px] pointer-events-none" />

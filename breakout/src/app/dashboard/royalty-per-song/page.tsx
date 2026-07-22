@@ -29,7 +29,7 @@ export default async function UserRoyaltyPerSongPage() {
   });
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10">
+    <div className="animate-fade-in w-full mx-auto pb-10">
       <div className="mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl">
         <h1 className="text-3xl font-black flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">

@@ -17,7 +17,7 @@ export default async function MyReleasesPage() {
   const releases = user?.artists?.flatMap(a => a.releases).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
 
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 md:px-0">
+    <div className="animate-fade-in w-full pb-10 px-4 md:px-0">
       <div className="mb-6 md:mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">My Releases</h1>

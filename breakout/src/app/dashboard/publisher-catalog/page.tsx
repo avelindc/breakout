@@ -3,7 +3,7 @@ import { BookOpen } from "lucide-react";
 
 export default function UserPublisherCatalogPage() {
   return (
-    <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 md:px-0">
+    <div className="animate-fade-in w-full pb-10 px-4 md:px-0">
       <div className="mb-6 md:mb-8 bg-white/60 backdrop-blur-xl border border-white shadow-md rounded-[2rem] p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
