@@ -79,7 +79,7 @@ export function CatalogClient() {
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-10">
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-6">
+      <div className="bg-white rounded-3xl md:rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-3 md:p-6">
         
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -131,11 +131,11 @@ export function CatalogClient() {
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-gray-50/50 text-gray-500 text-[10px] uppercase tracking-wider border-b border-gray-100">
-                <th className="p-4 font-bold pl-6">SONG ID</th>
-                <th className="p-4 font-bold">JUDUL LAGU</th>
-                <th className="p-4 font-bold">VOKAL / ARTIS</th>
-                <th className="p-4 font-bold">PUBLISHER</th>
-                <th className="p-4 font-bold text-center pr-6">REFERENSI</th>
+                <th className="p-3 md:p-4 font-bold pl-4 md:pl-6">SONG ID</th>
+                <th className="p-3 md:p-4 font-bold">JUDUL LAGU</th>
+                <th className="p-3 md:p-4 font-bold">VOKAL / ARTIS</th>
+                <th className="p-3 md:p-4 font-bold">PUBLISHER</th>
+                <th className="p-3 md:p-4 font-bold text-center pr-4 md:pr-6">REFERENSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -161,24 +161,24 @@ export function CatalogClient() {
                   
                   return (
                     <tr key={song.id} className="hover:bg-gray-50/80 transition group">
-                      <td className="p-4 pl-6">
+                      <td className="p-3 md:p-4 pl-4 md:pl-6">
                         <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#cdff9c] text-green-900 whitespace-nowrap shadow-sm">
                           {displayId}
                         </span>
                       </td>
-                      <td className="p-4 font-bold text-gray-800 text-sm">
+                      <td className="p-3 md:p-4 font-bold text-gray-800 text-sm">
                         {song.title || "-"}
                       </td>
-                      <td className="p-4 text-sm text-gray-600">
+                      <td className="p-3 md:p-4 text-sm text-gray-600">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-700">{song.vokal || "Instrumental"}</span>
                           <span className="text-xs text-gray-400 uppercase tracking-wider">{song.artist || "-"}</span>
                         </div>
                       </td>
-                      <td className="p-4 text-xs text-gray-600 uppercase font-medium">
+                      <td className="p-3 md:p-4 text-xs text-gray-600 uppercase font-medium">
                         {song.publisher || "Independent"}
                       </td>
-                      <td className="p-4 text-center pr-6">
+                      <td className="p-3 md:p-4 text-center pr-4 md:pr-6">
                         <div className="flex items-center justify-center gap-3">
                           {song.driveLink ? (
                             <a href={song.driveLink} target="_blank" rel="noreferrer" className="text-teal-600 hover:text-teal-800 text-sm font-bold flex items-center gap-1 transition">

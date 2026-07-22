@@ -145,7 +145,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-10">
       {/* Header Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 transform-gpu">
-        <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white shadow-md flex flex-wrap gap-4 items-center justify-between">
+        <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl rounded-[2rem] p-4 md:p-6 border border-white shadow-md flex flex-wrap gap-4 items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center border border-purple-200">
               <Database className="w-6 h-6 text-purple-600" />
@@ -167,7 +167,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
           </div>
         </div>
 
-        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white flex flex-col justify-between shadow-md">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-4 md:p-6 border border-white flex flex-col justify-between shadow-md">
           <div>
             <h3 className="text-lg font-bold text-red-600 flex items-center gap-2 mb-1">
               <AlertCircle className="w-5 h-5 text-red-500" /> Zona Bahaya
@@ -213,17 +213,17 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
       </div>
 
       {/* Premium Table */}
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-6 transform-gpu">
+      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden p-3 md:p-6 transform-gpu">
         <div className="overflow-x-auto rounded-3xl border border-gray-100 bg-white">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="bg-gray-50/50 text-gray-500 text-[10px] uppercase tracking-wider border-b border-gray-100">
-                <th className="p-4 font-bold pl-6">SONG ID</th>
-                <th className="p-4 font-bold">JUDUL LAGU</th>
-                <th className="p-4 font-bold">VOKAL / ARTIS</th>
-                <th className="p-4 font-bold">PUBLISHER</th>
-                <th className="p-4 font-bold">STATUS</th>
-                <th className="p-4 font-bold text-center pr-6">AKSI</th>
+                <th className="p-3 md:p-4 font-bold pl-4 md:pl-6">SONG ID</th>
+                <th className="p-3 md:p-4 font-bold">JUDUL LAGU</th>
+                <th className="p-3 md:p-4 font-bold">VOKAL / ARTIS</th>
+                <th className="p-3 md:p-4 font-bold">PUBLISHER</th>
+                <th className="p-3 md:p-4 font-bold">STATUS</th>
+                <th className="p-3 md:p-4 font-bold text-center pr-4 md:pr-6">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -249,24 +249,24 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
                   
                   return (
                     <tr key={song.id} className="hover:bg-gray-50/80 transition group">
-                      <td className="p-4 pl-6">
+                      <td className="p-3 md:p-4 pl-4 md:pl-6">
                         <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#cdff9c] text-green-900 whitespace-nowrap shadow-sm">
                           {displayId}
                         </span>
                       </td>
-                      <td className="p-4 font-bold text-gray-800 text-sm">
+                      <td className="p-3 md:p-4 font-bold text-gray-800 text-sm">
                         {song.title || "-"}
                       </td>
-                      <td className="p-4 text-sm text-gray-600">
+                      <td className="p-3 md:p-4 text-sm text-gray-600">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-700">{song.vokal || "Instrumental"}</span>
                           <span className="text-xs text-gray-400 uppercase tracking-wider">{song.artist || "-"}</span>
                         </div>
                       </td>
-                      <td className="p-4 text-xs text-gray-600 uppercase font-medium">
+                      <td className="p-3 md:p-4 text-xs text-gray-600 uppercase font-medium">
                         {song.publisher || "-"}
                       </td>
-                      <td className="p-4">
+                      <td className="p-3 md:p-4">
                          <button 
                           onClick={() => handleToggle(song.id)}
                           className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${song.isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}
@@ -274,7 +274,7 @@ export function CatalogAdminClient({ initialTotal }: { initialTotal: number }) {
                           {song.isActive ? '✅ Aktif' : '❌ Nonaktif'}
                         </button>
                       </td>
-                      <td className="p-4 pr-6">
+                      <td className="p-3 md:p-4 pr-4 md:pr-6">
                         <div className="flex items-center justify-center gap-2">
                           {song.driveLink ? (
                             <a href={song.driveLink} target="_blank" rel="noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition" title="Link Drive">

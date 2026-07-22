@@ -51,7 +51,7 @@ export default async function DashboardLayout({
         enableKhana={enableKhana} 
         enableHalo={enableHalo} 
       />
-      <div className="flex-1 md:ml-64 p-4 pt-20 md:p-8 overflow-y-auto min-h-screen w-full relative z-10">
+      <div className="flex-1 md:ml-64 p-2 pt-20 md:p-8 overflow-y-auto min-h-screen w-full relative z-10">
         <div className="max-w-[1600px] w-full mx-auto">
           {children}
         </div>
