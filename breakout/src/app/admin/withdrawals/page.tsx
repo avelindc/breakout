@@ -108,67 +108,89 @@ export default async function AdminWithdrawalsPage() {
               No withdrawal history yet.
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {historyRequests.map(req => {
                 const isPaid = req.status === 'PAID';
                 const isRejected = req.status === 'REJECTED';
                 const dateStr = new Date(req.updatedAt).toLocaleDateString('id-ID', {
-                  day: 'numeric', month: 'short', year: 'numeric'
-                });
-                const timeStr = new Date(req.updatedAt).toLocaleTimeString('id-ID', {
-                  hour: '2-digit', minute: '2-digit'
+                  day: '2-digit', month: '2-digit', year: '2-digit'
                 });
 
                 return (
                   <div
                     key={req.id}
-                    className={`bg-white rounded-xl border shadow-sm overflow-hidden transition hover:shadow-md ${
-                      isPaid ? 'border-l-4 border-l-green-500 border-gray-200' :
-                      isRejected ? 'border-l-4 border-l-red-500 border-gray-200' :
-                      'border-l-4 border-l-blue-500 border-gray-200'
-                    }`}
+                    className="relative w-full aspect-[1.6/1] rounded-2xl overflow-hidden shadow-lg transition-all hover:-translate-y-1 hover:shadow-2xl"
+                    style={{
+                      background: isPaid 
+                        ? 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' // Green for paid
+                        : isRejected 
+                        ? 'linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%)' // Red for rejected
+                        : 'linear-gradient(135deg, #2b5876 0%, #4e4376 100%)', // Blue/Purple for other
+                    }}
                   >
-                    <div className="p-4 sm:p-5">
-                      {/* Top row: Amount + Status badge */}
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                          Rp {req.amount.toLocaleString('id-ID')}
-                        </h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                          isPaid ? 'bg-green-100 text-green-700' :
-                          isRejected ? 'bg-red-100 text-red-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {isPaid && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-                          {isRejected && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
-                          {!isPaid && !isRejected && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
-                          {isPaid ? '✅ PAID' : isRejected ? '❌ REJECTED' : req.status}
-                        </span>
+                    {/* Card background pattern */}
+                    <div className="absolute inset-0 opacity-[0.15]"
+                      style={{
+                        backgroundImage: `radial-gradient(circle at 20% 80%, rgba(255,255,255,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.3) 0%, transparent 50%)`,
+                      }}
+                    />
+                    
+                    {/* Holographic stripe */}
+                    <div className="absolute top-0 right-0 w-32 h-32 opacity-20"
+                      style={{
+                        background: 'linear-gradient(135deg, transparent, rgba(255,255,255,0.5), rgba(255,255,255,0.8), transparent)',
+                        borderRadius: '0 1rem 0 100%',
+                      }}
+                    />
+
+                    <div className="relative h-full flex flex-col justify-between p-5">
+                      {/* Top row: Amount + Chip + Status */}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="w-10 h-7 rounded-md overflow-hidden mb-3"
+                            style={{
+                              background: 'linear-gradient(135deg, #c9a84c 0%, #f4d03f 30%, #c9a84c 50%, #f4d03f 70%, #c9a84c 100%)',
+                            }}
+                          >
+                            <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-[1px] p-[2px]">
+                              {[...Array(9)].map((_, i) => (
+                                <div key={i} className="bg-[#c9a84c]/40 rounded-[1px]" />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-white/70 text-[10px] font-medium tracking-widest mb-0.5">AMOUNT</p>
+                          <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none drop-shadow-sm">
+                            Rp {req.amount.toLocaleString('id-ID')}
+                          </h3>
+                        </div>
+                        <div className="text-right">
+                          <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/30 shadow-sm">
+                            {isPaid ? '✅ PAID' : isRejected ? '❌ REJECTED' : req.status}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Artist name */}
-                      <p className="text-blue-600 font-medium text-sm mb-3">
-                        {req.user.artists?.[0]?.stageName || req.user.name}
-                      </p>
+                      {/* Middle row: Rekening Number */}
+                      <div className="mt-4">
+                        <p className="text-white text-lg sm:text-xl font-mono tracking-[0.2em] drop-shadow-sm">
+                          {req.accountNumber.replace(/(\d{4})/g, '$1 ').trim()}
+                        </p>
+                      </div>
 
-                      {/* Details grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm bg-gray-50 rounded-lg p-3">
-                        <div>
-                          <p className="text-gray-400 text-xs mb-0.5">Bank</p>
-                          <p className="font-semibold text-gray-900">{req.bankName}</p>
+                      {/* Bottom row: Name + Bank + Date */}
+                      <div className="flex items-end justify-between mt-4">
+                        <div className="flex-1 min-w-0 pr-4">
+                          <p className="text-white/70 text-[9px] tracking-[0.15em] mb-0.5 uppercase">ACCOUNT HOLDER</p>
+                          <p className="text-white font-bold text-xs sm:text-sm tracking-wide uppercase truncate">
+                            {req.accountName}
+                          </p>
+                          <p className="text-white/90 text-[10px] font-medium mt-0.5 truncate">
+                            {req.bankName} • {req.user.artists?.[0]?.stageName || req.user.name}
+                          </p>
                         </div>
-                        <div>
-                          <p className="text-gray-400 text-xs mb-0.5">Rekening</p>
-                          <p className="font-semibold text-gray-900 font-mono text-xs">{req.accountNumber}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-xs mb-0.5">Nama</p>
-                          <p className="font-semibold text-gray-900">{req.accountName}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-xs mb-0.5">Tanggal</p>
-                          <p className="font-semibold text-gray-900">{dateStr}</p>
-                          <p className="text-gray-400 text-[11px]">{timeStr}</p>
+                        <div className="text-right shrink-0">
+                          <p className="text-white/70 text-[9px] tracking-[0.15em] mb-0.5 uppercase">DATE</p>
+                          <p className="text-white font-bold text-xs font-mono">{dateStr}</p>
                         </div>
                       </div>
                     </div>
