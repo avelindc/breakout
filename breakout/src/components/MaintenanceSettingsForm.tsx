@@ -87,15 +87,9 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
     return () => clearInterval(interval);
   }, []);
 
-  // Autofill current date/time if start is empty
+  // Waktu tidak lagi di-autofill secara paksa
   useEffect(() => {
-    if (!start) {
-      const now = new Date();
-      // Format to YYYY-MM-DDTHH:MM
-      const offset = now.getTimezoneOffset();
-      const localNow = new Date(now.getTime() - offset * 60 * 1000);
-      setStart(localNow.toISOString().slice(0, 16));
-    }
+    // Kosongkan effect ini agar waktu start tetap kosong jika tidak diset manual
   }, []);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,15 +310,25 @@ export function MaintenanceSettingsForm({ initialData, brandLogo }: MaintenanceS
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-600 uppercase flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" /> Tanggal Mulai
+                  <Calendar className="w-3.5 h-3.5" /> Tanggal Mulai (Opsional)
                 </label>
-                <input
-                  type="datetime-local"
-                  value={start}
-                  onChange={(e) => setStart(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900 outline-none focus:border-blue-500 transition font-medium"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="datetime-local"
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-900 outline-none focus:border-blue-500 transition font-medium"
+                  />
+                  {start && (
+                    <button 
+                      type="button" 
+                      onClick={() => setStart("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 font-bold bg-white/80 px-2 py-1 rounded"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1">
