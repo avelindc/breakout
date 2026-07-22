@@ -263,58 +263,58 @@ export function PublisherCatalogAdminClient() {
               itemContent={(index, song) => {
                 const ytLink = getYoutubeLink(song);
                 return (
-                  <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white rounded-[2rem] border border-white/10 shadow-[0_8px_30px_rgba(240,0,255,0.25)] hover:shadow-md transition-all p-5 sm:p-6 group flex flex-col h-full">
+                  <div className="bg-white/60 backdrop-blur-xl border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-gray-900 rounded-[2rem] hover:-translate-y-1 hover:shadow-xl transition-all p-5 sm:p-6 group flex flex-col h-full">
                     <div className="flex gap-4 items-start mb-5">
-                      <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-inner">
-                        <img src="/images/music-default.jpg" alt="Cover" className="w-full h-full object-cover opacity-80" />
-                        <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300 shadow-sm border border-gray-200">
+                        <img src="/images/music-default.jpg" alt="Cover" className="w-full h-full object-cover opacity-90" />
+                        <div className="absolute inset-0 bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       </div>
                       <div className="min-w-0 flex-1 pt-0.5">
-                        <h3 className="font-bold text-white text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-purple-600 transition-colors">
                           {song.title || "-"}
                         </h3>
-                        <p className="text-sm font-medium text-white/80 truncate mt-1 uppercase tracking-wider">{getCleanText(song.artist)}</p>
+                        <p className="text-sm font-medium text-gray-500 truncate mt-1 uppercase tracking-wider">{getCleanText(song.artist)}</p>
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-3 flex-1 mb-5">
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-white/60">Composer</span>
-                        <span className="text-sm font-bold text-white truncate max-w-[60%] text-right">{getCleanText(song.composer)}</span>
+                        <span className="text-sm font-semibold text-gray-400">Composer</span>
+                        <span className="text-sm font-bold text-gray-700 truncate max-w-[60%] text-right">{getCleanText(song.composer)}</span>
                       </div>
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-sm font-semibold text-white/60">Publisher</span>
-                        <span className="text-sm font-black text-white truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
+                        <span className="text-sm font-semibold text-gray-400">Publisher</span>
+                        <span className="text-sm font-black text-gray-800 truncate max-w-[60%] text-right uppercase">{song.publisher || "-"}</span>
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-white/15 flex items-center gap-3">
+                    <div className="mt-auto pt-4 border-t border-gray-100 flex items-center gap-3">
                       {ytLink ? (
                         <a 
                           href={ytLink} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="w-12 h-12 rounded-xl bg-white/10 text-white hover:bg-white hover:text-[#f000ff] flex items-center justify-center transition-colors shrink-0 border border-white/10 hover:border-white/20"
+                          className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-purple-100"
                           title="Buka di YouTube"
                         >
                           <PlayCircle className="w-5 h-5" />
                         </a>
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-white/10 text-white/30 flex items-center justify-center shrink-0 border border-white/10 cursor-not-allowed">
+                        <div className="w-12 h-12 rounded-xl bg-gray-50 text-gray-300 flex items-center justify-center shrink-0 border border-gray-100 cursor-not-allowed">
                           <PlayCircle className="w-5 h-5" />
                         </div>
                       )}
                       
                       <button 
                         onClick={() => { setEditingSong(song); setErrorMsg(""); setIsModalOpen(true); }}
-                        className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white hover:text-[#8a2be2] text-white font-bold flex items-center justify-center gap-2 transition-colors border border-white/10"
+                        className="flex-1 h-12 rounded-xl bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-bold flex items-center justify-center gap-2 transition-colors border border-blue-100"
                       >
                         <Settings className="w-4 h-4" /> Buka Detail
                       </button>
                       
                       <button 
                         onClick={() => handleDelete(song.id)}
-                        className="w-12 h-12 rounded-xl bg-white/10 text-white hover:bg-white hover:text-red-500 flex items-center justify-center transition-colors shrink-0 border border-white/10"
+                        className="w-12 h-12 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0 border border-red-100"
                         title="Hapus"
                       >
                         <Trash2 className="w-5 h-5" />
