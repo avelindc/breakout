@@ -161,38 +161,41 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           throw new Error(`[Tahap 1] ${urlsRes?.error || "Gagal menyiapkan penyimpanan file."}`);
         }
 
-        // 2. Upload Cover directly to R2
-        let coverUpload;
-        try {
-          coverUpload = await fetch(urlsRes.cover.url, {
-            method: "PUT",
-            body: coverFile,
-            headers: { "Content-Type": coverType }
+        // Helper XHR function to bypass Safari iOS fetch bugs with PUT requests
+        const uploadFileXHR = (url: string, file: File, contentType: string): Promise<void> => {
+          return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("PUT", url, true);
+            // Hanya set Content-Type, hindari custom header lain yang memancing CORS strict Safari
+            xhr.setRequestHeader("Content-Type", contentType);
+            
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+              } else {
+                reject(new Error(`HTTP ${xhr.status} - ${xhr.responseText}`));
+              }
+            };
+            
+            xhr.onerror = () => reject(new Error("Network Error / CORS Blocked by Safari"));
+            xhr.ontimeout = () => reject(new Error("Connection Timeout"));
+            
+            xhr.send(file);
           });
-        } catch (e: any) {
-          throw new Error(`[Tahap 2] Upload Cover gagal (CORS/Koneksi): ${e.message}`);
-        }
+        };
 
-        if (!coverUpload.ok) {
-          const errText = await coverUpload.text();
-          throw new Error(`[Tahap 2] Gagal mengunggah cover. Rincian: ${coverUpload.status} ${errText}`);
-        }
-
-        // 3. Upload Audio directly to R2
-        let audioUpload;
+        // 2. Upload Cover directly to R2 via XHR
         try {
-          audioUpload = await fetch(urlsRes.audio.url, {
-            method: "PUT",
-            body: audioFile,
-            headers: { "Content-Type": audioType }
-          });
+          await uploadFileXHR(urlsRes.cover.url, coverFile, coverType);
         } catch (e: any) {
-          throw new Error(`[Tahap 3] Upload Audio gagal (CORS/Koneksi terputus): ${e.message}`);
+          throw new Error(`[Tahap 2] Upload Cover gagal (Safari/Koneksi): ${e.message}`);
         }
 
-        if (!audioUpload.ok) {
-          const errText = await audioUpload.text();
-          throw new Error(`[Tahap 3] Gagal mengunggah audio. Rincian: ${audioUpload.status} ${errText}`);
+        // 3. Upload Audio directly to R2 via XHR
+        try {
+          await uploadFileXHR(urlsRes.audio.url, audioFile, audioType);
+        } catch (e: any) {
+          throw new Error(`[Tahap 3] Upload Audio gagal (Safari/Koneksi): ${e.message}`);
         }
 
         // 4. Submit Metadata
