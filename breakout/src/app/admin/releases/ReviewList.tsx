@@ -71,7 +71,11 @@ export function ReviewList({ releases }: { releases: Release[] }) {
   const handleDownload = async (url: string, filename: string, id: string) => {
     setDownloadingId(id);
     try {
-      const res = await fetch(url);
+      // Use proxy download route to bypass CORS issues on cached browsers
+      const proxyUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error("Proxy download failed");
+      
       const blob = await res.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -83,7 +87,7 @@ export function ReviewList({ releases }: { releases: Release[] }) {
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error("Failed to download file:", err);
-      alert("Gagal mendownload file. Pastikan URL valid dan CORS diizinkan.");
+      alert("Gagal mendownload file. Pastikan koneksi stabil.");
     } finally {
       setDownloadingId(null);
     }
