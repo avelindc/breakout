@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, PlayCircle, Music, Mic2, FileAudio, Youtube } from "lucide-react";
+import { Search, PlayCircle, Music, Mic2, FileAudio } from "lucide-react";
 
 interface DamarlangitSong {
   index: number;
@@ -99,7 +99,7 @@ export function CatalogDamarlangitClient() {
                       className="absolute bottom-3 right-3 bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-full shadow-lg transition transform hover:scale-110 z-10 flex items-center justify-center"
                       title="Watch on YouTube"
                     >
-                      <Youtube className="w-5 h-5" />
+                      <PlayCircle className="w-5 h-5" />
                     </a>
                   )}
                 </div>
