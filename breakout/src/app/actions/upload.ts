@@ -11,7 +11,7 @@ import { r2Client, BUCKET_RELEASES, R2_PUBLIC_URL_RELEASES } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
-export async function getMusicUploadUrlsAction(artistId: string, coverExt: string, audioExt: string) {
+export async function getMusicUploadUrlsAction(artistId: string, coverExt: string, audioExt: string, coverType: string = "image/jpeg", audioType: string = "audio/wav") {
   try {
     const active = await isMaintenanceActive();
     const session = await auth();
@@ -27,14 +27,14 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
     const coverCommand = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
       Key: coverPath,
-      ContentType: `image/${coverExt}`
+      ContentType: coverType
     });
     const coverSignedUrl = await getSignedUrl(r2Client, coverCommand, { expiresIn: 3600 });
     
     const audioCommand = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
       Key: audioPath,
-      ContentType: `audio/${audioExt}`
+      ContentType: audioType
     });
     const audioSignedUrl = await getSignedUrl(r2Client, audioCommand, { expiresIn: 3600 });
 

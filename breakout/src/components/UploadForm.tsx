@@ -142,28 +142,36 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
 
         const coverExt = coverFile.name.split('.').pop() || "jpg";
         const audioExt = audioFile.name.split('.').pop() || "wav";
+        const coverType = coverFile.type || "image/jpeg";
+        const audioType = audioFile.type || "audio/wav";
 
         // 1. Get Signed URLs
-        const urlsRes = await getMusicUploadUrlsAction(primaryArtistId, coverExt, audioExt);
+        const urlsRes = await getMusicUploadUrlsAction(primaryArtistId, coverExt, audioExt, coverType, audioType);
         if (urlsRes?.error || !urlsRes.cover || !urlsRes.audio) {
           throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan file.");
         }
 
-        // 2. Upload Cover directly to Supabase
+        // 2. Upload Cover directly to R2
         const coverUpload = await fetch(urlsRes.cover.url, {
           method: "PUT",
           body: coverFile,
-          headers: { "Content-Type": coverFile.type || "image/jpeg" }
+          headers: { "Content-Type": coverType }
         });
-        if (!coverUpload.ok) throw new Error("Gagal mengunggah cover artwork.");
+        if (!coverUpload.ok) {
+          const errText = await coverUpload.text();
+          throw new Error(`Gagal mengunggah cover artwork. Rincian: ${coverUpload.status} ${errText}`);
+        }
 
-        // 3. Upload Audio directly to Supabase
+        // 3. Upload Audio directly to R2
         const audioUpload = await fetch(urlsRes.audio.url, {
           method: "PUT",
           body: audioFile,
-          headers: { "Content-Type": audioFile.type || "audio/wav" }
+          headers: { "Content-Type": audioType }
         });
-        if (!audioUpload.ok) throw new Error("Gagal mengunggah file audio.");
+        if (!audioUpload.ok) {
+          const errText = await audioUpload.text();
+          throw new Error(`Gagal mengunggah file audio. Rincian: ${audioUpload.status} ${errText}`);
+        }
 
         // 4. Submit Metadata
         const metadata = {
