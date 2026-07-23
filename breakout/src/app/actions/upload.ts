@@ -42,6 +42,10 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
     });
     const audioSignedUrl = await getSignedUrl(r2Client, audioCommand, signOptions);
 
+    console.log("=== GENERATED R2 URLS ===");
+    console.log("Cover URL:", coverSignedUrl);
+    console.log("Audio URL:", audioSignedUrl);
+
     return { 
       success: true, 
       cover: { url: coverSignedUrl, path: coverPath, token: "" },
