@@ -2,11 +2,14 @@
 
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
+import { createClient } from '@supabase/supabase-js';
 import { sendNewMessageNotification, sendNewMessageNotificationBatch } from "@/lib/email";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
 
 const prisma = new PrismaClient();
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export async function sendMessageAction(formData: FormData) {
   try {
@@ -34,28 +37,32 @@ export async function sendMessageAction(formData: FormData) {
     let fileName = null;
 
     if (attachment && attachment.size > 0) {
+      if (!supabase) {
+        return { error: "Supabase credentials missing." };
+      }
       const fileExt = attachment.name.split('.').pop();
       const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       
       const arrayBuffer = await attachment.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const path = `messages/attachments/${uniqueFileName}`;
 
-      try {
-        const uploadCommand = new PutObjectCommand({
-          Bucket: BUCKET_ASSETS,
-          Key: path,
-          Body: buffer,
-          ContentType: attachment.type || "application/octet-stream",
+      const { data, error: uploadError } = await supabase.storage
+        .from('messages')
+        .upload(`attachments/${uniqueFileName}`, buffer, {
+          contentType: attachment.type,
+          upsert: false
         });
-        await r2Client.send(uploadCommand);
-      } catch (uploadError: any) {
-        console.error("R2 upload error:", uploadError);
-        return { error: "Failed to upload attachment to R2." };
+
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        return { error: "Failed to upload attachment. Please ensure 'messages' bucket exists and is public." };
       }
 
-      const r2Domain = R2_PUBLIC_URL_ASSETS || "https://r2-assets.breakoutmusic.online";
-      attachmentUrl = `${r2Domain}/${path}`;
+      const { data: { publicUrl } } = supabase.storage
+        .from('messages')
+        .getPublicUrl(`attachments/${uniqueFileName}`);
+
+      attachmentUrl = publicUrl;
       fileName = attachment.name;
     }
 

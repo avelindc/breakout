@@ -61,24 +61,30 @@ export async function saveMaintenanceSettingsAction(formData: FormData) {
         where: { key: "maintenance_logo_url" }
       });
     } else if (logoFile && logoFile.size > 0) {
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+      
+      if (!supabaseUrl || !supabaseKey) {
+        return { error: "Supabase credentials missing" };
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const ext = logoFile.name.split('.').pop();
       const path = `brand/maintenance-logo-${Date.now()}.${ext}`;
       const buffer = Buffer.from(await logoFile.arrayBuffer());
       
-      try {
-        const uploadCommand = new PutObjectCommand({
-          Bucket: BUCKET_ASSETS,
-          Key: path,
-          Body: buffer,
-          ContentType: logoFile.type || "image/png",
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(path, buffer, {
+          contentType: logoFile.type,
+          upsert: false
         });
-        await r2Client.send(uploadCommand);
-      } catch (uploadError: any) {
-        return { error: `Failed to upload logo to R2: ${uploadError.message}` };
+        
+      if (uploadError) {
+        return { error: `Failed to upload logo: ${uploadError.message}` };
       }
       
-      const r2Domain = R2_PUBLIC_URL_ASSETS || "https://r2-assets.breakoutmusic.online";
-      const logoUrl = `${r2Domain}/${path}`;
+      const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/${path}`;
       
       await prisma.settings.upsert({
         where: { key: "maintenance_logo_url" },

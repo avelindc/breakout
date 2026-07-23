@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { auth } from "@/auth";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_RELEASES, R2_PUBLIC_URL_RELEASES } from "@/lib/r2";
 
 export async function POST(req: Request) {
   try {
@@ -17,26 +16,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: "Supabase credentials missing" }, { status: 500 });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = file.name.split('.').pop();
     const timestamp = Date.now();
     const filename = `catalog-rph/cover-${timestamp}.${ext}`;
 
-    try {
-      const uploadCommand = new PutObjectCommand({
-        Bucket: BUCKET_RELEASES,
-        Key: filename,
-        Body: buffer,
-        ContentType: file.type || "image/jpeg",
+    const { data, error } = await supabase.storage
+      .from("releases")
+      .upload(filename, buffer, {
+        contentType: file.type,
+        upsert: true
       });
-      await r2Client.send(uploadCommand);
-    } catch (uploadError) {
-      console.error("R2 upload error:", uploadError);
+
+    if (error) {
+      console.error("Supabase upload error:", error);
       return NextResponse.json({ error: "Upload to storage failed" }, { status: 500 });
     }
 
-    const r2Domain = R2_PUBLIC_URL_RELEASES || "https://r2.breakoutmusic.online";
-    const publicUrl = `${r2Domain}/${filename}`;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/releases/${filename}`;
 
     return NextResponse.json({ url: publicUrl });
   } catch (error) {

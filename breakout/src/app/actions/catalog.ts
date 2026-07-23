@@ -15,29 +15,31 @@ async function requireAdmin() {
   }
 }
 
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_RELEASES, R2_PUBLIC_URL_RELEASES } from "@/lib/r2";
+import { createClient } from "@supabase/supabase-js";
 
-// Helper to upload file to R2
-async function uploadToR2(file: File, folder: string) {
+// Helper to upload file to supabase
+async function uploadToSupabase(file: File, folder: string) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (!supabaseUrl || !supabaseKey) throw new Error("Supabase credentials missing");
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
   const ext = file.name.split('.').pop();
   const fileName = `${folder}/catalog-${Date.now()}-${Math.floor(Math.random()*1000)}.${ext}`;
+  
   const buffer = Buffer.from(await file.arrayBuffer());
   
-  try {
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_RELEASES,
-      Key: fileName,
-      Body: buffer,
-      ContentType: file.type || "application/octet-stream",
-    });
-    await r2Client.send(uploadCommand);
-  } catch (error: any) {
-    throw new Error(`R2 Upload failed: ${error.message}`);
-  }
+  const { data, error } = await supabase.storage
+    .from('releases') // reusing releases bucket
+    .upload(fileName, buffer, { contentType: file.type, upsert: false });
+    
+  if (error) throw new Error(`Upload failed: ${error.message}`);
   
-  const r2Domain = R2_PUBLIC_URL_RELEASES || "https://r2.breakoutmusic.online";
-  return `${r2Domain}/${fileName}`;
+  const { data: { publicUrl } } = supabase.storage
+    .from('releases')
+    .getPublicUrl(fileName);
+    
+  return publicUrl;
 }
 
 export async function createCatalogSongAction(formData: FormData) {
@@ -68,8 +70,8 @@ export async function createCatalogSongAction(formData: FormData) {
     let coverUrl = null;
     let audioUrl = null;
 
-    if (coverFile && coverFile.size > 0) coverUrl = await uploadToR2(coverFile, 'covers');
-    if (audioFile && audioFile.size > 0) audioUrl = await uploadToR2(audioFile, 'audio');
+    if (coverFile && coverFile.size > 0) coverUrl = await uploadToSupabase(coverFile, 'covers');
+    if (audioFile && audioFile.size > 0) audioUrl = await uploadToSupabase(audioFile, 'audio');
 
     await prisma.catalogSong.create({
       data: {
@@ -118,8 +120,8 @@ export async function updateCatalogSongAction(id: string, formData: FormData) {
     let coverUrl = song.coverUrl;
     let audioUrl = song.audioUrl;
 
-    if (coverFile && coverFile.size > 0) coverUrl = await uploadToR2(coverFile, 'covers');
-    if (audioFile && audioFile.size > 0) audioUrl = await uploadToR2(audioFile, 'audio');
+    if (coverFile && coverFile.size > 0) coverUrl = await uploadToSupabase(coverFile, 'covers');
+    if (audioFile && audioFile.size > 0) audioUrl = await uploadToSupabase(audioFile, 'audio');
 
     await prisma.catalogSong.update({
       where: { id },

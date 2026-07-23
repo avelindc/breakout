@@ -1,8 +1,8 @@
 "use server";
 
+import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
+
 
 
 export async function uploadCMSImageAction(formData: FormData) {
@@ -16,20 +16,34 @@ export async function uploadCMSImageAction(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    try {
-      const uploadCommand = new PutObjectCommand({
-        Bucket: BUCKET_ASSETS,
-        Key: fileName,
-        Body: buffer,
-        ContentType: file.type || "image/jpeg",
-      });
-      await r2Client.send(uploadCommand);
-    } catch (uploadError: any) {
-      throw new Error(`R2 Upload Error: ${uploadError.message}`);
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      throw new Error("Supabase credentials are not configured.");
     }
 
-    const r2Domain = R2_PUBLIC_URL_ASSETS || "https://r2-assets.breakoutmusic.online";
-    const publicUrl = `${r2Domain}/${fileName}`;
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    });
+
+    const { error: uploadError } = await supabase.storage
+      .from("assets") 
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: true
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("assets")
+      .getPublicUrl(fileName);
 
     return { url: publicUrl };
   } catch (error: any) {

@@ -3,12 +3,15 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
+import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
 export async function uploadBrandLogoAction(formData: FormData) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -26,24 +29,26 @@ export async function uploadBrandLogoAction(formData: FormData) {
       return { error: "No logo file provided" };
     }
 
+    if (!supabase) {
+      return { error: `Supabase credentials missing.` };
+    }
+
     const ext = logoFile.name.split('.').pop();
     const path = `brand/logo-${Date.now()}.${ext}`;
     const buffer = Buffer.from(await logoFile.arrayBuffer());
     
-    try {
-      const uploadCommand = new PutObjectCommand({
-        Bucket: BUCKET_ASSETS,
-        Key: path,
-        Body: buffer,
-        ContentType: logoFile.type || "image/png",
+    const { error: uploadError } = await supabase.storage
+      .from('assets')
+      .upload(path, buffer, {
+        contentType: logoFile.type,
+        upsert: false
       });
-      await r2Client.send(uploadCommand);
-    } catch (uploadError: any) {
-      return { error: `Failed to upload logo to R2: ${uploadError.message}` };
+      
+    if (uploadError) {
+      return { error: `Failed to upload logo: ${uploadError.message}. Make sure 'assets' bucket exists and is public.` };
     }
     
-    const r2Domain = R2_PUBLIC_URL_ASSETS || "https://r2-assets.breakoutmusic.online";
-    const logoUrl = `${r2Domain}/${path}`;
+    const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/${path}`;
 
     // Upsert into Settings table
     await prisma.settings.upsert({

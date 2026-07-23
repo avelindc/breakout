@@ -6,7 +6,6 @@ const prisma = new PrismaClient();
 
 async function getSignedKtpUrl(path: string | null) {
   if (!path) return null;
-  if (path.startsWith("http")) return path;
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   if (!supabaseUrl || !supabaseKey) return null;
@@ -20,8 +19,6 @@ async function getSignedKtpUrl(path: string | null) {
 
 async function getSignedContractUrl(path: string | null) {
   if (!path) return null;
-  if (path.startsWith("http")) return path;
-  if (path === "sent-via-email" || path === "agreed-digitally") return null;
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   if (!supabaseUrl || !supabaseKey) return null;
