@@ -168,6 +168,8 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             xhr.open("PUT", url, true);
             // Hanya set Content-Type, hindari custom header lain yang memancing CORS strict Safari
             xhr.setRequestHeader("Content-Type", contentType);
+            // Tambahkan header unik agar browser tidak memakai cache CORS gagal (CORS Preflight cache max-age 3600s)
+            xhr.setRequestHeader("x-bypass-cors-cache", Date.now().toString());
             
             xhr.onload = () => {
               if (xhr.status >= 200 && xhr.status < 300) {
