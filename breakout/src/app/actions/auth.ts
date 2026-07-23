@@ -5,8 +5,9 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { sendOtpEmail, sendContractToAdminEmail } from "@/lib/email";
-
-import { createClient } from "@supabase/supabase-js";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -148,49 +149,48 @@ export async function registerAction(formData: FormData) {
 
 export async function getContractUploadUrlsAction(userId: string) {
   try {
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-    
-    if (!supabaseUrl || !supabaseKey) {
-      return { error: "Supabase credentials missing" };
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
     const timestamp = Date.now();
-    const signaturePath = `signatures/${userId}-${timestamp}.png`;
-    const pdfPath = `contracts/${userId}-${timestamp}.jpg`;
+    // Putting contracts into assets bucket since there is no specific contracts bucket
+    const signaturePath = `contracts/signatures/${userId}-${timestamp}.png`;
+    const pdfPath = `contracts/files/${userId}-${timestamp}.jpg`;
     
-    const { data: sigData, error: sigError } = await supabase.storage
-      .from('contracts')
-      .createSignedUploadUrl(signaturePath);
-      
-    if (sigError || !sigData) return { error: "Failed to generate signature upload URL" };
-
-    const { data: pdfData, error: pdfError } = await supabase.storage
-      .from('contracts')
-      .createSignedUploadUrl(pdfPath);
-      
-    if (pdfError || !pdfData) return { error: "Failed to generate PDF upload URL" };
+    const sigCommand = new PutObjectCommand({
+      Bucket: BUCKET_ASSETS,
+      Key: signaturePath,
+      ContentType: "image/png"
+    });
+    const sigUrl = await getSignedUrl(r2Client, sigCommand, { expiresIn: 3600 });
+    
+    const pdfCommand = new PutObjectCommand({
+      Bucket: BUCKET_ASSETS,
+      Key: pdfPath,
+      ContentType: "image/jpeg"
+    });
+    const pdfUrl = await getSignedUrl(r2Client, pdfCommand, { expiresIn: 3600 });
 
     return { 
       success: true, 
-      signature: { url: sigData.signedUrl, path: signaturePath, token: sigData.token },
-      pdf: { url: pdfData.signedUrl, path: pdfPath, token: pdfData.token }
+      signature: { url: sigUrl, path: signaturePath, token: "" },
+      pdf: { url: pdfUrl, path: pdfPath, token: "" }
     };
   } catch (error) {
-    console.error("getUploadUrls error:", error);
-    return { error: "Gagal menyiapkan penyimpanan. Silakan coba lagi." };
+    console.error("getContractUploadUrls error:", error);
+    return { error: "Gagal menyiapkan penyimpanan di R2. Silakan coba lagi." };
   }
 }
 
 export async function finalizeContractAction(userId: string, signaturePath: string, pdfPath: string) {
   try {
+    const r2Domain = R2_PUBLIC_URL_ASSETS || "https://r2-assets.breakoutmusic.online";
+    const finalSigUrl = signaturePath.startsWith("http") || signaturePath === "agreed-digitally" ? signaturePath : `${r2Domain}/${signaturePath}`;
+    const finalPdfUrl = pdfPath.startsWith("http") || pdfPath === "sent-via-email" ? pdfPath : `${r2Domain}/${pdfPath}`;
+
     await prisma.contract.create({
       data: {
         userId,
         version: "1.0",
-        pdfUrl: pdfPath,
-        signatureUrl: signaturePath
+        pdfUrl: finalPdfUrl,
+        signatureUrl: finalSigUrl
       }
     });
     return { success: true };

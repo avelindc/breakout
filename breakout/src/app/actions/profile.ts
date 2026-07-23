@@ -3,17 +3,14 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import bcrypt from "bcryptjs";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client, BUCKET_PROFILES, R2_PUBLIC_URL_PROFILES } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
 export async function updateProfileAction(formData: FormData) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -48,26 +45,24 @@ export async function updateProfileAction(formData: FormData) {
 
     // Upload new profile photo if provided
     if (photoFile && photoFile.size > 0) {
-      if (!supabase) {
-        return { error: `Supabase credentials missing. URL: ${supabaseUrl ? "OK" : "MISSING"}, KEY: ${supabaseKey ? "OK" : "MISSING"}` };
-      }
-
       const ext = photoFile.name.split('.').pop();
       const path = `avatars/${user.id}-${Date.now()}.${ext}`;
       const buffer = Buffer.from(await photoFile.arrayBuffer());
       
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(path, buffer, {
-          contentType: photoFile.type,
-          upsert: false
+      try {
+        const uploadCommand = new PutObjectCommand({
+          Bucket: BUCKET_PROFILES,
+          Key: path,
+          Body: buffer,
+          ContentType: photoFile.type || "image/jpeg",
         });
-        
-      if (uploadError) {
-        return { error: `Failed to upload photo: ${uploadError.message}. Make sure 'profiles' bucket exists and is public.` };
+        await r2Client.send(uploadCommand);
+      } catch (uploadError: any) {
+        return { error: `Failed to upload photo to R2: ${uploadError.message}` };
       }
       
-      imageUrl = `${supabaseUrl}/storage/v1/object/public/profiles/${path}`;
+      const r2Domain = R2_PUBLIC_URL_PROFILES || "https://r2.breakoutmusic.online";
+      imageUrl = `${r2Domain}/${path}`;
     }
 
     let updateData: any = {

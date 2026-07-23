@@ -4,6 +4,9 @@ import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client, BUCKET_RELEASES, R2_PUBLIC_URL_RELEASES } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -13,18 +16,18 @@ export async function getCoverUploadUrlAction(ext: string) {
   // @ts-ignore
   if (session.user.role !== "ADMIN") return { error: "Admin access required" };
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!supabaseUrl || !supabaseKey) return { error: "Supabase credentials missing" };
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
   const path = `covers/import-${Date.now()}.${ext}`;
-  const { data, error } = await supabase.storage
-    .from("releases")
-    .createSignedUploadUrl(path);
-  if (error || !data) return { error: "Failed to generate cover upload URL" };
-
-  return { success: true, path, signedUrl: data.signedUrl, token: data.token };
+  try {
+    const uploadCommand = new PutObjectCommand({
+      Bucket: BUCKET_RELEASES,
+      Key: path,
+      ContentType: `image/${ext}`
+    });
+    const signedUrl = await getSignedUrl(r2Client, uploadCommand, { expiresIn: 3600 });
+    return { success: true, path, signedUrl, token: "" };
+  } catch (error) {
+    return { error: "Failed to generate cover upload URL with R2" };
+  }
 }
 
 export async function importExistingReleaseAction(formData: FormData) {
@@ -61,7 +64,8 @@ export async function importExistingReleaseAction(formData: FormData) {
     const targetArtistId = (formData.get("artistId") as string)?.trim() || null;
 
     const releaseDate = new Date(releaseDateStr);
-    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    const r2Domain = R2_PUBLIC_URL_RELEASES || "https://r2.breakoutmusic.online";
+    const coverArtworkUrl = coverPath.startsWith("http") ? coverPath : `${r2Domain}/${coverPath}`;
 
     // Find or use the specified artist. If no artistId given, find/create by name.
     let artistRecord: { id: string } | null = null;
