@@ -273,7 +273,7 @@ export function CatalogClient() {
               
               <div className="relative z-10 flex items-center gap-4 md:gap-5 w-full">
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-gray-200 shrink-0 overflow-hidden">
-                  <img src="/images/music-default.jpg" alt="Music Icon" className="w-full h-full object-cover" />
+                  <img src={selectedSong.coverUrl || "/images/music-default.jpg"} alt="Cover" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-xl md:text-2xl lg:text-3xl font-black text-gray-900 truncate">{selectedSong.title}</h2>
@@ -283,6 +283,16 @@ export function CatalogClient() {
             </div>
 
             <div className="p-6 md:p-8 space-y-6 overflow-y-auto overscroll-contain touch-pan-y">
+              {/* Audio Player */}
+              {selectedSong.audioUrl && (
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-3 flex items-center gap-1.5">
+                    <Music className="w-3.5 h-3.5" /> Preview Audio
+                  </p>
+                  <audio controls src={selectedSong.audioUrl} className="w-full h-10 outline-none" controlsList="nodownload"></audio>
+                </div>
+              )}
+
               {/* Info Cards */}
               <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div className="bg-gray-50 p-4 md:p-5 rounded-2xl border border-gray-100">
@@ -299,23 +309,40 @@ export function CatalogClient() {
                 </div>
               </div>
 
-              {/* Action Button */}
-              {selectedSong.driveLink ? (
-                <a 
-                  href={selectedSong.driveLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-lg shadow-blue-500/30"
-                >
-                  <ExternalLink className="w-5 h-5" />
-                  Buka di Google Drive
-                </a>
-              ) : (
-                <div className="w-full py-4 rounded-2xl bg-gray-100 text-gray-400 font-bold flex justify-center items-center gap-2 cursor-not-allowed">
-                  <ExternalLink className="w-5 h-5" />
-                  Link Drive Tidak Tersedia
-                </div>
-              )}
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                {selectedSong.driveLink && (
+                  <a 
+                    href={selectedSong.driveLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-4 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-lg shadow-blue-500/30"
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                    Buka {selectedSong.driveLink.includes("youtube") || selectedSong.driveLink.includes("youtu.be") ? "di YouTube" : "Link Referensi"}
+                  </a>
+                )}
+                
+                {selectedSong.isDownloadable && selectedSong.audioUrl && (
+                  <a 
+                    href={selectedSong.audioUrl}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-4 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 active:scale-[0.98] transition-all flex justify-center items-center gap-2 shadow-lg shadow-green-500/30"
+                  >
+                    <ExternalLink className="w-5 h-5" />
+                    Download MP3 File
+                  </a>
+                )}
+
+                {!selectedSong.driveLink && !selectedSong.audioUrl && (
+                  <div className="w-full py-4 rounded-2xl bg-gray-100 text-gray-400 font-bold flex justify-center items-center gap-2 cursor-not-allowed">
+                    <ExternalLink className="w-5 h-5" />
+                    Media Tidak Tersedia
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
