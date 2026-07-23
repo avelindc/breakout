@@ -5,7 +5,7 @@ import { getPublisherCatalogAction, getPublisherCatalogFiltersAction } from "@/a
 import { Search, Loader2, BookOpen, Hash, BarChart3, Clock, Disc, Building, User, X, PlayCircle, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 const getYoutubeLink = (song: any) => {
-  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|drive\.google\.com)[^\s|]+)/i;
   let match = null;
   if (song.keterangan) match = song.keterangan.match(ytRegex);
   if (!match && song.composer) match = song.composer.match(ytRegex);
@@ -327,8 +327,8 @@ export function PublisherCatalogUserClient() {
                       )
                     })}
                     {getYoutubeLink(selectedSong) && (
-                      <a href={getYoutubeLink(selectedSong)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg border border-red-100 transition">
-                        <PlayCircle className="w-4 h-4" /> Tonton di YouTube
+                      <a href={getYoutubeLink(selectedSong)} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-2 mt-3 px-4 py-2 font-bold rounded-lg border transition ${getYoutubeLink(selectedSong)?.includes('drive.google.com') ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-100' : 'bg-red-50 hover:bg-red-100 text-red-600 border-red-100'}`}>
+                        <PlayCircle className="w-4 h-4" /> {getYoutubeLink(selectedSong)?.includes('drive.google.com') ? 'Buka di Google Drive' : 'Tonton di YouTube'}
                       </a>
                     )}
                   </div>

@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { VirtuosoGrid } from "react-virtuoso";
 
 const getYoutubeLink = (song: any) => {
-  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s|]+)/i;
+  const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|drive\.google\.com)[^\s|]+)/i;
   let match = null;
   if (song.keterangan) match = song.keterangan.match(ytRegex);
   if (!match && song.composer) match = song.composer.match(ytRegex);
