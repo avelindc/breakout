@@ -16,6 +16,7 @@ const links = [
   { name: "Inbox", href: "/dashboard/inbox", icon: Mail },
   { name: "Katalog Musik", href: "/dashboard/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/dashboard/publisher-catalog", icon: BookOpen },
+  { name: "Katalog Damarlangit", href: "/dashboard/katalog-damarlangit", icon: BookOpen },
   { name: "Upload Music", href: "/dashboard/upload", icon: UploadCloud },
   { name: "My Releases", href: "/dashboard/releases", icon: Disc },
   { name: "Royalties", href: "/dashboard/royalties", icon: DollarSign },
