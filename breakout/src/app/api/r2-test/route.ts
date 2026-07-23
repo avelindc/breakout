@@ -7,6 +7,8 @@ export async function GET(request: Request) {
   try {
     const endpoint = process.env.R2_ENDPOINT || "undefined";
     const maskedEndpoint = endpoint.substring(0, 15) + "..." + endpoint.substring(endpoint.length - 20);
+    const secretKey = process.env.R2_SECRET_ACCESS_KEY || "";
+    const maskedSecretKey = secretKey.substring(0, 4) + "..." + secretKey.substring(secretKey.length - 4);
     
     // 1. Generate Presigned URL
     const testKey = `test/test-${Date.now()}.txt`;
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: uploadRes.ok,
       maskedEndpoint,
+      maskedSecretKey,
       bucket: BUCKET_RELEASES,
       presignedUrl: signedUrl.substring(0, 50) + "...",
       uploadStatus: uploadRes.status,
