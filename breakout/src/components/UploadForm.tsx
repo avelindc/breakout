@@ -177,7 +177,16 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
               }
             };
             
-            xhr.onerror = () => reject(new Error("Network Error / CORS Blocked by Safari"));
+            xhr.onerror = () => {
+              const debugInfo = [
+                `URL_Prefix: ${url.substring(0, 70)}...`,
+                `Method: PUT`,
+                `ContentType: ${contentType}`,
+                `FileSize: ${file.size} bytes`,
+                `Status: ${xhr.status} (0 means blocked by browser/CORS/DNS)`
+              ].join(" | ");
+              reject(new Error(`DEBUG INFO: ${debugInfo}`));
+            };
             xhr.ontimeout = () => reject(new Error("Connection Timeout"));
             
             xhr.send(file);
