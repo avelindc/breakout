@@ -5,9 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_RELEASES, R2_PUBLIC_URL_RELEASES } from "@/lib/r2";
+import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
@@ -19,42 +17,42 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
       return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return { error: "Supabase credentials missing" };
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
     const timestamp = Date.now();
     const coverPath = `covers/${artistId}-${timestamp}.${coverExt}`;
     const audioPath = `audio/${artistId}-${timestamp}.${audioExt}`;
     
-    // Generate R2 presigned URLs
-    const coverCommand = new PutObjectCommand({
-      Bucket: BUCKET_RELEASES,
-      Key: coverPath,
-      ContentType: coverType
-    });
-    const signOptions = {
-      expiresIn: 3600,
-      unhoistableHeaders: new Set(["x-amz-sdk-checksum-algorithm", "x-amz-checksum-crc32"]),
-      signableHeaders: new Set(["host", "content-type"])
-    };
-    const coverSignedUrl = await getSignedUrl(r2Client, coverCommand, signOptions);
-    
-    const audioCommand = new PutObjectCommand({
-      Bucket: BUCKET_RELEASES,
-      Key: audioPath,
-      ContentType: audioType
-    });
-    const audioSignedUrl = await getSignedUrl(r2Client, audioCommand, signOptions);
+    const { data: coverData, error: coverError } = await supabase.storage
+      .from('releases')
+      .createSignedUploadUrl(coverPath);
+      
+    if (coverError || !coverData) return { error: "Failed to generate cover upload URL" };
 
-    console.log("=== GENERATED R2 URLS ===");
-    console.log("Cover URL:", coverSignedUrl);
-    console.log("Audio URL:", audioSignedUrl);
+    const { data: audioData, error: audioError } = await supabase.storage
+      .from('releases')
+      .createSignedUploadUrl(audioPath);
+      
+    if (audioError || !audioData) return { error: "Failed to generate audio upload URL" };
+
+    console.log("=== GENERATED SUPABASE URLS ===");
+    console.log("Cover URL:", coverData.signedUrl);
+    console.log("Audio URL:", audioData.signedUrl);
 
     return { 
       success: true, 
-      cover: { url: coverSignedUrl, path: coverPath, token: "" },
-      audio: { url: audioSignedUrl, path: audioPath, token: "" }
+      cover: { url: coverData.signedUrl, path: coverPath, token: coverData.token },
+      audio: { url: audioData.signedUrl, path: audioPath, token: audioData.token }
     };
   } catch (error) {
     console.error("getUploadUrls error:", error);
-    return { error: "Gagal menyiapkan penyimpanan lagu di R2." };
+    return { error: "Gagal menyiapkan penyimpanan lagu di Supabase." };
   }
 }
 
@@ -107,11 +105,9 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       return { error: "Missing required fields" };
     }
 
-    // Default to a placeholder if not set, or a constructed standard r2.dev domain
-    // Assuming the format is something like https://pub-[id].r2.dev or a custom domain
-    const r2Domain = R2_PUBLIC_URL_RELEASES || "https://r2.breakoutmusic.online"; 
-    const coverArtworkUrl = `${r2Domain}/${coverPath}`;
-    const audioUrl = `${r2Domain}/${audioPath}`;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    const audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
 
     try {
       // Create Release & Track in DB
