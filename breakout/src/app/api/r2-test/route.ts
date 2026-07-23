@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { r2Client, BUCKET_RELEASES } from "@/lib/r2";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const endpoint = process.env.R2_ENDPOINT || "undefined";
-    const maskedEndpoint = endpoint.substring(0, 15) + "..." + endpoint.substring(endpoint.length - 20);
-    const secretKey = process.env.R2_SECRET_ACCESS_KEY || "";
-    const maskedSecretKey = secretKey.substring(0, 4) + "..." + secretKey.substring(secretKey.length - 4);
-    
-    // 1. Generate Presigned URL
     const testKey = `test/test-${Date.now()}.txt`;
     const command = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
@@ -25,38 +19,52 @@ export async function GET(request: Request) {
     };
     const signedUrl = await getSignedUrl(r2Client, command, signOptions);
     
-    // 2. Test upload directly from Server using fetch
-    const uploadRes = await fetch(signedUrl, {
-      method: "PUT",
-      body: "Hello from R2 Test!",
-      headers: {
-        "Content-Type": "text/plain"
-      }
-    });
-    
-    let uploadResponseText = "";
-    try {
-      uploadResponseText = await uploadRes.text();
-    } catch (e) {
-      uploadResponseText = "Failed to parse response text";
-    }
-
-    return NextResponse.json({
-      success: uploadRes.ok,
-      maskedEndpoint,
-      maskedSecretKey,
-      bucket: BUCKET_RELEASES,
-      presignedUrl: signedUrl.substring(0, 50) + "...",
-      uploadStatus: uploadRes.status,
-      uploadStatusText: uploadRes.statusText,
-      uploadResponseText
-    });
-    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>R2 Client Test</title>
+      </head>
+      <body style="font-family: sans-serif; padding: 20px;">
+        <h2>Client-Side Upload Test</h2>
+        <button id="btn" style="padding: 15px; font-size: 16px; background: #9333ea; color: white; border: none; border-radius: 8px;">Run Test</button>
+        <pre id="log" style="background: #f4f4f4; padding: 10px; margin-top: 20px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+        <script>
+          document.getElementById("btn").onclick = async () => {
+            const log = document.getElementById("log");
+            log.innerText = "Starting...\\n";
+            try {
+              const url = "${signedUrl}";
+              log.innerText += "Sending PUT request to R2...\\n";
+              
+              const res = await fetch(url, {
+                method: "PUT",
+                body: "Hello from Phone Browser!",
+                headers: {
+                  "Content-Type": "text/plain"
+                }
+              });
+              
+              log.innerText += "Status: " + res.status + "\\n";
+              const text = await res.text();
+              log.innerText += "Response: " + text + "\\n";
+              
+              if (res.ok) {
+                log.innerText += "✅ SUCCESS!";
+              } else {
+                log.innerText += "❌ SERVER REJECTED IT";
+              }
+            } catch (err) {
+              log.innerText += "❌ NETWORK ERROR: " + err.message + "\\n" + err.stack;
+            }
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    return new NextResponse(html, { headers: { "Content-Type": "text/html" } });
   } catch (error: any) {
-    return NextResponse.json({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    });
+    return NextResponse.json({ error: error.message });
   }
 }
