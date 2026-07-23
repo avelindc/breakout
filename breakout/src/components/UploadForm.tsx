@@ -140,37 +140,59 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         const primaryArtistId = formData.get("primaryArtistId") as string;
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
-        const coverExt = coverFile.name.split('.').pop() || "jpg";
-        const audioExt = audioFile.name.split('.').pop() || "wav";
         const coverType = coverFile.type || "image/jpeg";
         const audioType = audioFile.type || "audio/wav";
 
-        // 1. Get Signed URLs
-        const urlsRes = await getMusicUploadUrlsAction(primaryArtistId, coverExt, audioExt, coverType, audioType);
+        // 1. Get Presigned URLs
+        let urlsRes;
+        try {
+          urlsRes = await getMusicUploadUrlsAction(
+            primaryArtistId,
+            coverFile.name.split('.').pop() || "jpg",
+            audioFile.name.split('.').pop() || "mp3",
+            coverType,
+            audioType
+          );
+        } catch (e: any) {
+          throw new Error(`[Tahap 1] Gagal menghubungi server: ${e.message}`);
+        }
+        
         if (urlsRes?.error || !urlsRes.cover || !urlsRes.audio) {
-          throw new Error(urlsRes?.error || "Gagal menyiapkan penyimpanan file.");
+          throw new Error(`[Tahap 1] ${urlsRes?.error || "Gagal menyiapkan penyimpanan file."}`);
         }
 
         // 2. Upload Cover directly to R2
-        const coverUpload = await fetch(urlsRes.cover.url, {
-          method: "PUT",
-          body: coverFile,
-          headers: { "Content-Type": coverType }
-        });
+        let coverUpload;
+        try {
+          coverUpload = await fetch(urlsRes.cover.url, {
+            method: "PUT",
+            body: coverFile,
+            headers: { "Content-Type": coverType }
+          });
+        } catch (e: any) {
+          throw new Error(`[Tahap 2] Upload Cover gagal (CORS/Koneksi): ${e.message}`);
+        }
+
         if (!coverUpload.ok) {
           const errText = await coverUpload.text();
-          throw new Error(`Gagal mengunggah cover artwork. Rincian: ${coverUpload.status} ${errText}`);
+          throw new Error(`[Tahap 2] Gagal mengunggah cover. Rincian: ${coverUpload.status} ${errText}`);
         }
 
         // 3. Upload Audio directly to R2
-        const audioUpload = await fetch(urlsRes.audio.url, {
-          method: "PUT",
-          body: audioFile,
-          headers: { "Content-Type": audioType }
-        });
+        let audioUpload;
+        try {
+          audioUpload = await fetch(urlsRes.audio.url, {
+            method: "PUT",
+            body: audioFile,
+            headers: { "Content-Type": audioType }
+          });
+        } catch (e: any) {
+          throw new Error(`[Tahap 3] Upload Audio gagal (CORS/Koneksi terputus): ${e.message}`);
+        }
+
         if (!audioUpload.ok) {
           const errText = await audioUpload.text();
-          throw new Error(`Gagal mengunggah file audio. Rincian: ${audioUpload.status} ${errText}`);
+          throw new Error(`[Tahap 3] Gagal mengunggah audio. Rincian: ${audioUpload.status} ${errText}`);
         }
 
         // 4. Submit Metadata
@@ -189,12 +211,17 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           tiktokClipStart: tiktokClipStart
         };
         
-        const res = await submitMusicMetadataAction(metadata, urlsRes.cover.path, urlsRes.audio.path);
+        let res;
+        try {
+          res = await submitMusicMetadataAction(metadata, urlsRes.cover.path, urlsRes.audio.path);
+        } catch (e: any) {
+          throw new Error(`[Tahap 4] Gagal menyimpan ke Database: ${e.message}`);
+        }
 
         setLoading(false);
 
         if (res?.error) {
-          setError(res.error);
+          setError(`[Tahap 4] ${res.error}`);
           setStep(2); // Go back to fix
         } else {
           setSuccess(true);

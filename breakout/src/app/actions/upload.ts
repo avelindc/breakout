@@ -108,63 +108,68 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
     const coverArtworkUrl = `${r2Domain}/${coverPath}`;
     const audioUrl = `${r2Domain}/${audioPath}`;
 
-    // Create Release & Track in DB
-    const release = await prisma.release.create({
-      data: {
-        artistId: selectedArtist.id,
-        title,
-        type: "SINGLE",
-        genre,
-        language,
-        primaryArtist,
-        featuredArtist,
-        releaseDate,
-        coverArtworkUrl,
-        status: "PENDING",
-        tracks: {
-          create: {
-            title,
-            audioUrl,
-            composer,
-            producer,
-            lyrics,
-            isrc,
-            upc,
-            tiktokClipStart
+    try {
+      // Create Release & Track in DB
+      const release = await prisma.release.create({
+        data: {
+          artistId: selectedArtist.id,
+          title,
+          type: "SINGLE",
+          genre,
+          language,
+          primaryArtist,
+          featuredArtist,
+          releaseDate,
+          coverArtworkUrl,
+          status: "PENDING",
+          tracks: {
+            create: {
+              title,
+              audioUrl,
+              composer,
+              producer,
+              lyrics,
+              isrc,
+              upc,
+              tiktokClipStart
+            }
           }
         }
-      }
-    });
-
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/releases");
-    revalidatePath("/admin/releases");
-
-    // Send Telegram Notification and save message ID
-    const telegramMessageId = await sendTelegramReleaseNotification(
-      release.id,
-      primaryArtist,
-      title,
-      session.user.email || "Unknown",
-      releaseDateStr,
-      coverArtworkUrl,
-      audioUrl,
-      upc || "",
-      isrc || "",
-      composer || ""
-    ).catch(e => {
-      console.error("Telegram notify err:", e);
-      return null;
-    });
-
-    if (telegramMessageId) {
-      await prisma.release.update({
-        where: { id: release.id },
-        data: { telegramMessageId: telegramMessageId.toString() }
       });
-    }
 
-    return { success: true, releaseId: release.id };
+      revalidatePath("/dashboard");
+      revalidatePath("/dashboard/releases");
+      revalidatePath("/admin/releases");
+
+      // Send Telegram Notification and save message ID
+      const telegramMessageId = await sendTelegramReleaseNotification(
+        release.id,
+        primaryArtist,
+        title,
+        session.user.email || "Unknown",
+        releaseDateStr,
+        coverArtworkUrl,
+        audioUrl,
+        upc || "",
+        isrc || "",
+        composer || ""
+      ).catch(e => {
+        console.error("Telegram notify err:", e);
+        return null;
+      });
+
+      if (telegramMessageId) {
+        await prisma.release.update({
+          where: { id: release.id },
+          data: { telegramMessageId: telegramMessageId.toString() }
+        });
+      }
+
+      return { success: true, releaseId: release.id };
+    } catch (error: any) {
+      console.error("submitMusicMetadataAction Error:", error);
+      return { error: `Server Database Error: ${error.message || "Unknown error"}` };
+    }
   } catch (error: any) {
     console.error("Upload error:", error);
     return { error: error.message || "Failed to upload release" };
