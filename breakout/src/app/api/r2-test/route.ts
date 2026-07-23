@@ -16,7 +16,12 @@ export async function GET(request: Request) {
       ContentType: "text/plain"
     });
     
-    const signedUrl = await getSignedUrl(r2Client, command, { expiresIn: 3600 });
+    const signOptions = {
+      expiresIn: 3600,
+      unhoistableHeaders: new Set(["x-amz-sdk-checksum-algorithm", "x-amz-checksum-crc32"]),
+      signableHeaders: new Set(["host", "content-type"])
+    };
+    const signedUrl = await getSignedUrl(r2Client, command, signOptions);
     
     // 2. Test upload directly from Server using fetch
     const uploadRes = await fetch(signedUrl, {

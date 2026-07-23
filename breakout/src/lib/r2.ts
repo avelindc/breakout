@@ -7,6 +7,9 @@ export const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
   },
+  // Disable AWS flexible checksums which break Cloudflare R2 presigned URLs
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 export const BUCKET_ASSETS = process.env.R2_BUCKET_ASSETS || "assets";

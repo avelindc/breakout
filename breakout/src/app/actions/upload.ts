@@ -29,14 +29,19 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
       Key: coverPath,
       ContentType: coverType
     });
-    const coverSignedUrl = await getSignedUrl(r2Client, coverCommand, { expiresIn: 3600 });
+    const signOptions = {
+      expiresIn: 3600,
+      unhoistableHeaders: new Set(["x-amz-sdk-checksum-algorithm", "x-amz-checksum-crc32"]),
+      signableHeaders: new Set(["host", "content-type"])
+    };
+    const coverSignedUrl = await getSignedUrl(r2Client, coverCommand, signOptions);
     
     const audioCommand = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
       Key: audioPath,
       ContentType: audioType
     });
-    const audioSignedUrl = await getSignedUrl(r2Client, audioCommand, { expiresIn: 3600 });
+    const audioSignedUrl = await getSignedUrl(r2Client, audioCommand, signOptions);
 
     return { 
       success: true, 
