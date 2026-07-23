@@ -31,7 +31,8 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
     });
     const signOptions = {
       expiresIn: 3600,
-      unhoistableHeaders: new Set(["x-amz-sdk-checksum-algorithm", "x-amz-checksum-crc32"])
+      unhoistableHeaders: new Set(["x-amz-sdk-checksum-algorithm", "x-amz-checksum-crc32"]),
+      signableHeaders: new Set(["host", "content-type"])
     };
     const coverSignedUrl = await getSignedUrl(r2Client, coverCommand, signOptions);
     
