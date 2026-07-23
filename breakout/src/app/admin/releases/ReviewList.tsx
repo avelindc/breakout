@@ -66,7 +66,10 @@ export function ReviewList({ releases }: { releases: Release[] }) {
     }
   };
 
-  const handleDownload = async (url: string, filename: string) => {
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownload = async (url: string, filename: string, id: string) => {
+    setDownloadingId(id);
     try {
       const res = await fetch(url);
       const blob = await res.blob();
@@ -81,6 +84,8 @@ export function ReviewList({ releases }: { releases: Release[] }) {
     } catch (err) {
       console.error("Failed to download file:", err);
       alert("Gagal mendownload file. Pastikan URL valid dan CORS diizinkan.");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -191,11 +196,12 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                   <img src={selected.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
                     <button 
-                      onClick={(e) => { e.stopPropagation(); handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`); }} 
-                      className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition text-white"
+                      onClick={(e) => { e.stopPropagation(); handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`, 'cover'); }} 
+                      disabled={downloadingId === 'cover'}
+                      className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition text-white disabled:opacity-50"
                       title="Download Cover"
                     >
-                      <Download className="w-4 h-4" />
+                      {downloadingId === 'cover' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
@@ -239,10 +245,12 @@ export function ReviewList({ releases }: { releases: Release[] }) {
                   </div>
 
                   <button
-                    onClick={() => handleDownload(track.audioUrl, `${selected.title} - ${track.title}.mp3`)}
-                    className="h-10 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition"
+                    onClick={() => handleDownload(track.audioUrl, `${selected.title} - ${track.title}.mp3`, track.id)}
+                    disabled={downloadingId === track.id}
+                    className="h-10 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition disabled:opacity-50"
                   >
-                    <Download className="w-3.5 h-3.5" /> Download
+                    {downloadingId === track.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                    {downloadingId === track.id ? "Downloading..." : "Download"}
                   </button>
                 </div>
               ))}
