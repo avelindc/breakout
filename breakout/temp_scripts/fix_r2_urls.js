@@ -1,101 +1,69 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const OLD_URL = "https://releases.c1aaf27f910711776d0d2b338cc1ce46.r2.cloudflarestorage.com";
-const NEW_URL = "https://pub-7147b1bf75b74798aefe6ba7125f9a7c.r2.dev";
+const NEW_URL = "https://releases.breakoutmusic.online";
+const BAD_URLS = [
+  "https://releases.c1aaf27f910711776d0d2b338cc1ce46.r2.cloudflarestorage.com",
+  "https://pub-7147b1bf75b74798aefe6ba7125f9a7c.r2.dev",
+  "https://pub-8d96b346473c4f9ea93e32fa9e53b927.r2.dev"
+];
+
+function fixUrl(url) {
+  if (!url) return url;
+  let fixedUrl = url;
+  for (const bad of BAD_URLS) {
+    if (fixedUrl.includes(bad)) {
+      fixedUrl = fixedUrl.replace(bad, NEW_URL);
+    }
+  }
+  return fixedUrl;
+}
 
 async function run() {
-  console.log(`Replacing ${OLD_URL} with ${NEW_URL} ...`);
+  console.log(`Replacing all bad URLs with ${NEW_URL} ...`);
   
-  // 1. Release
-  const releases = await prisma.release.findMany();
-  for (const r of releases) {
-    if (r.coverArtworkUrl && r.coverArtworkUrl.includes(OLD_URL)) {
-      await prisma.release.update({
-        where: { id: r.id },
-        data: { coverArtworkUrl: r.coverArtworkUrl.replace(OLD_URL, NEW_URL) }
-      });
+  const models = ['release', 'track', 'user', 'artist', 'settings', 'contract', 'message', 'catalogSong'];
+  
+  for (const model of models) {
+    const items = await prisma[model].findMany();
+    for (const item of items) {
+      let data = {};
+      
+      if (model === 'release') {
+        const fixed = fixUrl(item.coverArtworkUrl); if (fixed !== item.coverArtworkUrl) data.coverArtworkUrl = fixed;
+      }
+      else if (model === 'track') {
+        const fixed = fixUrl(item.audioUrl); if (fixed !== item.audioUrl) data.audioUrl = fixed;
+      }
+      else if (model === 'user') {
+        const fi = fixUrl(item.image); if (fi !== item.image) data.image = fi;
+        const fk = fixUrl(item.ktpUrl); if (fk !== item.ktpUrl) data.ktpUrl = fk;
+      }
+      else if (model === 'artist') {
+        const fixed = fixUrl(item.avatarUrl); if (fixed !== item.avatarUrl) data.avatarUrl = fixed;
+      }
+      else if (model === 'settings') {
+        const fixed = fixUrl(item.value); if (fixed !== item.value) data.value = fixed;
+      }
+      else if (model === 'contract') {
+        const fp = fixUrl(item.pdfUrl); if (fp !== item.pdfUrl) data.pdfUrl = fp;
+        const fs = fixUrl(item.signatureUrl); if (fs !== item.signatureUrl) data.signatureUrl = fs;
+      }
+      else if (model === 'message') {
+        const fixed = fixUrl(item.attachment); if (fixed !== item.attachment) data.attachment = fixed;
+      }
+      else if (model === 'catalogSong') {
+        const fc = fixUrl(item.coverUrl); if (fc !== item.coverUrl) data.coverUrl = fc;
+        const fa = fixUrl(item.audioUrl); if (fa !== item.audioUrl) data.audioUrl = fa;
+      }
+
+      if (Object.keys(data).length > 0) {
+        await prisma[model].update({ where: { id: item.id }, data });
+      }
     }
   }
 
-  // 2. Track
-  const tracks = await prisma.track.findMany();
-  for (const t of tracks) {
-    if (t.audioUrl && t.audioUrl.includes(OLD_URL)) {
-      await prisma.track.update({
-        where: { id: t.id },
-        data: { audioUrl: t.audioUrl.replace(OLD_URL, NEW_URL) }
-      });
-    }
-  }
-
-  // 3. User
-  const users = await prisma.user.findMany();
-  for (const u of users) {
-    let data = {};
-    if (u.image && u.image.includes(OLD_URL)) data.image = u.image.replace(OLD_URL, NEW_URL);
-    if (u.ktpUrl && u.ktpUrl.includes(OLD_URL)) data.ktpUrl = u.ktpUrl.replace(OLD_URL, NEW_URL);
-    if (Object.keys(data).length > 0) {
-      await prisma.user.update({ where: { id: u.id }, data });
-    }
-  }
-
-  // 4. Artist
-  const artists = await prisma.artist.findMany();
-  for (const a of artists) {
-    if (a.avatarUrl && a.avatarUrl.includes(OLD_URL)) {
-      await prisma.artist.update({
-        where: { id: a.id },
-        data: { avatarUrl: a.avatarUrl.replace(OLD_URL, NEW_URL) }
-      });
-    }
-  }
-
-  // 5. Settings
-  const settings = await prisma.settings.findMany();
-  for (const s of settings) {
-    if (s.value && s.value.includes(OLD_URL)) {
-      await prisma.settings.update({
-        where: { id: s.id },
-        data: { value: s.value.replace(OLD_URL, NEW_URL) }
-      });
-    }
-  }
-
-  // 6. Contract
-  const contracts = await prisma.contract.findMany();
-  for (const c of contracts) {
-    let data = {};
-    if (c.pdfUrl && c.pdfUrl.includes(OLD_URL)) data.pdfUrl = c.pdfUrl.replace(OLD_URL, NEW_URL);
-    if (c.signatureUrl && c.signatureUrl.includes(OLD_URL)) data.signatureUrl = c.signatureUrl.replace(OLD_URL, NEW_URL);
-    if (Object.keys(data).length > 0) {
-      await prisma.contract.update({ where: { id: c.id }, data });
-    }
-  }
-
-  // 7. Message
-  const messages = await prisma.message.findMany();
-  for (const m of messages) {
-    if (m.attachment && m.attachment.includes(OLD_URL)) {
-      await prisma.message.update({
-        where: { id: m.id },
-        data: { attachment: m.attachment.replace(OLD_URL, NEW_URL) }
-      });
-    }
-  }
-
-  // 8. CatalogSong
-  const catalogs = await prisma.catalogSong.findMany();
-  for (const c of catalogs) {
-    let data = {};
-    if (c.coverUrl && c.coverUrl.includes(OLD_URL)) data.coverUrl = c.coverUrl.replace(OLD_URL, NEW_URL);
-    if (c.audioUrl && c.audioUrl.includes(OLD_URL)) data.audioUrl = c.audioUrl.replace(OLD_URL, NEW_URL);
-    if (Object.keys(data).length > 0) {
-      await prisma.catalogSong.update({ where: { id: c.id }, data });
-    }
-  }
-
-  console.log("All URLs successfully updated to public R2 Dev URLs!");
+  console.log("All bad URLs successfully updated to Custom Domain!");
 }
 
 run().catch(console.error).finally(() => prisma.$disconnect());

@@ -27,7 +27,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const R2_PUBLIC_URL = "https://pub-7147b1bf75b74798aefe6ba7125f9a7c.r2.dev";
+const R2_PUBLIC_URL = "https://releases.breakoutmusic.online";
 
 // Extract bucket and path from Supabase URL
 function parseSupabaseUrl(url) {
