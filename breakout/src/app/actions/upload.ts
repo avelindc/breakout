@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
-import { createClient } from "@supabase/supabase-js";
+import { generateMusicUploadUrls, getMusicPublicUrls } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
@@ -17,42 +17,33 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
       return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    // Generate R2 presigned upload URLs for cover and audio
+    const uploadResult = await generateMusicUploadUrls(artistId, coverExt, audioExt);
     
-    if (!supabaseUrl || !supabaseKey) {
-      return { error: "Supabase credentials missing" };
+    if (!uploadResult.success) {
+      return { error: uploadResult.error || "Failed to generate R2 upload URLs" };
     }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const timestamp = Date.now();
-    const coverPath = `covers/${artistId}-${timestamp}.${coverExt}`;
-    const audioPath = `audio/${artistId}-${timestamp}.${audioExt}`;
-    
-    const { data: coverData, error: coverError } = await supabase.storage
-      .from('releases')
-      .createSignedUploadUrl(coverPath);
-      
-    if (coverError || !coverData) return { error: "Failed to generate cover upload URL" };
 
-    const { data: audioData, error: audioError } = await supabase.storage
-      .from('releases')
-      .createSignedUploadUrl(audioPath);
-      
-    if (audioError || !audioData) return { error: "Failed to generate audio upload URL" };
-
-    console.log("=== GENERATED SUPABASE URLS ===");
-    console.log("Cover URL:", coverData.signedUrl);
-    console.log("Audio URL:", audioData.signedUrl);
+    console.log("=== GENERATED R2 URLS ===");
+    console.log("Cover URL:", uploadResult.cover?.url);
+    console.log("Audio URL:", uploadResult.audio?.url);
 
     return { 
       success: true, 
-      cover: { url: coverData.signedUrl, path: coverPath, token: coverData.token },
-      audio: { url: audioData.signedUrl, path: audioPath, token: audioData.token }
+      cover: { 
+        url: uploadResult.cover!.url, 
+        path: uploadResult.cover!.path, 
+        token: null // R2 doesn't use tokens like Supabase
+      },
+      audio: { 
+        url: uploadResult.audio!.url, 
+        path: uploadResult.audio!.path, 
+        token: null // R2 doesn't use tokens like Supabase
+      }
     };
   } catch (error) {
-    console.error("getUploadUrls error:", error);
-    return { error: "Gagal menyiapkan penyimpanan lagu di Supabase." };
+    console.error("getMusicUploadUrlsAction error:", error);
+    return { error: "Gagal menyiapkan penyimpanan lagu di R2." };
   }
 }
 
@@ -105,9 +96,8 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       return { error: "Missing required fields" };
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
-    const audioUrl = `${supabaseUrl}/storage/v1/object/public/releases/${audioPath}`;
+    // Get R2 public URLs for the uploaded files
+    const { coverUrl, audioUrl } = await getMusicPublicUrls(coverPath, audioPath);
 
     try {
       // Create Release & Track in DB
@@ -121,7 +111,7 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
           primaryArtist,
           featuredArtist,
           releaseDate,
-          coverArtworkUrl,
+          coverArtworkUrl: coverUrl,
           status: "PENDING",
           tracks: {
             create: {
@@ -149,7 +139,7 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
         title,
         session.user.email || "Unknown",
         releaseDateStr,
-        coverArtworkUrl,
+        coverUrl,
         audioUrl,
         upc || "",
         isrc || "",
