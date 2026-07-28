@@ -30,92 +30,70 @@ export async function uploadMusicFilesAction(formData: FormData) {
       return { error: "Artist ID is required" };
     }
 
-    console.log("=== uploadMusicFilesAction STARTING ===");
-    console.log("Cover file:", coverFile.name, coverFile.type, `${Math.round(coverFile.size / 1024)}KB`);
-    console.log("Audio file:", audioFile.name, audioFile.type, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
+    console.log("=== uploadMusicFilesAction DIRECT R2 UPLOAD ===");
+    console.log("Cover:", coverFile.name, `${Math.round(coverFile.size / 1024)}KB`);
+    console.log("Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
+    console.log("Artist ID:", artistId);
 
-    // Build absolute URL for API call
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    // Import R2 directly
+    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const { r2Client, BUCKET_RELEASES } = await import("@/lib/r2");
+    const { getR2PublicUrl } = await import("@/lib/r2-helpers");
 
-    // Upload cover first
-    console.log("=== Uploading cover ===");
-    const coverFormData = new FormData();
-    coverFormData.append('file', coverFile);
-    coverFormData.append('type', 'cover');
-    coverFormData.append('artistId', artistId);
-
-    const coverResponse = await fetch(`${baseUrl}/api/upload`, {
-      method: 'POST',
-      body: coverFormData
+    // Upload cover
+    console.log("Uploading cover to R2...");
+    const timestamp = Date.now();
+    const coverExt = coverFile.name.split('.').pop();
+    const coverKey = `covers/${artistId}-${timestamp}.${coverExt}`;
+    
+    const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
+    const coverCommand = new PutObjectCommand({
+      Bucket: BUCKET_RELEASES,
+      Key: coverKey,
+      Body: coverBuffer,
+      ContentType: coverFile.type,
     });
 
-    if (!coverResponse.ok) {
-      const errorText = await coverResponse.text();
-      console.error("Cover upload failed:", coverResponse.status, errorText);
-      return { error: `Cover upload failed: HTTP ${coverResponse.status}` };
-    }
-
-    let coverData;
     try {
-      coverData = await coverResponse.json();
-    } catch (e) {
-      console.error("Cover response JSON parse failed");
-      return { error: "Invalid response from cover upload" };
+      await r2Client.send(coverCommand);
+      console.log("✅ Cover uploaded to R2:", coverKey);
+    } catch (r2Error: any) {
+      console.error("❌ R2 cover upload error:", r2Error.message);
+      return { error: `Failed to upload cover: ${r2Error.message}` };
     }
 
-    if (!coverData.success || !coverData.url) {
-      console.error("Cover response missing success/url:", coverData);
-      return { error: "Cover upload returned invalid response" };
-    }
-
-    console.log("✅ Cover uploaded:", coverData.url);
-
-    // Upload audio
-    console.log("=== Uploading audio ===");
-    const audioFormData = new FormData();
-    audioFormData.append('file', audioFile);
-    audioFormData.append('type', 'audio');
-    audioFormData.append('artistId', artistId);
-
-    const audioResponse = await fetch(`${baseUrl}/api/upload`, {
-      method: 'POST',
-      body: audioFormData
+    // Upload audio  
+    console.log("Uploading audio to R2...");
+    const audioExt = audioFile.name.split('.').pop();
+    const audioKey = `audio/${artistId}-${timestamp + 1}.${audioExt}`;
+    
+    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
+    const audioCommand = new PutObjectCommand({
+      Bucket: BUCKET_RELEASES,
+      Key: audioKey,
+      Body: audioBuffer,
+      ContentType: audioFile.type,
     });
 
-    if (!audioResponse.ok) {
-      const errorText = await audioResponse.text();
-      console.error("Audio upload failed:", audioResponse.status, errorText);
-      return { error: `Audio upload failed: HTTP ${audioResponse.status}` };
-    }
-
-    let audioData;
     try {
-      audioData = await audioResponse.json();
-    } catch (e) {
-      console.error("Audio response JSON parse failed");
-      return { error: "Invalid response from audio upload" };
+      await r2Client.send(audioCommand);
+      console.log("✅ Audio uploaded to R2:", audioKey);
+    } catch (r2Error: any) {
+      console.error("❌ R2 audio upload error:", r2Error.message);
+      return { error: `Failed to upload audio: ${r2Error.message}` };
     }
 
-    if (!audioData.success || !audioData.url) {
-      console.error("Audio response missing success/url:", audioData);
-      return { error: "Audio upload returned invalid response" };
-    }
+    // Generate public URLs
+    const coverUrl = await getR2PublicUrl(BUCKET_RELEASES, coverKey);
+    const audioUrl = await getR2PublicUrl(BUCKET_RELEASES, audioKey);
 
-    console.log("✅ Audio uploaded:", audioData.url);
+    console.log("✅ Cover URL:", coverUrl);
+    console.log("✅ Audio URL:", audioUrl);
 
-    console.log("=== uploadMusicFilesAction SUCCESS ===");
     return { 
       success: true, 
-      cover: { 
-        url: coverData.url, 
-        key: coverData.key,
-      },
-      audio: { 
-        url: audioData.url, 
-        key: audioData.key,
-      }
+      cover: { url: coverUrl, key: coverKey },
+      audio: { url: audioUrl, key: audioKey }
     };
   } catch (error: any) {
     console.error("uploadMusicFilesAction error:", error);
