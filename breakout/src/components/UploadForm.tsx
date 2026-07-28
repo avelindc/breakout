@@ -141,7 +141,11 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
         // 1. Upload files to API route (server-side)
-        console.log("[Tahap 1] Uploading music files to API route...");
+        console.log("[UploadForm] [Tahap 1] Uploading music files to API route...");
+        console.log("[UploadForm] Cover:", coverFile.name, coverFile.size, coverFile.type);
+        console.log("[UploadForm] Audio:", audioFile.name, audioFile.size, audioFile.type);
+        console.log("[UploadForm] Artist ID:", primaryArtistId);
+        
         let uploadRes;
         try {
           // Create FormData for API route
@@ -150,17 +154,31 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           uploadFormData.append("audio", audioFile);
           uploadFormData.append("artistId", primaryArtistId);
           
+          console.log("[UploadForm] Calling uploadMusicFilesAction...");
           // Call API directly (this will be handled by uploadMusicFilesAction)
           uploadRes = await uploadMusicFilesAction(uploadFormData);
+          console.log("[UploadForm] uploadMusicFilesAction response:", uploadRes);
         } catch (e: any) {
+          console.error("[UploadForm] uploadMusicFilesAction exception:", e);
           throw new Error(`[Tahap 1] Gagal menghubungi server: ${e.message}`);
         }
         
-        if (uploadRes?.error || !uploadRes.cover?.url || !uploadRes.audio?.url) {
-          throw new Error(`[Tahap 1] ${uploadRes?.error || "Gagal upload file musik."}`);
+        if (!uploadRes) {
+          console.error("[UploadForm] uploadRes is null/undefined");
+          throw new Error(`[Tahap 1] Server returned null response`);
         }
 
-        console.log("[Tahap 1] Upload berhasil:", uploadRes);
+        if (uploadRes.error) {
+          console.error("[UploadForm] uploadRes has error:", uploadRes.error);
+          throw new Error(`[Tahap 1] ${uploadRes.error}`);
+        }
+
+        if (!uploadRes.cover?.url || !uploadRes.audio?.url) {
+          console.error("[UploadForm] uploadRes missing URLs:", uploadRes);
+          throw new Error(`[Tahap 1] Server response missing URLs. Got:`, uploadRes);
+        }
+
+        console.log("[UploadForm] [Tahap 1] Upload berhasil:", uploadRes);
         
         // 2. Submit Metadata with uploaded URLs
         const metadata = {
@@ -183,14 +201,18 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         
         let res;
         try {
+          console.log("[UploadForm] Calling submitMusicMetadataAction...");
           res = await submitMusicMetadataAction(metadata);
+          console.log("[UploadForm] submitMusicMetadataAction response:", res);
         } catch (e: any) {
+          console.error("[UploadForm] submitMusicMetadataAction exception:", e);
           throw new Error(`[Tahap 2] Gagal menyimpan ke Database: ${e.message}`);
         }
 
         setLoading(false);
 
         if (res?.error) {
+          console.error("[UploadForm] submitMusicMetadataAction error:", res.error);
           setError(`[Tahap 2] ${res.error}`);
           setStep(2); // Go back to fix
         } else {
@@ -204,6 +226,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         throw new Error("File audio atau cover tidak ditemukan atau kosong. Silakan kembali ke Langkah 1 dan pilih file Anda.");
       }
     } catch (err: any) {
+      console.error("[UploadForm] handleFormSubmit exception:", err);
       setLoading(false);
       setError(err.message || "An unexpected error occurred during upload.");
       setStep(2); // Go back to allow retry
