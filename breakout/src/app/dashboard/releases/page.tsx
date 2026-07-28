@@ -9,12 +9,22 @@ const prisma = new PrismaClient();
 export default async function MyReleasesPage() {
   const session = await auth();
   
+  if (!session?.user?.id) {
+    return (
+      <div className="p-10 text-center">
+        <h2>Harap login terlebih dahulu</h2>
+      </div>
+    );
+  }
+  
   const user = await prisma.user.findUnique({
-    where: { id: session?.user?.id },
+    where: { id: session.user.id },
     include: { artists: { include: { releases: { orderBy: { createdAt: 'desc' }, include: { tracks: true } } } } }
   });
 
-  const releases = user?.artists?.flatMap(a => a.releases).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) || [];
+  const releases = (user?.artists?.flatMap(a => a.releases || []) || []).sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  );
 
   return (
     <div className="animate-fade-in w-full pb-10 px-4 md:px-0">
