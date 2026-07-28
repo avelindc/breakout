@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       method: req.method,
       url: req.url,
       contentType: req.headers.get('content-type'),
+      contentLength: req.headers.get('content-length'),
       timestamp: new Date().toISOString()
     });
 

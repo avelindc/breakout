@@ -30,35 +30,96 @@ export async function uploadMusicFilesAction(formData: FormData) {
       return { error: "Artist ID is required" };
     }
 
-    console.log("=== UPLOADING FILES VIA API ROUTE ===");
+    console.log("=== uploadMusicFilesAction STARTING ===");
     console.log("Cover file:", coverFile.name, coverFile.type, `${Math.round(coverFile.size / 1024)}KB`);
     console.log("Audio file:", audioFile.name, audioFile.type, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
 
-    // Upload both files via server-side API route
-    const uploadResult = await uploadMusicFiles(coverFile, audioFile, artistId);
-    
-    if (!uploadResult.success) {
-      return { error: uploadResult.error || "Failed to upload files" };
+    // Build absolute URL for API call
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+
+    // Upload cover first
+    console.log("=== Uploading cover ===");
+    const coverFormData = new FormData();
+    coverFormData.append('file', coverFile);
+    coverFormData.append('type', 'cover');
+    coverFormData.append('artistId', artistId);
+
+    const coverResponse = await fetch(`${baseUrl}/api/upload`, {
+      method: 'POST',
+      body: coverFormData
+    });
+
+    if (!coverResponse.ok) {
+      const errorText = await coverResponse.text();
+      console.error("Cover upload failed:", coverResponse.status, errorText);
+      return { error: `Cover upload failed: HTTP ${coverResponse.status}` };
     }
 
-    console.log("=== UPLOAD SUCCESSFUL ===");
-    console.log("Cover URL:", uploadResult.cover?.url);
-    console.log("Audio URL:", uploadResult.audio?.url);
+    let coverData;
+    try {
+      coverData = await coverResponse.json();
+    } catch (e) {
+      console.error("Cover response JSON parse failed");
+      return { error: "Invalid response from cover upload" };
+    }
 
+    if (!coverData.success || !coverData.url) {
+      console.error("Cover response missing success/url:", coverData);
+      return { error: "Cover upload returned invalid response" };
+    }
+
+    console.log("✅ Cover uploaded:", coverData.url);
+
+    // Upload audio
+    console.log("=== Uploading audio ===");
+    const audioFormData = new FormData();
+    audioFormData.append('file', audioFile);
+    audioFormData.append('type', 'audio');
+    audioFormData.append('artistId', artistId);
+
+    const audioResponse = await fetch(`${baseUrl}/api/upload`, {
+      method: 'POST',
+      body: audioFormData
+    });
+
+    if (!audioResponse.ok) {
+      const errorText = await audioResponse.text();
+      console.error("Audio upload failed:", audioResponse.status, errorText);
+      return { error: `Audio upload failed: HTTP ${audioResponse.status}` };
+    }
+
+    let audioData;
+    try {
+      audioData = await audioResponse.json();
+    } catch (e) {
+      console.error("Audio response JSON parse failed");
+      return { error: "Invalid response from audio upload" };
+    }
+
+    if (!audioData.success || !audioData.url) {
+      console.error("Audio response missing success/url:", audioData);
+      return { error: "Audio upload returned invalid response" };
+    }
+
+    console.log("✅ Audio uploaded:", audioData.url);
+
+    console.log("=== uploadMusicFilesAction SUCCESS ===");
     return { 
       success: true, 
       cover: { 
-        url: uploadResult.cover!.url, 
-        key: uploadResult.cover!.key,
+        url: coverData.url, 
+        key: coverData.key,
       },
       audio: { 
-        url: uploadResult.audio!.url, 
-        key: uploadResult.audio!.key,
+        url: audioData.url, 
+        key: audioData.key,
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("uploadMusicFilesAction error:", error);
-    return { error: "Gagal mengupload file musik." };
+    return { error: error.message || "Gagal mengupload file musik." };
   }
 }
 
