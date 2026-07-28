@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadMusicFilesAction, submitMusicMetadataAction } from "@/app/actions/upload";
+import { uploadMusicFilesServerAction, submitMusicMetadataAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -140,26 +140,22 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         const primaryArtistId = formData.get("primaryArtistId") as string;
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
-        // 1. Upload files to API route (server-side)
-        console.log("[UploadForm] [Tahap 1] Uploading music files to API route...");
-        console.log("[UploadForm] Cover:", coverFile.name, coverFile.size, coverFile.type);
-        console.log("[UploadForm] Audio:", audioFile.name, audioFile.size, audioFile.type);
+        console.log("[UploadForm] [Tahap 1] Uploading music files...");
+        console.log("[UploadForm] Cover:", coverFile.name, `${Math.round(coverFile.size / 1024)}KB`);
+        console.log("[UploadForm] Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
         console.log("[UploadForm] Artist ID:", primaryArtistId);
         
         let uploadRes;
         try {
-          // Create FormData for API route
-          const uploadFormData = new FormData();
-          uploadFormData.append("cover", coverFile);
-          uploadFormData.append("audio", audioFile);
-          uploadFormData.append("artistId", primaryArtistId);
+          // Import uploadMusicFilesServerAction directly
+          const { uploadMusicFilesServerAction } = await import("@/app/actions/upload");
           
-          console.log("[UploadForm] Calling uploadMusicFilesAction...");
-          // Call API directly (this will be handled by uploadMusicFilesAction)
-          uploadRes = await uploadMusicFilesAction(uploadFormData);
-          console.log("[UploadForm] uploadMusicFilesAction response:", uploadRes);
+          console.log("[UploadForm] Calling uploadMusicFilesServerAction with files...");
+          // Call server action with files directly (not wrapped in FormData)
+          uploadRes = await uploadMusicFilesServerAction(coverFile, audioFile, primaryArtistId);
+          console.log("[UploadForm] uploadMusicFilesServerAction response:", uploadRes);
         } catch (e: any) {
-          console.error("[UploadForm] uploadMusicFilesAction exception:", e);
+          console.error("[UploadForm] uploadMusicFilesServerAction exception:", e);
           throw new Error(`[Tahap 1] Gagal menghubungi server: ${e.message}`);
         }
         
@@ -175,7 +171,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
 
         if (!uploadRes.cover?.url || !uploadRes.audio?.url) {
           console.error("[UploadForm] uploadRes missing URLs:", uploadRes);
-          throw new Error(`[Tahap 1] Server response missing URLs. Got:`, uploadRes);
+          throw new Error(`[Tahap 1] Server response missing URLs`);
         }
 
         console.log("[UploadForm] [Tahap 1] Upload berhasil:", uploadRes);

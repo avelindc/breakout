@@ -1,0 +1,28 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://breakoutmusic.online",
+      "https://www.breakoutmusic.online",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "PUT", 
+      "POST",
+      "DELETE",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "AllowedHeaders": [
+      "*"
+    ],
+    "ExposeHeaders": [
+      "ETag",
+      "Content-Length", 
+      "Content-Type",
+      "x-amz-request-id",
+      "Access-Control-Allow-Origin"
+    ],
+    "MaxAgeSeconds": 86400
+  }
+]

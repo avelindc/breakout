@@ -5,13 +5,16 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
-import { uploadMusicFiles } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
-export async function uploadMusicFilesAction(formData: FormData) {
+export async function uploadMusicFilesServerAction(
+  coverFile: File, 
+  audioFile: File, 
+  artistId: string
+) {
   try {
-    console.log("\n=== START uploadMusicFilesAction ===");
+    console.log("\n=== START uploadMusicFilesServerAction ===");
     
     const active = await isMaintenanceActive();
     const session = await auth();
@@ -22,14 +25,9 @@ export async function uploadMusicFilesAction(formData: FormData) {
       return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
-    // Get files and metadata from form data
-    const coverFile = formData.get("cover") as File;
-    const audioFile = formData.get("audio") as File;
-    const artistId = formData.get("artistId") as string;
-    
-    console.log("Files extracted:");
-    console.log("- Cover:", coverFile?.name, coverFile?.size);
-    console.log("- Audio:", audioFile?.name, audioFile?.size);
+    console.log("Files received:");
+    console.log("- Cover:", coverFile?.name, `${Math.round(coverFile?.size / 1024)}KB`);
+    console.log("- Audio:", audioFile?.name, `${Math.round(audioFile?.size / 1024 / 1024)}MB`);
     console.log("- Artist ID:", artistId);
     
     if (!coverFile || !audioFile) {
@@ -129,7 +127,7 @@ export async function uploadMusicFilesAction(formData: FormData) {
       return { error: `URL generation error: ${urlError.message}` };
     }
 
-    console.log("\n=== END uploadMusicFilesAction (SUCCESS) ===\n");
+    console.log("\n=== END uploadMusicFilesServerAction (SUCCESS) ===\n");
     
     return { 
       success: true, 
