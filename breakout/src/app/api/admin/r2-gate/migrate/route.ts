@@ -42,6 +42,10 @@ export async function POST(req: Request) {
     if (!table || !id || !column || !url) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+    
+    if (!process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID) {
+      return NextResponse.json({ error: "KUNCI R2 BELUM TERPASANG DI VERCEL!" }, { status: 500 });
+    }
 
     const parsed = parseSupabaseUrl(url);
     if (!parsed) {

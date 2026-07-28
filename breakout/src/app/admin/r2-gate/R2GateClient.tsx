@@ -67,10 +67,12 @@ export function R2GateClient() {
           currentCompleted.push(i);
           setCompleted([...currentCompleted]);
         } else {
+          console.error("Migration failed for", file.name, "Error:", data.error);
           currentFailed.push(i);
           setFailed([...currentFailed]);
         }
       } catch (err) {
+        console.error("Network/Server error during migration:", err);
         currentFailed.push(i);
         setFailed([...currentFailed]);
       }
@@ -78,7 +80,7 @@ export function R2GateClient() {
 
     setMigrating(false);
     setCurrentIndex(files.length);
-    alert("Proses Gerbang R2 Selesai!");
+    alert("Proses Gerbang R2 Selesai! Cek Console Browser jika ada file yang Gagal.");
   };
 
   return (
