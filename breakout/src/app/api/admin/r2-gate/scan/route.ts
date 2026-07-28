@@ -70,16 +70,9 @@ export async function GET() {
       table: 'Message', id: m.id, column: 'attachment', url: m.attachment!, name: `Attachment: ${m.id}`
     }));
 
-    // 7. Settings
-    const settings = await prisma.settings.findMany({
-      where: { value: { contains: supabaseDomain } },
-      select: { id: true, key: true, value: true }
-    });
-    settings.forEach(s => filesToMigrate.push({
-      table: 'Settings', id: s.id, column: 'value', url: s.value, name: `Setting: ${s.key}`
-    }));
+    // (Settings excluded because it contains JSON strings with multiple URLs)
 
-    // 8. CatalogSong
+    // 7. CatalogSong
     const catalog = await prisma.catalogSong.findMany({
       where: { OR: [{ coverUrl: { contains: supabaseDomain } }, { audioUrl: { contains: supabaseDomain } }] },
       select: { id: true, coverUrl: true, audioUrl: true, title: true }
