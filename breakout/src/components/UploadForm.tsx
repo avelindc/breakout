@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadMusicFilesServerAction, submitMusicMetadataAction } from "@/app/actions/upload";
+import { submitMusicMetadataAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -145,36 +145,59 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         console.log("[UploadForm] Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
         console.log("[UploadForm] Artist ID:", primaryArtistId);
         
-        let uploadRes;
+        let coverUrl, audioUrl;
+        
         try {
-          // Import uploadMusicFilesServerAction directly
-          const { uploadMusicFilesServerAction } = await import("@/app/actions/upload");
+          // Upload cover via API route (single file)
+          console.log("[UploadForm] Uploading cover...");
+          const coverFormData = new FormData();
+          coverFormData.append("file", coverFile);
+          coverFormData.append("type", "cover");
           
-          console.log("[UploadForm] Calling uploadMusicFilesServerAction with files...");
-          // Call server action with files directly (not wrapped in FormData)
-          uploadRes = await uploadMusicFilesServerAction(coverFile, audioFile, primaryArtistId);
-          console.log("[UploadForm] uploadMusicFilesServerAction response:", uploadRes);
+          const coverRes = await fetch("/api/upload", {
+            method: "POST",
+            body: coverFormData,
+          });
+          
+          if (!coverRes.ok) {
+            throw new Error(`Cover upload failed: ${coverRes.status} ${coverRes.statusText}`);
+          }
+          
+          const coverData = await coverRes.json();
+          if (!coverData.url) {
+            throw new Error("Cover upload returned no URL");
+          }
+          coverUrl = coverData.url;
+          console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
+          
+          // Upload audio via API route (single file)
+          console.log("[UploadForm] Uploading audio...");
+          const audioFormData = new FormData();
+          audioFormData.append("file", audioFile);
+          audioFormData.append("type", "audio");
+          
+          const audioRes = await fetch("/api/upload", {
+            method: "POST",
+            body: audioFormData,
+          });
+          
+          if (!audioRes.ok) {
+            throw new Error(`Audio upload failed: ${audioRes.status} ${audioRes.statusText}`);
+          }
+          
+          const audioData = await audioRes.json();
+          if (!audioData.url) {
+            throw new Error("Audio upload returned no URL");
+          }
+          audioUrl = audioData.url;
+          console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
+          
         } catch (e: any) {
-          console.error("[UploadForm] uploadMusicFilesServerAction exception:", e);
-          throw new Error(`[Tahap 1] Gagal menghubungi server: ${e.message}`);
+          console.error("[UploadForm] File upload exception:", e);
+          throw new Error(`[Tahap 1] Gagal upload file: ${e.message}`);
         }
         
-        if (!uploadRes) {
-          console.error("[UploadForm] uploadRes is null/undefined");
-          throw new Error(`[Tahap 1] Server returned null response`);
-        }
-
-        if (uploadRes.error) {
-          console.error("[UploadForm] uploadRes has error:", uploadRes.error);
-          throw new Error(`[Tahap 1] ${uploadRes.error}`);
-        }
-
-        if (!uploadRes.cover?.url || !uploadRes.audio?.url) {
-          console.error("[UploadForm] uploadRes missing URLs:", uploadRes);
-          throw new Error(`[Tahap 1] Server response missing URLs`);
-        }
-
-        console.log("[UploadForm] [Tahap 1] Upload berhasil:", uploadRes);
+        console.log("[UploadForm] [Tahap 1] Upload berhasil");
         
         // 2. Submit Metadata with uploaded URLs
         const metadata = {
@@ -190,9 +213,9 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           upc: formData.get("upc"),
           releaseDateStr: formData.get("releaseDate"),
           tiktokClipStart: tiktokClipStart,
-          // Pass the URLs directly from upload response
-          coverUrl: uploadRes.cover.url,
-          audioUrl: uploadRes.audio.url
+          // Pass the URLs from upload responses
+          coverUrl: coverUrl,
+          audioUrl: audioUrl
         };
         
         let res;
