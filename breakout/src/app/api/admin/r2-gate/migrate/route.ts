@@ -1,26 +1,16 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { createClient } from '@supabase/supabase-js';
+import { r2Client, BUCKET_RELEASES, BUCKET_PROFILES, BUCKET_ASSETS, R2_PUBLIC_URL_RELEASES, R2_PUBLIC_URL_PROFILES, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
 
 const prisma = new PrismaClient();
-
-const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: process.env.R2_ENDPOINT || '',
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const R2_PUBLIC_URL = "https://releases.breakoutmusic.online";
 
 function parseSupabaseUrl(url: string) {
   if (!url || !url.includes('supabase.co')) return null;
@@ -58,16 +48,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid Supabase URL" }, { status: 400 });
     }
 
-    const { bucket, filePath } = parsed;
+    const { bucket: supabaseBucket, filePath } = parsed;
     const fileName = filePath.split('/').pop() || 'file';
 
+    let r2Bucket = BUCKET_RELEASES;
+    let publicUrlBase = R2_PUBLIC_URL_RELEASES;
     let folder = 'others';
-    if (column === 'coverArtworkUrl' || column === 'coverUrl') folder = 'covers';
-    else if (column === 'audioUrl') folder = 'audio';
-    else if (['image', 'ktpUrl', 'avatarUrl'].includes(column)) folder = 'profiles';
-    else if (['pdfUrl', 'signatureUrl'].includes(column)) folder = 'contracts';
-    else if (column === 'attachment') folder = 'messages';
-    else if (table === 'Settings') folder = 'cms';
+
+    if (column === 'coverArtworkUrl' || column === 'coverUrl') { folder = 'covers'; }
+    else if (column === 'audioUrl') { folder = 'audio'; }
+    else if (['image', 'ktpUrl', 'avatarUrl'].includes(column)) { 
+      r2Bucket = BUCKET_PROFILES; 
+      publicUrlBase = R2_PUBLIC_URL_PROFILES; 
+      folder = 'profiles'; 
+    }
+    else if (['pdfUrl', 'signatureUrl'].includes(column)) {
+      r2Bucket = BUCKET_ASSETS;
+      publicUrlBase = R2_PUBLIC_URL_ASSETS;
+      folder = 'contracts';
+    }
+    else if (column === 'attachment') {
+      r2Bucket = BUCKET_ASSETS;
+      publicUrlBase = R2_PUBLIC_URL_ASSETS;
+      folder = 'messages';
+    }
+    else if (table === 'Settings') {
+      r2Bucket = BUCKET_ASSETS;
+      publicUrlBase = R2_PUBLIC_URL_ASSETS;
+      folder = 'cms';
+    }
 
     console.log(`[R2 Gate] Downloading ${url}...`);
     // Use standard fetch to download public files (avoids RLS/Auth issues)
@@ -87,9 +96,9 @@ export async function POST(req: Request) {
     const r2Key = `${folder}/${fileName}`;
     const contentType = downloadRes.headers.get('content-type') || 'application/octet-stream';
 
-    console.log(`[R2 Gate] Uploading to R2 as ${r2Key}...`);
+    console.log(`[R2 Gate] Uploading to R2 (${r2Bucket}) as ${r2Key}...`);
     const uploadCommand = new PutObjectCommand({
-      Bucket: 'releases',
+      Bucket: r2Bucket,
       Key: r2Key,
       Body: buffer,
       ContentType: contentType,
@@ -100,18 +109,16 @@ export async function POST(req: Request) {
     // Attempt to delete from Supabase, but don't fail if it doesn't work 
     // (since Anon key might not have DELETE permissions)
     try {
-      console.log(`[R2 Gate] Deleting from Supabase ${bucket}/${filePath}...`);
-      await supabase.storage.from(bucket).remove([filePath]);
+      console.log(`[R2 Gate] Deleting from Supabase ${supabaseBucket}/${filePath}...`);
+      await supabase.storage.from(supabaseBucket).remove([filePath]);
     } catch (delErr) {
       console.warn(`[R2 Gate] Failed to delete from Supabase, skipping...`, delErr);
     }
 
-    const newUrl = `${R2_PUBLIC_URL}/${r2Key}`;
+    const newUrl = `${publicUrlBase}/${r2Key}`;
 
     // Update Database dynamically
-    // Use prisma.$executeRawUnsafe for dynamic table/column updates, 
-    // or map to specific prisma calls to be safe.
-    console.log(`[R2 Gate] Updating database ${table}.${column} for ID ${id}...`);
+    console.log(`[R2 Gate] Updating database ${table}.${column} for ID ${id} to ${newUrl}...`);
     
     if (table === 'Release') {
       await prisma.release.update({ where: { id }, data: { [column]: newUrl } });
