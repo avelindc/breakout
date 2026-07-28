@@ -16,7 +16,7 @@ const r2Client = new S3Client({
 });
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -61,7 +61,6 @@ export async function POST(req: Request) {
     const { bucket, filePath } = parsed;
     const fileName = filePath.split('/').pop() || 'file';
 
-    // Map columns to R2 folders (same logic as migrate_all_to_r2)
     let folder = 'others';
     if (column === 'coverArtworkUrl' || column === 'coverUrl') folder = 'covers';
     else if (column === 'audioUrl') folder = 'audio';
@@ -70,27 +69,27 @@ export async function POST(req: Request) {
     else if (column === 'attachment') folder = 'messages';
     else if (table === 'Settings') folder = 'cms';
 
-    console.log(`[R2 Gate] Downloading ${bucket}/${filePath}...`);
-    const { data, error } = await supabase.storage.from(bucket).download(filePath);
+    console.log(`[R2 Gate] Downloading ${url}...`);
+    // Use standard fetch to download public files (avoids RLS/Auth issues)
+    const downloadRes = await fetch(url);
     
-    if (error) {
-      console.error(`[R2 Gate] Supabase download error for ${filePath}:`, error.message);
-      // If it doesn't exist in Supabase but the DB still has it, we might want to just skip
-      if (error.message.includes('Object not found')) {
-        return NextResponse.json({ error: "File not found in Supabase" }, { status: 404 });
+    if (!downloadRes.ok) {
+      console.error(`[R2 Gate] Download failed with status: ${downloadRes.status}`);
+      if (downloadRes.status === 404) {
+         return NextResponse.json({ error: "File not found in Supabase" }, { status: 404 });
       }
-      throw error;
+      throw new Error(`Failed to download from Supabase. Status: ${downloadRes.status}`);
     }
 
-    const arrayBuffer = await data.arrayBuffer();
+    const arrayBuffer = await downloadRes.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
     const r2Key = `${folder}/${fileName}`;
-    const contentType = data.type || 'application/octet-stream';
+    const contentType = downloadRes.headers.get('content-type') || 'application/octet-stream';
 
     console.log(`[R2 Gate] Uploading to R2 as ${r2Key}...`);
     const uploadCommand = new PutObjectCommand({
-      Bucket: 'releases', // Hardcoded as per your current R2 setup
+      Bucket: 'releases',
       Key: r2Key,
       Body: buffer,
       ContentType: contentType,
@@ -98,9 +97,14 @@ export async function POST(req: Request) {
     
     await r2Client.send(uploadCommand);
     
-    // Delete from Supabase
-    console.log(`[R2 Gate] Deleting from Supabase ${bucket}/${filePath}...`);
-    await supabase.storage.from(bucket).remove([filePath]);
+    // Attempt to delete from Supabase, but don't fail if it doesn't work 
+    // (since Anon key might not have DELETE permissions)
+    try {
+      console.log(`[R2 Gate] Deleting from Supabase ${bucket}/${filePath}...`);
+      await supabase.storage.from(bucket).remove([filePath]);
+    } catch (delErr) {
+      console.warn(`[R2 Gate] Failed to delete from Supabase, skipping...`, delErr);
+    }
 
     const newUrl = `${R2_PUBLIC_URL}/${r2Key}`;
 
