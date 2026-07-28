@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitMusicMetadataAction } from "@/app/actions/upload";
+import { supabaseBrowser } from "@/lib/supabase-browser";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -148,57 +149,40 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         let coverUrl, audioUrl;
         
         try {
-          // Import server action
-          const { getUploadPresignedUrlsAction } = await import("@/app/actions/upload");
-          
-          // Get presigned URLs from server (no body size limit)
-          console.log("[UploadForm] Requesting presigned URLs...");
-          const urlsResult = await getUploadPresignedUrlsAction(
-            coverFile.name,
-            audioFile.name,
-            primaryArtistId
-          );
-          
-          if (urlsResult.error || !urlsResult.success) {
-            throw new Error(urlsResult.error || "Failed to get upload URLs");
+          const timestamp = Date.now();
+          const coverExt = coverFile.name.split('.').pop();
+          const audioExt = audioFile.name.split('.').pop();
+          const coverKey = `covers/${primaryArtistId}-${timestamp}.${coverExt}`;
+          const audioKey = `audio/${primaryArtistId}-${timestamp + 1}.${audioExt}`;
+
+          console.log("[UploadForm] Uploading cover directly to Supabase...");
+          const coverUpload = await supabaseBrowser.storage
+            .from('releases')
+            .upload(coverKey, coverFile, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (coverUpload.error) {
+             throw new Error(`Cover upload to Supabase failed: ${coverUpload.error.message}`);
           }
-          
-          console.log("[UploadForm] ✓ Got presigned URLs");
-          
-          // Upload cover directly to R2 using presigned URL
-          console.log("[UploadForm] Uploading cover to R2...");
-          const coverUploadRes = await fetch(urlsResult.cover.presignedUrl, {
-            method: "PUT",
-            body: coverFile,
-            headers: {
-              "Content-Type": coverFile.type,
-            },
-          });
-          
-          if (!coverUploadRes.ok) {
-            throw new Error(`Cover upload to R2 failed: ${coverUploadRes.status}`);
-          }
-          
-          coverUrl = urlsResult.cover.publicUrl;
+          coverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${coverKey}`;
           console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
-          
-          // Upload audio directly to R2 using presigned URL
-          console.log("[UploadForm] Uploading audio to R2...");
-          const audioUploadRes = await fetch(urlsResult.audio.presignedUrl, {
-            method: "PUT",
-            body: audioFile,
-            headers: {
-              "Content-Type": audioFile.type,
-            },
-          });
-          
-          if (!audioUploadRes.ok) {
-            throw new Error(`Audio upload to R2 failed: ${audioUploadRes.status}`);
+
+          console.log("[UploadForm] Uploading audio directly to Supabase...");
+          const audioUpload = await supabaseBrowser.storage
+            .from('releases')
+            .upload(audioKey, audioFile, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (audioUpload.error) {
+             throw new Error(`Audio upload to Supabase failed: ${audioUpload.error.message}`);
           }
-          
-          audioUrl = urlsResult.audio.publicUrl;
+          audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${audioKey}`;
           console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
-          
+
         } catch (e: any) {
           console.error("[UploadForm] File upload exception:", e);
           throw new Error(`[Tahap 1] Gagal upload file: ${e.message}`);
