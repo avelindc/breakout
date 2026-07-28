@@ -5,142 +5,87 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { r2Client, BUCKET_RELEASES } from "@/lib/r2";
+import { getR2PublicUrl } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
-export async function uploadMusicFilesServerAction(
-  coverFile: File, 
-  audioFile: File, 
+/**
+ * Generate presigned URLs for direct upload to R2
+ * This bypasses serverless function body size limits
+ */
+export async function getUploadPresignedUrlsAction(
+  coverFileName: string,
+  audioFileName: string,
   artistId: string
 ) {
   try {
-    console.log("\n=== START uploadMusicFilesServerAction ===");
+    console.log("\n=== GET PRESIGNED URLS ===");
     
     const active = await isMaintenanceActive();
     const session = await auth();
-    console.log("Session:", session?.user?.id);
-    console.log("Active:", active);
     
     if (active && session?.user?.role !== "ADMIN") {
       return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
-    console.log("Files received:");
-    console.log("- Cover:", coverFile?.name, `${Math.round(coverFile?.size / 1024)}KB`);
-    console.log("- Audio:", audioFile?.name, `${Math.round(audioFile?.size / 1024 / 1024)}MB`);
-    console.log("- Artist ID:", artistId);
-    
-    if (!coverFile || !audioFile) {
-      console.log("ERROR: Missing files");
-      return { error: "Both cover and audio files are required" };
+    if (!session?.user?.id) {
+      return { error: "Unauthorized" };
     }
 
-    if (!artistId) {
-      console.log("ERROR: Missing artist ID");
-      return { error: "Artist ID is required" };
-    }
-
-    console.log("✓ All files present");
-
-    // Import R2 modules
-    console.log("Importing R2 modules...");
-    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const r2Module = await import("@/lib/r2");
-    const r2HelpersModule = await import("@/lib/r2-helpers");
-    
-    const r2Client = r2Module.r2Client;
-    const BUCKET_RELEASES = r2Module.BUCKET_RELEASES;
-    const getR2PublicUrl = r2HelpersModule.getR2PublicUrl;
-    
-    console.log("✓ Modules imported");
-    console.log("BUCKET_RELEASES:", BUCKET_RELEASES);
-
-    // Upload cover
-    console.log("\n--- UPLOADING COVER ---");
     const timestamp = Date.now();
-    const coverExt = coverFile.name.split('.').pop();
+    
+    // Generate keys
+    const coverExt = coverFileName.split('.').pop();
+    const audioExt = audioFileName.split('.').pop();
     const coverKey = `covers/${artistId}-${timestamp}.${coverExt}`;
+    const audioKey = `audio/${artistId}-${timestamp + 1}.${audioExt}`;
     
     console.log("Cover key:", coverKey);
+    console.log("Audio key:", audioKey);
     
-    const coverBuffer = Buffer.from(await coverFile.arrayBuffer());
-    console.log("Cover buffer size:", coverBuffer.length);
-    
+    // Create presigned URLs (valid for 10 minutes)
     const coverCommand = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
       Key: coverKey,
-      Body: coverBuffer,
-      ContentType: coverFile.type,
+      ContentType: coverFileName.match(/\.(jpg|jpeg)$/i) ? 'image/jpeg' : 'image/png',
     });
-
-    console.log("Sending cover to R2...");
-    try {
-      const coverResponse = await r2Client.send(coverCommand);
-      console.log("✅ Cover uploaded:", coverResponse);
-    } catch (r2Error: any) {
-      console.error("❌ R2 ERROR:", r2Error.constructor.name);
-      console.error("Error message:", r2Error.message);
-      console.error("Error code:", r2Error.Code || r2Error.code);
-      console.error("Full error:", r2Error);
-      return { error: `Cover R2 error: ${r2Error.Code || r2Error.message}` };
-    }
-
-    // Upload audio  
-    console.log("\n--- UPLOADING AUDIO ---");
-    const audioExt = audioFile.name.split('.').pop();
-    const audioKey = `audio/${artistId}-${timestamp + 1}.${audioExt}`;
-    
-    console.log("Audio key:", audioKey);
-    
-    const audioBuffer = Buffer.from(await audioFile.arrayBuffer());
-    console.log("Audio buffer size:", audioBuffer.length);
     
     const audioCommand = new PutObjectCommand({
       Bucket: BUCKET_RELEASES,
       Key: audioKey,
-      Body: audioBuffer,
-      ContentType: audioFile.type,
+      ContentType: 'audio/mpeg',
     });
-
-    console.log("Sending audio to R2...");
-    try {
-      const audioResponse = await r2Client.send(audioCommand);
-      console.log("✅ Audio uploaded:", audioResponse);
-    } catch (r2Error: any) {
-      console.error("❌ R2 ERROR:", r2Error.constructor.name);
-      console.error("Error message:", r2Error.message);
-      console.error("Error code:", r2Error.Code || r2Error.code);
-      console.error("Full error:", r2Error);
-      return { error: `Audio R2 error: ${r2Error.Code || r2Error.message}` };
-    }
-
-    // Generate public URLs
-    console.log("\n--- GENERATING URLS ---");
-    let coverUrl, audioUrl;
-    try {
-      coverUrl = await getR2PublicUrl(BUCKET_RELEASES, coverKey);
-      audioUrl = await getR2PublicUrl(BUCKET_RELEASES, audioKey);
-      console.log("✅ Cover URL:", coverUrl);
-      console.log("✅ Audio URL:", audioUrl);
-    } catch (urlError: any) {
-      console.error("❌ URL Generation error:", urlError.message);
-      return { error: `URL generation error: ${urlError.message}` };
-    }
-
-    console.log("\n=== END uploadMusicFilesServerAction (SUCCESS) ===\n");
     
-    return { 
-      success: true, 
-      cover: { url: coverUrl, key: coverKey },
-      audio: { url: audioUrl, key: audioKey }
+    const coverPresignedUrl = await getSignedUrl(r2Client, coverCommand, { expiresIn: 600 });
+    const audioPresignedUrl = await getSignedUrl(r2Client, audioCommand, { expiresIn: 600 });
+    
+    // Generate public URLs
+    const coverPublicUrl = await getR2PublicUrl(BUCKET_RELEASES, coverKey);
+    const audioPublicUrl = await getR2PublicUrl(BUCKET_RELEASES, audioKey);
+    
+    console.log("✅ Presigned URLs generated");
+    console.log("Cover public URL:", coverPublicUrl);
+    console.log("Audio public URL:", audioPublicUrl);
+    
+    return {
+      success: true,
+      cover: {
+        presignedUrl: coverPresignedUrl,
+        publicUrl: coverPublicUrl,
+        key: coverKey
+      },
+      audio: {
+        presignedUrl: audioPresignedUrl,
+        publicUrl: audioPublicUrl,
+        key: audioKey
+      }
     };
   } catch (error: any) {
-    console.error("\n=== UNCAUGHT ERROR ===");
-    console.error("Error type:", error.constructor.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-    console.error("Full error:", error);
-    return { error: `Upload error: ${error.message}` };
+    console.error("Error generating presigned URLs:", error);
+    return { error: `Failed to generate upload URLs: ${error.message}` };
   }
 }
 

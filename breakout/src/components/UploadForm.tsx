@@ -140,7 +140,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         const primaryArtistId = formData.get("primaryArtistId") as string;
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
-        console.log("[UploadForm] [Tahap 1] Uploading music files...");
+        console.log("[UploadForm] [Tahap 1] Getting presigned URLs...");
         console.log("[UploadForm] Cover:", coverFile.name, `${Math.round(coverFile.size / 1024)}KB`);
         console.log("[UploadForm] Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
         console.log("[UploadForm] Artist ID:", primaryArtistId);
@@ -148,48 +148,55 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         let coverUrl, audioUrl;
         
         try {
-          // Upload cover via API route (single file)
-          console.log("[UploadForm] Uploading cover...");
-          const coverFormData = new FormData();
-          coverFormData.append("file", coverFile);
-          coverFormData.append("type", "cover");
+          // Import server action
+          const { getUploadPresignedUrlsAction } = await import("@/app/actions/upload");
           
-          const coverRes = await fetch("/api/upload", {
-            method: "POST",
-            body: coverFormData,
+          // Get presigned URLs from server (no body size limit)
+          console.log("[UploadForm] Requesting presigned URLs...");
+          const urlsResult = await getUploadPresignedUrlsAction(
+            coverFile.name,
+            audioFile.name,
+            primaryArtistId
+          );
+          
+          if (urlsResult.error || !urlsResult.success) {
+            throw new Error(urlsResult.error || "Failed to get upload URLs");
+          }
+          
+          console.log("[UploadForm] ✓ Got presigned URLs");
+          
+          // Upload cover directly to R2 using presigned URL
+          console.log("[UploadForm] Uploading cover to R2...");
+          const coverUploadRes = await fetch(urlsResult.cover.presignedUrl, {
+            method: "PUT",
+            body: coverFile,
+            headers: {
+              "Content-Type": coverFile.type,
+            },
           });
           
-          if (!coverRes.ok) {
-            throw new Error(`Cover upload failed: ${coverRes.status} ${coverRes.statusText}`);
+          if (!coverUploadRes.ok) {
+            throw new Error(`Cover upload to R2 failed: ${coverUploadRes.status}`);
           }
           
-          const coverData = await coverRes.json();
-          if (!coverData.url) {
-            throw new Error("Cover upload returned no URL");
-          }
-          coverUrl = coverData.url;
+          coverUrl = urlsResult.cover.publicUrl;
           console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
           
-          // Upload audio via API route (single file)
-          console.log("[UploadForm] Uploading audio...");
-          const audioFormData = new FormData();
-          audioFormData.append("file", audioFile);
-          audioFormData.append("type", "audio");
-          
-          const audioRes = await fetch("/api/upload", {
-            method: "POST",
-            body: audioFormData,
+          // Upload audio directly to R2 using presigned URL
+          console.log("[UploadForm] Uploading audio to R2...");
+          const audioUploadRes = await fetch(urlsResult.audio.presignedUrl, {
+            method: "PUT",
+            body: audioFile,
+            headers: {
+              "Content-Type": audioFile.type,
+            },
           });
           
-          if (!audioRes.ok) {
-            throw new Error(`Audio upload failed: ${audioRes.status} ${audioRes.statusText}`);
+          if (!audioUploadRes.ok) {
+            throw new Error(`Audio upload to R2 failed: ${audioUploadRes.status}`);
           }
           
-          const audioData = await audioRes.json();
-          if (!audioData.url) {
-            throw new Error("Audio upload returned no URL");
-          }
-          audioUrl = audioData.url;
+          audioUrl = urlsResult.audio.publicUrl;
           console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
           
         } catch (e: any) {
