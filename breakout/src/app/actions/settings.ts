@@ -3,15 +3,11 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
+import { uploadFileToAPI } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
 export async function uploadBrandLogoAction(formData: FormData) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -29,26 +25,18 @@ export async function uploadBrandLogoAction(formData: FormData) {
       return { error: "No logo file provided" };
     }
 
-    if (!supabase) {
-      return { error: `Supabase credentials missing.` };
-    }
+    console.log("=== UPLOADING BRAND LOGO ===");
+    console.log("File:", logoFile.name, logoFile.type, `${Math.round(logoFile.size / 1024)}KB`);
 
-    const ext = logoFile.name.split('.').pop();
-    const path = `brand/logo-${Date.now()}.${ext}`;
-    const buffer = Buffer.from(await logoFile.arrayBuffer());
+    // Upload via server-side API route
+    const uploadResult = await uploadFileToAPI(logoFile, 'brand');
     
-    const { error: uploadError } = await supabase.storage
-      .from('assets')
-      .upload(path, buffer, {
-        contentType: logoFile.type,
-        upsert: false
-      });
-      
-    if (uploadError) {
-      return { error: `Failed to upload logo: ${uploadError.message}. Make sure 'assets' bucket exists and is public.` };
+    if (!uploadResult.success) {
+      return { error: `Failed to upload logo: ${uploadResult.error}` };
     }
     
-    const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/${path}`;
+    const logoUrl = uploadResult.url!;
+    console.log("Brand logo uploaded:", logoUrl);
 
     // Upsert into Settings table
     await prisma.settings.upsert({

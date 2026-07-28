@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { sendOtpEmail, sendContractToAdminEmail } from "@/lib/email";
 
-import { createClient } from "@supabase/supabase-js";
+import { uploadFileToAPI } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
@@ -148,34 +148,12 @@ export async function registerAction(formData: FormData) {
 
 export async function getContractUploadUrlsAction(userId: string) {
   try {
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-    
-    if (!supabaseUrl || !supabaseKey) {
-      return { error: "Supabase credentials missing" };
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const timestamp = Date.now();
-    const signaturePath = `signatures/${userId}-${timestamp}.png`;
-    const pdfPath = `contracts/${userId}-${timestamp}.jpg`;
-    
-    const { data: sigData, error: sigError } = await supabase.storage
-      .from('contracts')
-      .createSignedUploadUrl(signaturePath);
-      
-    if (sigError || !sigData) return { error: "Failed to generate signature upload URL" };
-
-    const { data: pdfData, error: pdfError } = await supabase.storage
-      .from('contracts')
-      .createSignedUploadUrl(pdfPath);
-      
-    if (pdfError || !pdfData) return { error: "Failed to generate PDF upload URL" };
-
+    // Return a flag indicating the frontend should use uploadFileToAPI directly
+    // or return dummy URLs to maintain API compatibility while client handles upload
     return { 
-      success: true, 
-      signature: { url: sigData.signedUrl, path: signaturePath, token: sigData.token },
-      pdf: { url: pdfData.signedUrl, path: pdfPath, token: pdfData.token }
+      success: true,
+      useDirectUpload: true, // Signal frontend to use uploadFileToAPI
+      userId 
     };
   } catch (error) {
     console.error("getUploadUrls error:", error);
@@ -185,6 +163,8 @@ export async function getContractUploadUrlsAction(userId: string) {
 
 export async function finalizeContractAction(userId: string, signaturePath: string, pdfPath: string) {
   try {
+    // When contract files come via API route, the paths are actually URLs
+    // from uploadFileToAPI, so we store them directly
     await prisma.contract.create({
       data: {
         userId,

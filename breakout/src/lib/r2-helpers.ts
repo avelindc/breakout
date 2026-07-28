@@ -17,7 +17,7 @@ import {
  * Generate presigned upload URL for R2
  * @param bucket - R2 bucket name
  * @param key - File key/path in bucket
- * @param contentType - MIME type of the file
+ * @param contentType - MIME type of the file (from frontend)
  * @param expiresIn - URL expiration time in seconds (default: 900 = 15 minutes)
  */
 export async function generateR2PresignedUploadUrl(
@@ -33,13 +33,19 @@ export async function generateR2PresignedUploadUrl(
       return { success: false, error: `R2 Configuration Error: ${validation.error}` };
     }
 
+    // FIXED: Create PutObjectCommand with exact Content-Type from frontend
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      ContentType: contentType,
+      ContentType: contentType, // Use exact Content-Type from frontend request
     });
 
-    const signedUrl = await getSignedUrl(r2Client, command, { expiresIn });
+    const signedUrl = await getSignedUrl(r2Client, command, { 
+      expiresIn,
+      // FIXED: Add explicit signing options for R2 compatibility
+      signableHeaders: new Set(['host', 'content-type']),
+      unhoistableHeaders: new Set(), // Empty set for R2 compatibility
+    });
 
     return { success: true, url: signedUrl };
   } catch (error: any) {
@@ -141,59 +147,105 @@ export async function deleteR2File(
 }
 
 /**
- * Helper function to generate music upload URLs (cover + audio)
- * @param artistId - Artist ID for file naming
- * @param coverExt - Cover file extension
- * @param audioExt - Audio file extension
+ * Upload file directly to API route (server-side upload)
+ * @param file - File object to upload
+ * @param uploadType - Type of upload ('cover', 'audio', 'profile', 'asset', etc.)
+ * @param artistId - Optional artist ID for file naming
  */
-export async function generateMusicUploadUrls(
-  artistId: string,
-  coverExt: string,
-  audioExt: string
-): Promise<{
-  success: boolean;
-  cover?: { url: string; path: string };
-  audio?: { url: string; path: string };
-  error?: string;
-}> {
+export async function uploadFileToAPI(
+  file: File,
+  uploadType: string,
+  artistId?: string
+): Promise<{ success: boolean; url?: string; error?: string; key?: string }> {
   try {
-    const timestamp = Date.now();
-    const coverPath = `covers/${artistId}-${timestamp}.${coverExt}`;
-    const audioPath = `audio/${artistId}-${timestamp}.${audioExt}`;
-
-    // Generate presigned URLs for both files
-    const [coverResult, audioResult] = await Promise.all([
-      generateR2PresignedUploadUrl(BUCKET_RELEASES, coverPath, 'image/jpeg'),
-      generateR2PresignedUploadUrl(BUCKET_RELEASES, audioPath, 'audio/mpeg'),
-    ]);
-
-    if (!coverResult.success) {
-      return { success: false, error: `Cover upload URL error: ${coverResult.error}` };
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', uploadType);
+    if (artistId) {
+      formData.append('artistId', artistId);
     }
 
-    if (!audioResult.success) {
-      return { success: false, error: `Audio upload URL error: ${audioResult.error}` };
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { 
+        success: false, 
+        error: errorData.error || `HTTP ${response.status}` 
+      };
     }
 
-    return {
-      success: true,
-      cover: { url: coverResult.url!, path: coverPath },
-      audio: { url: audioResult.url!, path: audioPath },
+    const data = await response.json();
+    return { 
+      success: true, 
+      url: data.url,
+      key: data.key 
     };
   } catch (error: any) {
-    console.error("Error generating music upload URLs:", error);
-    return { success: false, error: error.message || "Failed to generate upload URLs" };
+    console.error("Upload API error:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to upload file" 
+    };
   }
 }
 
 /**
- * Get public URLs for music files
- * @param coverPath - Cover file path in R2
- * @param audioPath - Audio file path in R2
+ * Upload multiple files (cover + audio for music releases)
+ * @param coverFile - Cover image file
+ * @param audioFile - Audio file
+ * @param artistId - Artist ID for file naming
  */
-export async function getMusicPublicUrls(coverPath: string, audioPath: string) {
+export async function uploadMusicFiles(
+  coverFile: File,
+  audioFile: File,
+  artistId: string
+): Promise<{
+  success: boolean;
+  cover?: { url: string; key: string };
+  audio?: { url: string; key: string };
+  error?: string;
+}> {
+  try {
+    // Upload both files in parallel
+    const [coverResult, audioResult] = await Promise.all([
+      uploadFileToAPI(coverFile, 'cover', artistId),
+      uploadFileToAPI(audioFile, 'audio', artistId)
+    ]);
+
+    if (!coverResult.success) {
+      return { success: false, error: `Cover upload failed: ${coverResult.error}` };
+    }
+
+    if (!audioResult.success) {
+      return { success: false, error: `Audio upload failed: ${audioResult.error}` };
+    }
+
+    return {
+      success: true,
+      cover: { url: coverResult.url!, key: coverResult.key! },
+      audio: { url: audioResult.url!, key: audioResult.key! }
+    };
+  } catch (error: any) {
+    console.error("Music files upload error:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to upload music files" 
+    };
+  }
+}
+
+/**
+ * Get public URLs for uploaded files using their keys
+ * @param coverKey - Cover file key from upload response
+ * @param audioKey - Audio file key from upload response
+ */
+export async function getUploadedMusicUrls(coverKey: string, audioKey: string) {
   return {
-    coverUrl: await getR2PublicUrl(BUCKET_RELEASES, coverPath),
-    audioUrl: await getR2PublicUrl(BUCKET_RELEASES, audioPath),
+    coverUrl: await getR2PublicUrl(BUCKET_RELEASES, coverKey),
+    audioUrl: await getR2PublicUrl(BUCKET_RELEASES, audioKey),
   };
 }

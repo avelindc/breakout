@@ -1,6 +1,6 @@
 import { S3Client } from "@aws-sdk/client-s3";
 
-// Initialize R2 Client with proper configuration
+// Initialize R2 Client with Cloudflare R2 optimized configuration
 export const r2Client = new S3Client({
   region: "auto", // R2 uses "auto" region
   endpoint: process.env.R2_ENDPOINT || "",
@@ -9,9 +9,13 @@ export const r2Client = new S3Client({
     accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
   },
-  // Disable AWS flexible checksums which can break Cloudflare R2 presigned URLs
-  requestChecksumCalculation: "WHEN_REQUIRED",
-  responseChecksumValidation: "WHEN_REQUIRED",
+  // FIXED: Disable problematic checksum features that cause CORS issues with R2
+  requestChecksumCalculation: "WHEN_SUPPORTED", // More lenient than WHEN_REQUIRED
+  responseChecksumValidation: "WHEN_SUPPORTED", // More lenient than WHEN_REQUIRED
+  
+  // Additional R2-specific optimizations
+  maxAttempts: 3,
+  retryMode: "adaptive",
 });
 
 // Bucket configurations

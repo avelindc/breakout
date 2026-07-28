@@ -3,17 +3,13 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
+import { uploadFileToAPI } from "@/lib/r2-helpers";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 export async function updateProfileAction(formData: FormData) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -46,28 +42,19 @@ export async function updateProfileAction(formData: FormData) {
 
     let imageUrl = user.image;
 
-    // Upload new profile photo if provided
+    // Upload new profile photo if provided via API route
     if (photoFile && photoFile.size > 0) {
-      if (!supabase) {
-        return { error: `Supabase credentials missing. URL: ${supabaseUrl ? "OK" : "MISSING"}, KEY: ${supabaseKey ? "OK" : "MISSING"}` };
-      }
-
-      const ext = photoFile.name.split('.').pop();
-      const path = `avatars/${user.id}-${Date.now()}.${ext}`;
-      const buffer = Buffer.from(await photoFile.arrayBuffer());
+      console.log("=== UPLOADING PROFILE PHOTO ===");
+      console.log("File:", photoFile.name, photoFile.type, `${Math.round(photoFile.size / 1024)}KB`);
       
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(path, buffer, {
-          contentType: photoFile.type,
-          upsert: false
-        });
-        
-      if (uploadError) {
-        return { error: `Failed to upload photo: ${uploadError.message}. Make sure 'profiles' bucket exists and is public.` };
+      const uploadResult = await uploadFileToAPI(photoFile, 'profile', user.id);
+      
+      if (!uploadResult.success) {
+        return { error: `Failed to upload photo: ${uploadResult.error}` };
       }
       
-      imageUrl = `${supabaseUrl}/storage/v1/object/public/profiles/${path}`;
+      imageUrl = uploadResult.url!;
+      console.log("Profile photo uploaded:", imageUrl);
     }
 
     let updateData: any = {

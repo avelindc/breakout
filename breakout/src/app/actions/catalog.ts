@@ -15,32 +15,7 @@ async function requireAdmin() {
   }
 }
 
-import { createClient } from "@supabase/supabase-js";
-
-// Helper to upload file to supabase
-async function uploadToSupabase(file: File, folder: string) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!supabaseUrl || !supabaseKey) throw new Error("Supabase credentials missing");
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  
-  const ext = file.name.split('.').pop();
-  const fileName = `${folder}/catalog-${Date.now()}-${Math.floor(Math.random()*1000)}.${ext}`;
-  
-  const buffer = Buffer.from(await file.arrayBuffer());
-  
-  const { data, error } = await supabase.storage
-    .from('releases') // reusing releases bucket
-    .upload(fileName, buffer, { contentType: file.type, upsert: false });
-    
-  if (error) throw new Error(`Upload failed: ${error.message}`);
-  
-  const { data: { publicUrl } } = supabase.storage
-    .from('releases')
-    .getPublicUrl(fileName);
-    
-  return publicUrl;
-}
+import { uploadFileToAPI } from "@/lib/r2-helpers";
 
 export async function createCatalogSongAction(formData: FormData) {
   try {
@@ -70,8 +45,17 @@ export async function createCatalogSongAction(formData: FormData) {
     let coverUrl = null;
     let audioUrl = null;
 
-    if (coverFile && coverFile.size > 0) coverUrl = await uploadToSupabase(coverFile, 'covers');
-    if (audioFile && audioFile.size > 0) audioUrl = await uploadToSupabase(audioFile, 'audio');
+    if (coverFile && coverFile.size > 0) {
+      const coverResult = await uploadFileToAPI(coverFile, 'cover');
+      if (!coverResult.success) throw new Error(`Cover upload failed: ${coverResult.error}`);
+      coverUrl = coverResult.url;
+    }
+    
+    if (audioFile && audioFile.size > 0) {
+      const audioResult = await uploadFileToAPI(audioFile, 'audio');
+      if (!audioResult.success) throw new Error(`Audio upload failed: ${audioResult.error}`);
+      audioUrl = audioResult.url;
+    }
 
     await prisma.catalogSong.create({
       data: {
@@ -120,8 +104,17 @@ export async function updateCatalogSongAction(id: string, formData: FormData) {
     let coverUrl = song.coverUrl;
     let audioUrl = song.audioUrl;
 
-    if (coverFile && coverFile.size > 0) coverUrl = await uploadToSupabase(coverFile, 'covers');
-    if (audioFile && audioFile.size > 0) audioUrl = await uploadToSupabase(audioFile, 'audio');
+    if (coverFile && coverFile.size > 0) {
+      const coverResult = await uploadFileToAPI(coverFile, 'cover');
+      if (!coverResult.success) throw new Error(`Cover upload failed: ${coverResult.error}`);
+      coverUrl = coverResult.url;
+    }
+    
+    if (audioFile && audioFile.size > 0) {
+      const audioResult = await uploadFileToAPI(audioFile, 'audio');
+      if (!audioResult.success) throw new Error(`Audio upload failed: ${audioResult.error}`);
+      audioUrl = audioResult.url;
+    }
 
     await prisma.catalogSong.update({
       where: { id },

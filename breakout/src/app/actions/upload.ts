@@ -5,11 +5,11 @@ import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
-import { generateMusicUploadUrls, getMusicPublicUrls } from "@/lib/r2-helpers";
+import { uploadMusicFiles } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
-export async function getMusicUploadUrlsAction(artistId: string, coverExt: string, audioExt: string, coverType: string = "image/jpeg", audioType: string = "audio/wav") {
+export async function uploadMusicFilesAction(formData: FormData) {
   try {
     const active = await isMaintenanceActive();
     const session = await auth();
@@ -17,14 +17,31 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
       return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
     }
 
-    // Generate R2 presigned upload URLs for cover and audio
-    const uploadResult = await generateMusicUploadUrls(artistId, coverExt, audioExt);
+    // Get files and metadata from form data
+    const coverFile = formData.get("cover") as File;
+    const audioFile = formData.get("audio") as File;
+    const artistId = formData.get("artistId") as string;
     
-    if (!uploadResult.success) {
-      return { error: uploadResult.error || "Failed to generate R2 upload URLs" };
+    if (!coverFile || !audioFile) {
+      return { error: "Both cover and audio files are required" };
     }
 
-    console.log("=== GENERATED R2 URLS ===");
+    if (!artistId) {
+      return { error: "Artist ID is required" };
+    }
+
+    console.log("=== UPLOADING FILES VIA API ROUTE ===");
+    console.log("Cover file:", coverFile.name, coverFile.type, `${Math.round(coverFile.size / 1024)}KB`);
+    console.log("Audio file:", audioFile.name, audioFile.type, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
+
+    // Upload both files via server-side API route
+    const uploadResult = await uploadMusicFiles(coverFile, audioFile, artistId);
+    
+    if (!uploadResult.success) {
+      return { error: uploadResult.error || "Failed to upload files" };
+    }
+
+    console.log("=== UPLOAD SUCCESSFUL ===");
     console.log("Cover URL:", uploadResult.cover?.url);
     console.log("Audio URL:", uploadResult.audio?.url);
 
@@ -32,22 +49,20 @@ export async function getMusicUploadUrlsAction(artistId: string, coverExt: strin
       success: true, 
       cover: { 
         url: uploadResult.cover!.url, 
-        path: uploadResult.cover!.path, 
-        token: null // R2 doesn't use tokens like Supabase
+        key: uploadResult.cover!.key,
       },
       audio: { 
         url: uploadResult.audio!.url, 
-        path: uploadResult.audio!.path, 
-        token: null // R2 doesn't use tokens like Supabase
+        key: uploadResult.audio!.key,
       }
     };
   } catch (error) {
-    console.error("getMusicUploadUrlsAction error:", error);
-    return { error: "Gagal menyiapkan penyimpanan lagu di R2." };
+    console.error("uploadMusicFilesAction error:", error);
+    return { error: "Gagal mengupload file musik." };
   }
 }
 
-export async function submitMusicMetadataAction(data: any, coverPath: string, audioPath: string) {
+export async function submitMusicMetadataAction(data: any) {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
@@ -80,9 +95,16 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       isrc,
       upc,
       releaseDateStr,
-      tiktokClipStart
+      tiktokClipStart,
+      coverUrl,
+      audioUrl
     } = data;
     
+    // Validate URLs are provided
+    if (!coverUrl || !audioUrl) {
+      return { error: "Cover and audio URLs are required" };
+    }
+
     // Find the specific artist the user selected
     const selectedArtist = user.artists.find((a: any) => a.id === primaryArtistId);
     if (!selectedArtist) {
@@ -96,8 +118,10 @@ export async function submitMusicMetadataAction(data: any, coverPath: string, au
       return { error: "Missing required fields" };
     }
 
-    // Get R2 public URLs for the uploaded files
-    const { coverUrl, audioUrl } = await getMusicPublicUrls(coverPath, audioPath);
+    // Use the URLs provided from server-side upload
+    console.log("=== SAVING TO DATABASE ===");
+    console.log("Cover URL:", coverUrl);
+    console.log("Audio URL:", audioUrl);
 
     try {
       // Create Release & Track in DB

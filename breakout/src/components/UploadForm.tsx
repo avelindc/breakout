@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getMusicUploadUrlsAction, submitMusicMetadataAction } from "@/app/actions/upload";
+import { uploadMusicFilesAction, submitMusicMetadataAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -140,76 +140,29 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         const primaryArtistId = formData.get("primaryArtistId") as string;
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
-        const coverType = coverFile.type || "image/jpeg";
-        const audioType = audioFile.type || "audio/wav";
-
-        // 1. Get Presigned URLs
-        let urlsRes;
+        // 1. Upload files to API route (server-side)
+        console.log("[Tahap 1] Uploading music files to API route...");
+        let uploadRes;
         try {
-          urlsRes = await getMusicUploadUrlsAction(
-            primaryArtistId,
-            coverFile.name.split('.').pop() || "jpg",
-            audioFile.name.split('.').pop() || "mp3",
-            coverType,
-            audioType
-          );
+          // Create FormData for API route
+          const uploadFormData = new FormData();
+          uploadFormData.append("cover", coverFile);
+          uploadFormData.append("audio", audioFile);
+          uploadFormData.append("artistId", primaryArtistId);
+          
+          // Call API directly (this will be handled by uploadMusicFilesAction)
+          uploadRes = await uploadMusicFilesAction(uploadFormData);
         } catch (e: any) {
           throw new Error(`[Tahap 1] Gagal menghubungi server: ${e.message}`);
         }
         
-        if (urlsRes?.error || !urlsRes.cover || !urlsRes.audio) {
-          throw new Error(`[Tahap 1] ${urlsRes?.error || "Gagal menyiapkan penyimpanan file."}`);
+        if (uploadRes?.error || !uploadRes.cover?.url || !uploadRes.audio?.url) {
+          throw new Error(`[Tahap 1] ${uploadRes?.error || "Gagal upload file musik."}`);
         }
 
-        // Helper XHR function to bypass Safari iOS fetch bugs with PUT requests
-        const uploadFileXHR = (url: string, file: File, contentType: string): Promise<void> => {
-          return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("PUT", url, true);
-            // Hanya set Content-Type, hindari custom header lain yang memancing CORS strict Safari
-            xhr.setRequestHeader("Content-Type", contentType);
-            // Tambahkan header unik agar browser tidak memakai cache CORS gagal (CORS Preflight cache max-age 3600s)
-            xhr.setRequestHeader("x-bypass-cors-cache", Date.now().toString());
-            
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve();
-              } else {
-                reject(new Error(`HTTP ${xhr.status} - ${xhr.responseText}`));
-              }
-            };
-            
-            xhr.onerror = () => {
-              const debugInfo = [
-                `URL_Prefix: ${url.substring(0, 70)}...`,
-                `Method: PUT`,
-                `ContentType: ${contentType}`,
-                `FileSize: ${file.size} bytes`,
-                `Status: ${xhr.status} (0 means blocked by browser/CORS/DNS)`
-              ].join(" | ");
-              reject(new Error(`DEBUG INFO: ${debugInfo}`));
-            };
-            xhr.ontimeout = () => reject(new Error("Connection Timeout"));
-            
-            xhr.send(file);
-          });
-        };
-
-        // 2. Upload Cover directly to R2 via XHR
-        try {
-          await uploadFileXHR(urlsRes.cover.url, coverFile, coverType);
-        } catch (e: any) {
-          throw new Error(`[Tahap 2] Upload Cover gagal (Safari/Koneksi): ${e.message}`);
-        }
-
-        // 3. Upload Audio directly to R2 via XHR
-        try {
-          await uploadFileXHR(urlsRes.audio.url, audioFile, audioType);
-        } catch (e: any) {
-          throw new Error(`[Tahap 3] Upload Audio gagal (Safari/Koneksi): ${e.message}`);
-        }
-
-        // 4. Submit Metadata
+        console.log("[Tahap 1] Upload berhasil:", uploadRes);
+        
+        // 2. Submit Metadata with uploaded URLs
         const metadata = {
           title: formData.get("title"),
           genre: formData.get("genre"),
@@ -222,20 +175,23 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           isrc: formData.get("isrc"),
           upc: formData.get("upc"),
           releaseDateStr: formData.get("releaseDate"),
-          tiktokClipStart: tiktokClipStart
+          tiktokClipStart: tiktokClipStart,
+          // Pass the URLs directly from upload response
+          coverUrl: uploadRes.cover.url,
+          audioUrl: uploadRes.audio.url
         };
         
         let res;
         try {
-          res = await submitMusicMetadataAction(metadata, urlsRes.cover.path, urlsRes.audio.path);
+          res = await submitMusicMetadataAction(metadata);
         } catch (e: any) {
-          throw new Error(`[Tahap 4] Gagal menyimpan ke Database: ${e.message}`);
+          throw new Error(`[Tahap 2] Gagal menyimpan ke Database: ${e.message}`);
         }
 
         setLoading(false);
 
         if (res?.error) {
-          setError(`[Tahap 4] ${res.error}`);
+          setError(`[Tahap 2] ${res.error}`);
           setStep(2); // Go back to fix
         } else {
           setSuccess(true);

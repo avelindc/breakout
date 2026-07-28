@@ -2,14 +2,10 @@
 
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
-import { createClient } from '@supabase/supabase-js';
+import { uploadFileToAPI } from "@/lib/r2-helpers";
 import { sendNewMessageNotification, sendNewMessageNotificationBatch } from "@/lib/email";
 
 const prisma = new PrismaClient();
-
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export async function sendMessageAction(formData: FormData) {
   try {
@@ -37,33 +33,18 @@ export async function sendMessageAction(formData: FormData) {
     let fileName = null;
 
     if (attachment && attachment.size > 0) {
-      if (!supabase) {
-        return { error: "Supabase credentials missing." };
-      }
-      const fileExt = attachment.name.split('.').pop();
-      const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      console.log("=== UPLOADING MESSAGE ATTACHMENT ===");
+      console.log("File:", attachment.name, attachment.type, `${Math.round(attachment.size / 1024)}KB`);
       
-      const arrayBuffer = await attachment.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const { data, error: uploadError } = await supabase.storage
-        .from('messages')
-        .upload(`attachments/${uniqueFileName}`, buffer, {
-          contentType: attachment.type,
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error("Supabase upload error:", uploadError);
-        return { error: "Failed to upload attachment. Please ensure 'messages' bucket exists and is public." };
+      const uploadResult = await uploadFileToAPI(attachment, 'message');
+      
+      if (!uploadResult.success) {
+        return { error: `Failed to upload attachment: ${uploadResult.error}` };
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('messages')
-        .getPublicUrl(`attachments/${uniqueFileName}`);
-
-      attachmentUrl = publicUrl;
+      attachmentUrl = uploadResult.url!;
       fileName = attachment.name;
+      console.log("Message attachment uploaded:", attachmentUrl);
     }
 
     let finalRecipientIds: string[] = [];
