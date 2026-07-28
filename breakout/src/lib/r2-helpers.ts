@@ -165,27 +165,74 @@ export async function uploadFileToAPI(
       formData.append('artistId', artistId);
     }
 
-    const response = await fetch('/api/upload', {
+    // Get the base URL for API calls
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+    
+    const apiUrl = `${baseUrl}/api/upload`;
+    
+    console.log(`[uploadFileToAPI] Uploading to: ${apiUrl}`);
+    console.log(`[uploadFileToAPI] File: ${file.name}, Type: ${uploadType}, Size: ${file.size}`);
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      body: formData
+      body: formData,
+      // Don't set Content-Type header - let browser set it with boundary
+    });
+
+    console.log(`[uploadFileToAPI] Response status: ${response.status}`);
+    console.log(`[uploadFileToAPI] Response headers:`, {
+      contentType: response.headers.get('content-type'),
+      contentLength: response.headers.get('content-length')
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.log(`[uploadFileToAPI] Error response:`, errorData);
+      } catch (e) {
+        const text = await response.text();
+        console.log(`[uploadFileToAPI] Non-JSON error response:`, text);
+        return { 
+          success: false, 
+          error: `HTTP ${response.status}: ${text.substring(0, 100)}` 
+        };
+      }
       return { 
         success: false, 
         error: errorData.error || `HTTP ${response.status}` 
       };
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+      console.log(`[uploadFileToAPI] Success response:`, data);
+    } catch (e) {
+      console.error(`[uploadFileToAPI] Failed to parse JSON response:`, e);
+      return { 
+        success: false, 
+        error: "Invalid JSON response from API" 
+      };
+    }
+
+    if (!data.success || !data.url) {
+      console.error(`[uploadFileToAPI] Response missing success or url:`, data);
+      return { 
+        success: false, 
+        error: "Invalid response format from API" 
+      };
+    }
+
     return { 
       success: true, 
       url: data.url,
       key: data.key 
     };
   } catch (error: any) {
-    console.error("Upload API error:", error);
+    console.error("[uploadFileToAPI] Uncaught error:", error);
     return { 
       success: false, 
       error: error.message || "Failed to upload file" 
