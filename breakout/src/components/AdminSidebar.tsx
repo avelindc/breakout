@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   Users, Music, CheckCircle, BarChart, Activity,
-  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen, Disc, Globe, Upload
+  DollarSign, Settings, LayoutDashboard, Menu, X, Mail, Library, BookOpen, Disc, Globe, Upload, CloudLightning
 } from "lucide-react";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -13,6 +13,7 @@ const links = [
   { name: "Overview",           href: "/admin",            icon: LayoutDashboard },
   { name: "Streaming Analytics", href: "/admin/streaming",  icon: Activity },
   { name: "Website CMS",        href: "/admin/website-cms", icon: Globe },
+  { name: "Gerbang R2",         href: "/admin/r2-gate", icon: CloudLightning },
   { name: "Katalog Musik", href: "/admin/catalog", icon: Library },
   { name: "Publisher Catalog", href: "/admin/publisher-catalog", icon: BookOpen },
   { name: "Message Center", href: "/admin/messages", icon: Mail },
