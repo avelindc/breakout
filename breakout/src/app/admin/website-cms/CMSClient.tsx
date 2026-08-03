@@ -48,17 +48,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     const formData = new FormData();
     formData.append("file", file);
     
-    let res: { url?: string; error?: string };
-    try {
-      const response = await fetch("/api/upload-cms", {
-        method: "POST",
-        body: formData,
-      });
-      res = await response.json();
-    } catch (err: any) {
-      res = { error: err.message };
-    }
-    
+    const res = await uploadCMSImageAction(formData);
     setUploadingField(null);
     
     if (res.error) {
