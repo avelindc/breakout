@@ -6,7 +6,7 @@ import {
   Upload, Loader2, Save, Music, Image as ImageIcon, X, Check,
   Link, Info
 } from "lucide-react";
-import { getCoverUploadUrlAction, importExistingReleaseAction, getArtistsForImportAction } from "@/app/actions/importRelease";
+import { importExistingReleaseAction, getArtistsForImportAction } from "@/app/actions/importRelease";
 
 interface Artist {
   id: string;
@@ -93,25 +93,26 @@ export function ImportReleaseForm() {
       // 1. Upload cover
       setUploading(true);
       setStatusMsg("⏳ Mengupload cover artwork...");
-      const ext = coverFile.name.split(".").pop() || "jpg";
-      const urlRes = await getCoverUploadUrlAction(ext);
-      if (urlRes.error || !urlRes.signedUrl) {
-        setStatusMsg(`❌ ${urlRes.error}`);
-        setUploading(false);
-        return;
-      }
-
-      const uploadRes = await fetch(urlRes.signedUrl, {
-        method: "PUT",
-        body: coverFile,
-        headers: { "Content-Type": coverFile.type },
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", coverFile);
+      formDataUpload.append("type", "cover");
+      
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataUpload,
       });
+
       if (!uploadRes.ok) {
-        setStatusMsg("❌ Gagal mengupload cover ke storage.");
+        const errText = await uploadRes.text();
+        setStatusMsg(`❌ Gagal mengupload cover: ${errText}`);
         setUploading(false);
         return;
       }
+      
+      const uploadJson = await uploadRes.json();
       setUploading(false);
+      
+      const coverUrl = uploadJson.url;
 
       // 2. Save release
       setSaving(true);
@@ -125,7 +126,7 @@ export function ImportReleaseForm() {
       formData.append("language", language);
       formData.append("releaseType", releaseType);
       formData.append("releaseDate", releaseDate);
-      formData.append("coverPath", urlRes.path!);
+      formData.append("coverPath", coverUrl);
       formData.append("distributor", distributor);
       formData.append("upc", upc);
       formData.append("isrc", isrc);

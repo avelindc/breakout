@@ -7,25 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
-export async function getCoverUploadUrlAction(ext: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: "Unauthorized" };
-  // @ts-ignore
-  if (session.user.role !== "ADMIN") return { error: "Admin access required" };
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!supabaseUrl || !supabaseKey) return { error: "Supabase credentials missing" };
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-  const path = `covers/import-${Date.now()}.${ext}`;
-  const { data, error } = await supabase.storage
-    .from("releases")
-    .createSignedUploadUrl(path);
-  if (error || !data) return { error: "Failed to generate cover upload URL" };
-
-  return { success: true, path, signedUrl: data.signedUrl, token: data.token };
-}
 
 export async function importExistingReleaseAction(formData: FormData) {
   const session = await auth();
@@ -61,7 +43,7 @@ export async function importExistingReleaseAction(formData: FormData) {
     const targetArtistId = (formData.get("artistId") as string)?.trim() || null;
 
     const releaseDate = new Date(releaseDateStr);
-    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    const coverArtworkUrl = coverPath.startsWith('http') ? coverPath : `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
 
     // Find or use the specified artist. If no artistId given, find/create by name.
     let artistRecord: { id: string } | null = null;

@@ -1,9 +1,12 @@
+const fs = require('fs');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function run() {
-  const rels = await prisma.release.findMany();
-  console.log('Releases URLs:');
-  console.log(rels.map(x => x.coverArtworkUrl).slice(0, 5));
+  const releases = await prisma.release.findMany({ where: { coverArtworkUrl: { contains: 'supabase.co' } } });
+  const tracks = await prisma.track.findMany({ where: { audioUrl: { contains: 'supabase.co' } } });
+  const settings = await prisma.settings.findMany({ where: { value: { contains: 'supabase.co' } } });
+  fs.writeFileSync('temp_scripts/urls.json', JSON.stringify({releases, tracks, settings}, null, 2), 'utf8');
 }
-run().finally(() => prisma.$disconnect());
+
+run().then(() => prisma.$disconnect());

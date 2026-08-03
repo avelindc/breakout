@@ -149,38 +149,44 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         let coverUrl, audioUrl;
         
         try {
-          const timestamp = Date.now();
-          const coverExt = coverFile.name.split('.').pop();
-          const audioExt = audioFile.name.split('.').pop();
-          const coverKey = `covers/${primaryArtistId}-${timestamp}.${coverExt}`;
-          const audioKey = `audio/${primaryArtistId}-${timestamp + 1}.${audioExt}`;
+          console.log("[UploadForm] Uploading cover via API to R2...");
+          const coverData = new FormData();
+          coverData.append("file", coverFile);
+          coverData.append("type", "cover");
+          coverData.append("artistId", primaryArtistId);
 
-          console.log("[UploadForm] Uploading cover directly to Supabase...");
-          const coverUpload = await supabaseBrowser.storage
-            .from('releases')
-            .upload(coverKey, coverFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          const coverRes = await fetch("/api/upload", {
+            method: "POST",
+            body: coverData,
+          });
 
-          if (coverUpload.error) {
-             throw new Error(`Cover upload to Supabase failed: ${coverUpload.error.message}`);
+          if (!coverRes.ok) {
+            const errorText = await coverRes.text();
+            throw new Error(`Cover upload to R2 failed: ${errorText}`);
           }
-          coverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${coverKey}`;
+          
+          const coverJson = await coverRes.json();
+          coverUrl = coverJson.url;
           console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
 
-          console.log("[UploadForm] Uploading audio directly to Supabase...");
-          const audioUpload = await supabaseBrowser.storage
-            .from('releases')
-            .upload(audioKey, audioFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          console.log("[UploadForm] Uploading audio via API to R2...");
+          const audioData = new FormData();
+          audioData.append("file", audioFile);
+          audioData.append("type", "audio");
+          audioData.append("artistId", primaryArtistId);
 
-          if (audioUpload.error) {
-             throw new Error(`Audio upload to Supabase failed: ${audioUpload.error.message}`);
+          const audioRes = await fetch("/api/upload", {
+            method: "POST",
+            body: audioData,
+          });
+
+          if (!audioRes.ok) {
+            const errorText = await audioRes.text();
+            throw new Error(`Audio upload to R2 failed: ${errorText}`);
           }
-          audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${audioKey}`;
+          
+          const audioJson = await audioRes.json();
+          audioUrl = audioJson.url;
           console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
 
         } catch (e: any) {

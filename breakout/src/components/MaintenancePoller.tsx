@@ -11,9 +11,13 @@ export function MaintenancePoller() {
 
     const checkStatus = async () => {
       try {
-        const res = await fetch("/api/maintenance", { 
+        const res = await fetch(`/api/maintenance?t=${Date.now()}`, { 
           cache: "no-store",
-          headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+          headers: { 
+            "Pragma": "no-cache", 
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Expires": "0"
+          }
         });
         const data = await res.json();
         if (data?.active) {

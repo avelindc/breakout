@@ -143,6 +143,7 @@ export async function POST(req: NextRequest) {
         allowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES];
         break;
       case 'contract':
+      case 'signature':
         bucket = BUCKET_ASSETS;
         folder = uploadType === 'signature' ? 'signatures' : 'contracts';
         maxSize = MAX_IMAGE_SIZE;

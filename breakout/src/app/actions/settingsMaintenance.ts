@@ -61,40 +61,37 @@ export async function saveMaintenanceSettingsAction(formData: FormData) {
         where: { key: "maintenance_logo_url" }
       });
     } else if (logoFile && logoFile.size > 0) {
-      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-      
-      if (!supabaseUrl || !supabaseKey) {
-        return { error: "Supabase credentials missing" };
-      }
-      
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const ext = logoFile.name.split('.').pop();
+      const ext = logoFile.name.split('.').pop() || 'png';
       const path = `brand/maintenance-logo-${Date.now()}.${ext}`;
       const buffer = Buffer.from(await logoFile.arrayBuffer());
       
-      const { error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(path, buffer, {
-          contentType: logoFile.type,
-          upsert: false
-        });
-        
-      if (uploadError) {
-        return { error: `Failed to upload logo: ${uploadError.message}` };
-      }
-      
-      const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/${path}`;
-      
-      await prisma.settings.upsert({
-        where: { key: "maintenance_logo_url" },
-        update: { value: logoUrl },
-        create: {
-          key: "maintenance_logo_url",
-          value: logoUrl,
-          description: "Custom maintenance page logo url"
-        }
+      const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+      const { r2Client, BUCKET_ASSETS } = await import("@/lib/r2");
+      const { getR2PublicUrl } = await import("@/lib/r2-helpers");
+
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_ASSETS,
+        Key: path,
+        Body: buffer,
+        ContentType: logoFile.type,
       });
+
+      try {
+        await r2Client.send(command);
+        const logoUrl = await getR2PublicUrl(BUCKET_ASSETS, path);
+        
+        await prisma.settings.upsert({
+          where: { key: "maintenance_logo_url" },
+          update: { value: logoUrl },
+          create: {
+            key: "maintenance_logo_url",
+            value: logoUrl,
+            description: "Custom maintenance page logo url"
+          }
+        });
+      } catch (uploadError: any) {
+        return { error: `Failed to upload logo to R2: ${uploadError.message}` };
+      }
     }
 
     revalidatePath("/", "layout");

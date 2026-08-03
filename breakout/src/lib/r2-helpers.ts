@@ -165,10 +165,10 @@ export async function uploadFileToAPI(
       formData.append('artistId', artistId);
     }
 
-    // Get the base URL for API calls
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    // Get the base URL for API calls - server action runs on server so use internal URL
+    const baseUrl = process.env.NEXTAUTH_URL 
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+      || 'http://localhost:3000';
     
     const apiUrl = `${baseUrl}/api/upload`;
     
