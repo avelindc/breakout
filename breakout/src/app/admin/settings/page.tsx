@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { BrandSettingsForm } from "@/components/BrandSettingsForm";
 import { MaintenanceSettingsForm } from "@/components/MaintenanceSettingsForm";
 import { CatalogVisibilitySettings } from "@/components/CatalogVisibilitySettings";
+import { WithdrawalSettingsForm } from "@/components/WithdrawalSettingsForm";
 import { TelegramSettingsForm } from "@/components/TelegramSettingsForm";
 import { getMaintenanceData } from "@/lib/maintenance";
 import { PrismaClient } from "@prisma/client";
@@ -21,10 +22,12 @@ export default async function AdminSettingsPage() {
   const rphSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_rph' } });
   const khanaSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_khana' } });
   const haloSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_halo' } });
+  const withdrawalSetting = await prisma.settings.findUnique({ where: { key: 'withdrawals_enabled' } });
 
   const initialRph = rphSetting?.value !== "false";
   const initialKhana = khanaSetting?.value !== "false";
   const initialHalo = haloSetting?.value !== "false";
+  const withdrawalsEnabled = withdrawalSetting?.value !== "false";
 
   const telegramSettings = await getTelegramSettingsAction();
   const telegramData = telegramSettings.data || { enabled: false, botToken: "", chatId: "" };
@@ -37,6 +40,8 @@ export default async function AdminSettingsPage() {
       </div>
 
       <CatalogVisibilitySettings initialRph={initialRph} initialKhana={initialKhana} initialHalo={initialHalo} />
+
+      <WithdrawalSettingsForm initialEnabled={withdrawalsEnabled} />
 
       <MaintenanceSettingsForm initialData={maintenanceData as any} brandLogo={brandLogo} />
 

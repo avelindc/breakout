@@ -18,6 +18,11 @@ export async function withdrawAction(formData: FormData) {
     return { error: "Sistem sedang dalam pemeliharaan (Maintenance Mode)." };
   }
 
+  const withdrawSetting = await prisma.settings.findUnique({ where: { key: 'withdrawals_enabled' } });
+  if (withdrawSetting?.value === "false" && session.user.role !== "ADMIN") {
+    return { error: "Penarikan saldo sedang dinonaktifkan sementara oleh Admin." };
+  }
+
   const amount = parseFloat(formData.get("amount") as string);
   const bankName = formData.get("bankName") as string;
   const accountName = formData.get("accountName") as string;

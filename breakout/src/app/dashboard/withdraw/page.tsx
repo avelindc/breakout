@@ -8,6 +8,9 @@ const prisma = new PrismaClient();
 export default async function WithdrawPage() {
   const session = await auth();
   
+  const withdrawSetting = await prisma.settings.findUnique({ where: { key: 'withdrawals_enabled' } });
+  const withdrawalsEnabled = withdrawSetting?.value !== "false";
+
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id },
     include: { 
@@ -141,7 +144,7 @@ export default async function WithdrawPage() {
             <CreditCard className="w-5 h-5 text-[#7000FF]" />
             Request Withdrawal
           </h2>
-          <WithdrawForm availableBalance={availableBalance} />
+          <WithdrawForm availableBalance={availableBalance} withdrawalsEnabled={withdrawalsEnabled} />
         </div>
 
         <div>

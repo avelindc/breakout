@@ -6,3 +6,4 @@
 - **Migration Flow**: Supabase is only a transit station to save quota. The files are periodically migrated from Supabase to **Cloudflare R2** via a migration script.
 - **DO NOT** attempt to change `UploadForm.tsx` or `upload.ts` to point directly to R2 again. It will break the application for Indonesian users.
 - **How to Migrate**: When the user asks to "migrate" or "sedot file ke R2", run the script that downloads releases from Supabase, uploads them to R2, updates the Prisma database to point to the R2 URLs, and then deletes the files from Supabase.
+- **MIGRATION SCOPE**: Migrations to R2 MUST ONLY TOUCH `audio` and `cover` files for Releases. DO NOT TOUCH OR MIGRATE other assets (like CMS images, brand logos, contracts, messages). Those files must remain in Supabase.

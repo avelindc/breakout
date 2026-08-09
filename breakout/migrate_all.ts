@@ -93,34 +93,89 @@ async function migrateCover(releaseId: string, url: string, title: string): Prom
   }
 }
 
+async function migrateAudio(trackId: string, url: string, title: string): Promise<boolean> {
+  try {
+    const parsed = parseSupabaseUrl(url);
+    if (!parsed) return false;
+
+    const { bucket: supabaseBucket, filePath } = parsed;
+    const fileName = filePath.split('/').pop() || 'audio.mp3';
+    const r2Key = `audio/${fileName}`;
+
+    console.log(`[Download Audio] ${title}...`);
+    const downloadRes = await fetch(url);
+    if (!downloadRes.ok) return false;
+
+    const buffer = Buffer.from(await downloadRes.arrayBuffer());
+    const contentType = downloadRes.headers.get('content-type') || 'audio/mpeg';
+
+    console.log(`[Upload Audio] ${title} -> R2...`);
+    await r2Client.send(new PutObjectCommand({
+      Bucket: BUCKET_RELEASES,
+      Key: r2Key,
+      Body: buffer,
+      ContentType: contentType,
+    }));
+
+    try {
+      await supabase.storage.from(supabaseBucket).remove([filePath]);
+    } catch (e) {}
+
+    const cleanBase = R2_PUBLIC_URL_RELEASES.endsWith('/') ? R2_PUBLIC_URL_RELEASES.slice(0, -1) : R2_PUBLIC_URL_RELEASES;
+    const newUrl = `${cleanBase}/${r2Key}`;
+    await prisma.track.update({ where: { id: trackId }, data: { audioUrl: newUrl } });
+    console.log(`[Updated DB Audio] ${title} -> R2`);
+
+    return true;
+  } catch (err: any) {
+    return false;
+  }
+}
+
 async function main() {
-  console.log("=== MIGRASI COVER LAGU: SUPABASE -> R2 ===\n");
+  console.log("=== MIGRASI LAGU & COVER: SUPABASE -> R2 ===\n");
 
   const releases = await prisma.release.findMany({
     where: { coverArtworkUrl: { contains: 'supabase.co' } }
   });
 
-  if (releases.length === 0) {
-    console.log("✅ Semua cover lagu sudah di R2. Tidak ada yang perlu dipindahkan.");
+  const tracks = await prisma.track.findMany({
+    where: { audioUrl: { contains: 'supabase.co' } }
+  });
+
+  if (releases.length === 0 && tracks.length === 0) {
+    console.log("✅ Semua lagu dan cover sudah di R2.");
     return;
   }
 
-  console.log(`Ditemukan ${releases.length} cover lagu di Supabase. Mulai migrasi...\n`);
+  console.log(`Ditemukan ${releases.length} cover dan ${tracks.length} lagu di Supabase. Mulai migrasi...\n`);
 
-  let success = 0;
+  let coverSuccess = 0;
+  let audioSuccess = 0;
   let failed = 0;
 
   for (let i = 0; i < releases.length; i++) {
     const r = releases[i];
-    console.log(`--- [${i + 1}/${releases.length}] ${r.title} ---`);
-    const ok = await migrateCover(r.id, r.coverArtworkUrl, r.title);
-    if (ok) success++;
-    else failed++;
-    console.log('');
+    console.log(`--- [Cover ${i + 1}/${releases.length}] ${r.title} ---`);
+    if (r.coverArtworkUrl?.includes('supabase.co')) {
+      const ok = await migrateCover(r.id, r.coverArtworkUrl, r.title);
+      if (ok) coverSuccess++; else failed++;
+    }
   }
 
-  console.log(`=== SELESAI ===`);
-  console.log(`Total: ${releases.length} | Berhasil: ${success} | Gagal: ${failed}`);
+  for (let i = 0; i < tracks.length; i++) {
+    const t = tracks[i];
+    console.log(`--- [Audio ${i + 1}/${tracks.length}] ${t.title} ---`);
+    if (t.audioUrl?.includes('supabase.co')) {
+      const ok = await migrateAudio(t.id, t.audioUrl, t.title);
+      if (ok) audioSuccess++; else failed++;
+    }
+  }
+
+  console.log(`\n=== SELESAI ===`);
+  console.log(`Berhasil Migrasi Cover: ${coverSuccess}/${releases.length}`);
+  console.log(`Berhasil Migrasi Audio: ${audioSuccess}/${tracks.length}`);
+  console.log(`Gagal: ${failed}`);
 }
 
 main().finally(() => prisma.$disconnect());

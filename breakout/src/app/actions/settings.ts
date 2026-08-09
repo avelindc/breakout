@@ -83,3 +83,23 @@ export async function updateCatalogVisibility(data: { rph: boolean; khana: boole
     return { error: "Gagal menyimpan pengaturan" };
   }
 }
+
+export async function updateWithdrawalSettings(data: { enabled: boolean }) {
+  const session = await auth();
+  // @ts-ignore
+  if (session?.user?.role !== 'ADMIN') return { error: "Unauthorized" };
+
+  try {
+    await prisma.settings.upsert({
+      where: { key: 'withdrawals_enabled' },
+      update: { value: data.enabled ? "true" : "false" },
+      create: { key: 'withdrawals_enabled', value: data.enabled ? "true" : "false", description: 'Enable or disable user withdrawals' }
+    });
+
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { error: "Gagal menyimpan pengaturan penarikan" };
+  }
+}

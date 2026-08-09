@@ -1,0 +1,9 @@
+{
+	"appId": "online.breakoutmusic.app",
+	"appName": "Breakout Music",
+	"webDir": "public",
+	"server": {
+		"url": "https://breakoutmusic.online",
+		"cleartext": true
+	}
+}

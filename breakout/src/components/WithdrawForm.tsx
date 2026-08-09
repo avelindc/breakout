@@ -4,13 +4,14 @@ import { useState } from "react";
 import { withdrawAction } from "@/app/actions/withdraw";
 import { Loader2, CreditCard, CheckCircle2 } from "lucide-react";
 
-export function WithdrawForm({ availableBalance }: { availableBalance: number }) {
+export function WithdrawForm({ availableBalance, withdrawalsEnabled = true }: { availableBalance: number, withdrawalsEnabled?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!withdrawalsEnabled) return;
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -31,6 +32,17 @@ export function WithdrawForm({ availableBalance }: { availableBalance: number })
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!withdrawalsEnabled) {
+    return (
+      <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-center">
+        <h3 className="text-red-400 font-bold mb-2">Penarikan Saldo Dinonaktifkan</h3>
+        <p className="text-red-300 text-sm">
+          Saat ini fitur penarikan saldo sedang dinonaktifkan sementara oleh Administrator. Silakan coba lagi nanti atau hubungi Admin.
+        </p>
+      </div>
+    );
   }
 
   return (
