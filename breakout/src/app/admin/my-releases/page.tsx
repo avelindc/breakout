@@ -48,20 +48,19 @@ export default async function AdminMyReleasesPage() {
 
   return (
     <div className="animate-fade-in max-w-7xl mx-auto pb-10 px-4 md:px-0">
-      <div className="mb-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+      <div className="mb-6 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Releases</h1>
-          <p className="text-gray-500 text-sm">Kelola katalog musik aktif yang sudah disetujui untuk didistribusikan.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">My Releases (Katalog Aktif)</h1>
+          <p className="text-gray-500 text-sm">Kelola rilisan musik resmi yang telah disetujui & didistribusikan.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="px-4 py-2 bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl text-xs font-bold shadow-sm">
+            🎵 Total: <span className="font-extrabold text-sm">{approvedReleases.length}</span> Rilisan
+          </div>
         </div>
       </div>
 
-      {approvedReleases.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center text-gray-400 shadow-sm font-semibold">
-          Belum ada rilisan aktif yang disetujui.
-        </div>
-      ) : (
-        <MyReleasesList releases={serializedReleases} />
-      )}
+      <MyReleasesList releases={serializedReleases} />
     </div>
   );
 }
