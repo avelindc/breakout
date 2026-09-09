@@ -104,7 +104,10 @@ async function migrateAudio(trackId: string, url: string, title: string): Promis
 
     console.log(`[Download Audio] ${title}...`);
     const downloadRes = await fetch(url);
-    if (!downloadRes.ok) return false;
+    if (!downloadRes.ok) {
+      console.error(`[Download Audio Failed] ${title}: status ${downloadRes.status} ${downloadRes.statusText}`);
+      return false;
+    }
 
     const buffer = Buffer.from(await downloadRes.arrayBuffer());
     const contentType = downloadRes.headers.get('content-type') || 'audio/mpeg';
@@ -128,6 +131,7 @@ async function migrateAudio(trackId: string, url: string, title: string): Promis
 
     return true;
   } catch (err: any) {
+    console.error(`[Audio Error] ${title}:`, err?.message || err);
     return false;
   }
 }

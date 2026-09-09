@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { submitMusicMetadataAction } from "@/app/actions/upload";
-import { supabaseBrowser } from "@/lib/supabase-browser";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -150,37 +149,43 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         
         try {
           const timestamp = Date.now();
-          const coverExt = coverFile.name.split('.').pop();
-          const audioExt = audioFile.name.split('.').pop();
-          const coverKey = `covers/${primaryArtistId}-${timestamp}.${coverExt}`;
-          const audioKey = `audio/${primaryArtistId}-${timestamp + 1}.${audioExt}`;
+          const coverExt = coverFile.name.split('.').pop() || 'jpg';
+          const audioExt = audioFile.name.split('.').pop() || 'mp3';
+          const coverFilename = `${primaryArtistId}-${timestamp}.${coverExt}`;
+          const audioFilename = `${primaryArtistId}-${timestamp + 1}.${audioExt}`;
 
-          console.log("[UploadForm] Uploading cover directly to Supabase...");
-          const coverUpload = await supabaseBrowser.storage
-            .from('releases')
-            .upload(coverKey, coverFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          console.log("[UploadForm] Uploading cover directly to Cloudflare R2...");
+          const coverFormData = new FormData();
+          coverFormData.append("file", coverFile);
+          coverFormData.append("folder", "covers");
+          coverFormData.append("filename", coverFilename);
 
-          if (coverUpload.error) {
-             throw new Error(`Cover upload to Supabase failed: ${coverUpload.error.message}`);
+          const coverRes = await fetch("https://upload.breakoutmusic.online", {
+            method: "POST",
+            body: coverFormData,
+          });
+          const coverData = await coverRes.json();
+          if (!coverRes.ok || !coverData.success) {
+            throw new Error(`Cover upload failed: ${coverData.error || coverRes.statusText}`);
           }
-          coverUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${coverKey}`;
+          coverUrl = coverData.url;
           console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
 
-          console.log("[UploadForm] Uploading audio directly to Supabase...");
-          const audioUpload = await supabaseBrowser.storage
-            .from('releases')
-            .upload(audioKey, audioFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          console.log("[UploadForm] Uploading audio directly to Cloudflare R2...");
+          const audioFormData = new FormData();
+          audioFormData.append("file", audioFile);
+          audioFormData.append("folder", "audio");
+          audioFormData.append("filename", audioFilename);
 
-          if (audioUpload.error) {
-             throw new Error(`Audio upload to Supabase failed: ${audioUpload.error.message}`);
+          const audioRes = await fetch("https://upload.breakoutmusic.online", {
+            method: "POST",
+            body: audioFormData,
+          });
+          const audioData = await audioRes.json();
+          if (!audioRes.ok || !audioData.success) {
+            throw new Error(`Audio upload failed: ${audioData.error || audioRes.statusText}`);
           }
-          audioUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/releases/${audioKey}`;
+          audioUrl = audioData.url;
           console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
 
         } catch (e: any) {
