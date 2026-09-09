@@ -93,24 +93,20 @@ export function ImportReleaseForm() {
       // 1. Upload cover
       setUploading(true);
       setStatusMsg("⏳ Mengupload cover artwork...");
-      const ext = coverFile.name.split(".").pop() || "jpg";
-      const urlRes = await getCoverUploadUrlAction(ext);
-      if (urlRes.error || !urlRes.signedUrl) {
-        setStatusMsg(`❌ ${urlRes.error}`);
-        setUploading(false);
-        return;
-      }
-
-      const uploadRes = await fetch(urlRes.signedUrl, {
-        method: "PUT",
-        body: coverFile,
-        headers: { "Content-Type": coverFile.type },
+      
+      const uploadForm = new FormData();
+      uploadForm.append("file", coverFile);
+      const uploadRes = await fetch("https://upload.breakoutmusic.online", {
+        method: "POST",
+        body: uploadForm
       });
-      if (!uploadRes.ok) {
-        setStatusMsg("❌ Gagal mengupload cover ke storage.");
+      const uploadData = await uploadRes.json();
+      if (!uploadData.success || !uploadData.url) {
+        setStatusMsg(`❌ Gagal mengupload cover: ${uploadData.error || "Upload error"}`);
         setUploading(false);
         return;
       }
+      const uploadedCoverUrl = uploadData.url;
       setUploading(false);
 
       // 2. Save release
@@ -125,7 +121,7 @@ export function ImportReleaseForm() {
       formData.append("language", language);
       formData.append("releaseType", releaseType);
       formData.append("releaseDate", releaseDate);
-      formData.append("coverPath", urlRes.path!);
+      formData.append("coverPath", uploadedCoverUrl);
       formData.append("distributor", distributor);
       formData.append("upc", upc);
       formData.append("isrc", isrc);

@@ -61,7 +61,9 @@ export async function importExistingReleaseAction(formData: FormData) {
     const targetArtistId = (formData.get("artistId") as string)?.trim() || null;
 
     const releaseDate = new Date(releaseDateStr);
-    const coverArtworkUrl = `${supabaseUrl}/storage/v1/object/public/releases/${coverPath}`;
+    const coverArtworkUrl = coverPath.startsWith("http")
+      ? coverPath
+      : `https://releases.breakoutmusic.online/${coverPath.replace(/^\//, '')}`;
 
     // Find or use the specified artist. If no artistId given, find/create by name.
     let artistRecord: { id: string } | null = null;

@@ -3,7 +3,8 @@
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@supabase/supabase-js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -61,30 +62,36 @@ export async function saveMaintenanceSettingsAction(formData: FormData) {
         where: { key: "maintenance_logo_url" }
       });
     } else if (logoFile && logoFile.size > 0) {
-      const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-      
-      if (!supabaseUrl || !supabaseKey) {
-        return { error: "Supabase credentials missing" };
-      }
-      
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      const ext = logoFile.name.split('.').pop();
-      const path = `brand/maintenance-logo-${Date.now()}.${ext}`;
+      const ext = logoFile.name.split('.').pop() || 'png';
+      const key = `brand/maintenance-logo-${Date.now()}.${ext}`;
       const buffer = Buffer.from(await logoFile.arrayBuffer());
       
-      const { error: uploadError } = await supabase.storage
-        .from('assets')
-        .upload(path, buffer, {
-          contentType: logoFile.type,
-          upsert: false
+      let logoUrl = "";
+      try {
+        const command = new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_RELEASES || "releases",
+          Key: key,
+          Body: buffer,
+          ContentType: logoFile.type || "image/png",
         });
-        
-      if (uploadError) {
-        return { error: `Failed to upload logo: ${uploadError.message}` };
+        await r2Client.send(command);
+        const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://releases.breakoutmusic.online";
+        logoUrl = `${publicBase.replace(/\/$/, '')}/${key}`;
+      } catch (r2Err: any) {
+        console.warn("Direct R2 upload failed, using worker:", r2Err.message);
+        const workerForm = new FormData();
+        workerForm.append("file", logoFile);
+        const workerRes = await fetch("https://upload.breakoutmusic.online", {
+          method: "POST",
+          body: workerForm
+        });
+        const workerData = await workerRes.json();
+        if (workerData.success && workerData.url) {
+          logoUrl = workerData.url;
+        } else {
+          return { error: `Failed to upload logo: ${workerData.error || r2Err.message}` };
+        }
       }
-      
-      const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/${path}`;
       
       await prisma.settings.upsert({
         where: { key: "maintenance_logo_url" },

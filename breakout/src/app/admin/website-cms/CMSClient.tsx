@@ -45,21 +45,43 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     
     setUploadingField(fieldId || path.join("."));
     
-    const formData = new FormData();
-    formData.append("file", file);
-    
-    const res = await uploadCMSImageAction(formData);
-    setUploadingField(null);
-    
-    if (res.error) {
-      alert("Upload failed: " + res.error);
+    try {
+      // 1. Direct fast upload to Cloudflare R2 Worker
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      
+      let imageUrl = "";
+      try {
+        const workerRes = await fetch("https://upload.breakoutmusic.online", {
+          method: "POST",
+          body: uploadFormData
+        });
+        const workerData = await workerRes.json();
+        if (workerData.success && workerData.url) {
+          imageUrl = workerData.url;
+        }
+      } catch (workerErr) {
+        console.warn("Direct worker upload fallback:", workerErr);
+      }
+
+      // 2. Fallback to Server Action if needed
+      if (!imageUrl) {
+        const res = await uploadCMSImageAction(uploadFormData);
+        if (res.error) throw new Error(res.error);
+        imageUrl = res.url || "";
+      }
+
+      setUploadingField(null);
+
+      if (path.length > 0 && imageUrl) {
+        updateNestedField(path, imageUrl);
+      }
+      return imageUrl;
+    } catch (err: any) {
+      setUploadingField(null);
+      alert("Upload failed: " + (err.message || "Failed to upload image"));
       return null;
     }
-    
-    if (path.length > 0) {
-      updateNestedField(path, res.url);
-    }
-    return res.url;
   };
 
   const updateNestedField = (path: string[], value: any) => {
