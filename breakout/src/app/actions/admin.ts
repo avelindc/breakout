@@ -137,3 +137,39 @@ export async function deleteExistingReleaseAction(releaseId: string) {
     return { error: error.message || "Failed to delete release" };
   }
 }
+
+export async function bulkDeleteReleasesAction(releaseIds: string[]) {
+  try {
+    if (!releaseIds || releaseIds.length === 0) {
+      return { error: "Tidak ada lagu/rilisan yang dipilih." };
+    }
+
+    // Clean relations first to ensure safe deletion
+    await prisma.streaming.deleteMany({
+      where: { track: { releaseId: { in: releaseIds } } }
+    }).catch(() => {});
+
+    await prisma.royaltyPerSong.deleteMany({
+      where: { track: { releaseId: { in: releaseIds } } }
+    }).catch(() => {});
+
+    await prisma.track.deleteMany({
+      where: { releaseId: { in: releaseIds } }
+    }).catch(() => {});
+
+    const deleted = await prisma.release.deleteMany({
+      where: { id: { in: releaseIds } }
+    });
+
+    revalidatePath("/admin/my-releases");
+    revalidatePath("/admin/releases");
+    revalidatePath("/admin/existing-releases");
+    revalidatePath("/admin/all-artists");
+    revalidatePath("/dashboard/releases");
+    return { success: true, count: deleted.count };
+  } catch (error: any) {
+    console.error("bulkDeleteReleasesAction error:", error);
+    return { error: error.message || "Gagal menghapus rilisan terpilih." };
+  }
+}
+

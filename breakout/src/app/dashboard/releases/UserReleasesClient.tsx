@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { 
   X, Eye, Edit2, Play, CheckCircle2, Tag, 
-  Compass, Radio, User, ChevronRight, Clock, Download
+  Compass, Radio, User, ChevronRight, Clock, Download, Trash2
 } from "lucide-react";
+import { bulkDeleteReleasesAction } from "@/app/actions/admin";
 
 interface Track {
   id: string;
@@ -32,6 +33,7 @@ interface Release {
 }
 
 export function UserReleasesClient({ releases }: { releases: Release[] }) {
+  const [list, setList] = useState<Release[]>(releases);
   const [selected, setSelected] = useState<Release | null>(null);
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
@@ -99,7 +101,7 @@ export function UserReleasesClient({ releases }: { releases: Release[] }) {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {releases.map(rel => (
+        {list.map(rel => (
           <div
             key={rel.id}
             onClick={() => { setSelected(rel); }}
@@ -236,6 +238,28 @@ export function UserReleasesClient({ releases }: { releases: Release[] }) {
                     className="h-10 px-4 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-bold text-xs flex items-center gap-1.5 shadow-sm transition shrink-0"
                   >
                     <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Download</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {selected.status !== 'APPROVED' && (
+                <div className="pt-2 border-t border-gray-100 flex justify-end">
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Apakah Anda yakin ingin membatalkan dan menghapus rilis "${selected.title}"?`)) {
+                        const res = await bulkDeleteReleasesAction([selected.id]);
+                        if (res.error) {
+                          alert(res.error);
+                        } else {
+                          setList(prev => prev.filter(item => item.id !== selected.id));
+                          setSelected(null);
+                        }
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Hapus Rilisan Ini
                   </button>
                 </div>
               )}

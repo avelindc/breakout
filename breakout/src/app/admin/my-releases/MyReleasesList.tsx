@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { 
   X, Eye, Edit2, Play, CheckCircle2, ShieldAlert, Tag, 
-  Compass, Radio, User, FileText, ChevronRight, Music, AlertCircle, Loader2, Clock, Download
+  Compass, Radio, User, FileText, ChevronRight, Music, AlertCircle, Loader2, Clock, Download,
+  Trash2, Search, Filter, CheckSquare, Square
 } from "lucide-react";
 import { adminTakedownReleaseAction, adminEditReleaseAction } from "@/app/actions/adminReleaseManagement";
+import { bulkDeleteReleasesAction } from "@/app/actions/admin";
 
 interface Track {
   id: string;
@@ -39,6 +41,13 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
   const [list, setList] = useState<Release[]>(releases);
   const [selected, setSelected] = useState<Release | null>(null);
   
+  // Selection & Search & Filter States
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedArtist, setSelectedArtist] = useState("ALL");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Audio Player State
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
@@ -53,6 +62,38 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
   const [editGenre, setEditGenre] = useState("");
   const [editUpc, setEditUpc] = useState("");
   const [editIsrc, setEditIsrc] = useState("");
+
+  const uniqueArtists = Array.from(new Set(list.map(r => r.primaryArtist))).sort();
+
+  const filteredList = list.filter(rel => {
+    const matchesSearch = 
+      rel.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rel.primaryArtist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (rel.featuredArtist && rel.featuredArtist.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (rel.tracks?.[0]?.isrc && rel.tracks[0].isrc.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const matchesArtist = selectedArtist === "ALL" || rel.primaryArtist === selectedArtist;
+    return matchesSearch && matchesArtist;
+  });
+
+  const isAllSelected = filteredList.length > 0 && filteredList.every(r => selectedIds.includes(r.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const filteredIds = new Set(filteredList.map(r => r.id));
+      setSelectedIds(prev => prev.filter(id => !filteredIds.has(id)));
+    } else {
+      const filteredIds = filteredList.map(r => r.id);
+      setSelectedIds(prev => Array.from(new Set([...prev, ...filteredIds])));
+    }
+  };
+
+  const toggleSelectOne = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   const startEditing = (rel: Release) => {
     setEditTitle(rel.title);
@@ -130,6 +171,39 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
     }
   };
 
+  const handleSingleDelete = async (rel: Release) => {
+    if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus permanen rilisan "${rel.title}" beserta semua lagunya? Data akan hilang dari database dan user.`)) {
+      setIsDeleting(true);
+      const res = await bulkDeleteReleasesAction([rel.id]);
+      setIsDeleting(false);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        setList(prev => prev.filter(item => item.id !== rel.id));
+        setSelected(null);
+        audioElement?.pause();
+        setPlayingTrackId(null);
+      }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setIsDeleting(true);
+    const res = await bulkDeleteReleasesAction(selectedIds);
+    setIsDeleting(false);
+    if (res.error) {
+      alert(res.error);
+    } else {
+      setList(prev => prev.filter(r => !selectedIds.includes(r.id)));
+      setSelectedIds([]);
+      setShowDeleteConfirm(false);
+      if (selected && selectedIds.includes(selected.id)) {
+        setSelected(null);
+      }
+    }
+  };
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selected) return;
@@ -146,7 +220,6 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
     if (res.error) {
       alert(res.error);
     } else {
-      // Update list state
       setList(prev => prev.map(item => {
         if (item.id === selected.id) {
           const updatedTracks = item.tracks.map(t => ({
@@ -171,59 +244,210 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
 
   return (
     <>
-      {/* Grid List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {list.map(rel => (
-          <div
-            key={rel.id}
-            onClick={() => { setSelected(rel); setIsEditing(false); }}
-            className="cursor-pointer group bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 hover:-translate-y-1 flex flex-col"
+      {/* Search & Filter Toolbar */}
+      <div className="mb-6 bg-white p-4 md:p-5 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Search Input */}
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input 
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari judul lagu, artis, ISRC..."
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-semibold text-gray-800 outline-none focus:border-purple-500 focus:bg-white transition"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter Artist & Select All Controls */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Artist Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-400 hidden sm:inline" />
+            <select
+              value={selectedArtist}
+              onChange={(e) => setSelectedArtist(e.target.value)}
+              className="text-xs font-bold bg-gray-50 border border-gray-200 text-gray-700 py-2.5 px-3.5 rounded-2xl outline-none focus:border-purple-500 cursor-pointer"
+            >
+              <option value="ALL">Semua Artis ({uniqueArtists.length})</option>
+              {uniqueArtists.map(artist => (
+                <option key={artist} value={artist}>{artist}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Select All Button */}
+          <button
+            onClick={toggleSelectAll}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition border ${
+              isAllSelected 
+                ? "bg-purple-50 border-purple-200 text-purple-700" 
+                : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+            }`}
           >
-            {/* Cover Aspect Box */}
-            <div className="aspect-square bg-gray-50 w-full relative overflow-hidden shrink-0">
-              <img
-                src={rel.coverArtworkUrl}
-                alt={rel.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                  <Eye className="w-5 h-5" />
+            {isAllSelected ? <CheckSquare className="w-4 h-4 text-purple-600" /> : <Square className="w-4 h-4 text-gray-400" />}
+            <span>{isAllSelected ? "Batal Semua" : "Pilih Semua"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Grid List */}
+      {filteredList.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center text-gray-400 shadow-sm font-semibold">
+          Tidak ada rilisan yang cocok dengan pencarian / filter.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-20">
+          {filteredList.map(rel => {
+            const isChecked = selectedIds.includes(rel.id);
+            return (
+              <div
+                key={rel.id}
+                onClick={() => { setSelected(rel); setIsEditing(false); }}
+                className={`cursor-pointer group bg-white rounded-3xl border shadow-sm overflow-hidden hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 hover:-translate-y-1 flex flex-col relative ${
+                  isChecked ? "border-purple-500 ring-2 ring-purple-500/20 shadow-purple-500/10" : "border-gray-100"
+                }`}
+              >
+                {/* Checkbox Trigger Top-Left */}
+                <div 
+                  onClick={(e) => toggleSelectOne(rel.id, e)}
+                  className="absolute top-3 right-3 z-20"
+                >
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center backdrop-blur-md shadow-md transition-all ${
+                    isChecked 
+                      ? "bg-purple-600 text-white scale-105" 
+                      : "bg-white/80 text-gray-400 hover:bg-white hover:text-gray-700 opacity-90 group-hover:opacity-100"
+                  }`}>
+                    {isChecked ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                  </div>
+                </div>
+
+                {/* Cover Aspect Box */}
+                <div className="aspect-square bg-gray-50 w-full relative overflow-hidden shrink-0">
+                  <img
+                    src={rel.coverArtworkUrl}
+                    alt={rel.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                      <Eye className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <span className="absolute bottom-3 left-3 text-[10px] font-bold px-2.5 py-1 bg-green-500 text-white rounded-full shadow flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> APPROVED
+                  </span>
+                </div>
+
+                {/* Info body */}
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-gray-900 truncate text-base mb-1 group-hover:text-purple-600 transition">
+                      {rel.title}
+                    </h4>
+                    <p className="text-xs font-semibold text-gray-500 truncate mb-2">
+                      {rel.primaryArtist} {rel.featuredArtist && `(feat. ${rel.featuredArtist})`}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                      <Compass className="w-3.5 h-3.5" />
+                      <span>{rel.genre}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                    <span>
+                      Rilis: {(() => {
+                        const d = new Date(rel.releaseDate);
+                        return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+                      })()}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition" />
+                  </div>
                 </div>
               </div>
-              <span className="absolute bottom-3 left-3 text-[10px] font-bold px-2.5 py-1 bg-green-500 text-white rounded-full shadow flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> APPROVED
-              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-6 py-4 rounded-3xl shadow-2xl border border-gray-800 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-sm font-bold">{selectedIds.length} rilisan terpilih</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedIds([])}
+              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition"
+            >
+              Batal
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-red-600/30 flex items-center gap-1.5 transition active:scale-95"
+            >
+              <Trash2 className="w-4 h-4" />
+              Hapus Terpilih ({selectedIds.length})
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-2">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Konfirmasi Hapus Rilisan</h3>
+              <p className="text-sm text-gray-500">
+                Anda akan menghapus <span className="font-bold text-red-600">{selectedIds.length} lagu/rilisan</span> secara permanen dari database & panel artis. Tindakan ini tidak dapat dibatalkan.
+              </p>
             </div>
 
-            {/* Info body */}
-            <div className="p-5 flex-1 flex flex-col justify-between">
-              <div>
-                <h4 className="font-bold text-gray-900 truncate text-base mb-1 group-hover:text-purple-600 transition">
-                  {rel.title}
-                </h4>
-                <p className="text-xs font-semibold text-gray-500 truncate mb-2">
-                  {rel.primaryArtist} {rel.featuredArtist && `(feat. ${rel.featuredArtist})`}
-                </p>
-                <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>{rel.genre}</span>
+            <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-2xl p-3 space-y-1.5 border border-gray-100">
+              {list.filter(r => selectedIds.includes(r.id)).map(r => (
+                <div key={r.id} className="text-xs font-semibold text-gray-700 flex items-center justify-between">
+                  <span className="truncate max-w-[200px]">{r.title}</span>
+                  <span className="text-gray-400 text-[10px]">{r.primaryArtist}</span>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-                <span>
-                  Rilis: {(() => {
-                    const d = new Date(rel.releaseDate);
-                    return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
-                  })()}
-                </span>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition" />
-              </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 py-3 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-2xl transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 transition"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Sekarang"}
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {/* Review & Management Modal */}
       {selected && (
@@ -387,11 +611,11 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
               )}
 
               {/* Management Control Buttons */}
-              <div className="flex gap-2 pt-2 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
                 {!isEditing && (
                   <button
                     onClick={() => startEditing(selected)}
-                    className="flex-1 h-12 bg-purple-50 text-purple-700 hover:bg-purple-100 transition font-bold rounded-2xl flex items-center justify-center gap-2"
+                    className="flex-1 min-w-[130px] h-12 bg-purple-50 text-purple-700 hover:bg-purple-100 transition font-bold rounded-2xl flex items-center justify-center gap-2 text-xs"
                   >
                     <Edit2 className="w-4 h-4" />
                     Edit Metadata
@@ -401,10 +625,19 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
                 <button
                   onClick={() => handleTakedown(selected)}
                   disabled={loadingTakedown}
-                  className="flex-1 h-12 bg-red-50 text-red-600 hover:bg-red-100 transition font-bold rounded-2xl flex items-center justify-center gap-2"
+                  className="flex-1 min-w-[130px] h-12 bg-amber-50 text-amber-700 hover:bg-amber-100 transition font-bold rounded-2xl flex items-center justify-center gap-2 text-xs"
                 >
                   {loadingTakedown ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-                  Takedown Musik
+                  Takedown
+                </button>
+
+                <button
+                  onClick={() => handleSingleDelete(selected)}
+                  disabled={isDeleting}
+                  className="flex-1 min-w-[130px] h-12 bg-red-50 text-red-600 hover:bg-red-100 transition font-bold rounded-2xl flex items-center justify-center gap-2 text-xs"
+                >
+                  {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  Hapus Permanen
                 </button>
               </div>
 
